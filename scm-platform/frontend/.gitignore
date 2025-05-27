@@ -21,4 +21,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+<<<<<<< HEAD
 .next/
+=======
+>>>>>>> 1a451c3 (Add Hudson-1.0.0.zip to repo)
