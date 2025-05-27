@@ -181,8 +181,8 @@ export default function MarketplacePage() {
 
   return (
     <ChakraProvider theme={theme}>
-      <Navbar isLoggedIn={false} />
-      <Box p={{ base: 4, md: 6 }} bg="gray.50" minHeight="calc(100vh - 120px)">
+      <Navbar isLoggedIn={true} />
+      <Box pt = {20} px={{ base: 4, md: 6 }} bg="gray.50" minHeight="calc(100vh - 120px)">
         <Flex direction={{ base: "column", lg: "row" }} gap={6}>
           {/* Left Side: Product Bundles (takes more space) */}
           <VStack
