@@ -21,6 +21,8 @@ import {
 import { ViewIcon, ViewOffIcon, StarIcon } from "@chakra-ui/icons";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Link as ChakraLink } from "@chakra-ui/react";
+import NextLink from "next/link";
 
 const theme = extendTheme({
   colors: {
@@ -191,6 +193,17 @@ function CreateAccount() {
               !
             </Text>
           </Heading>
+          <ChakraLink
+            as={NextLink}
+            href="/login"
+            color="blue.500"
+            fontWeight="semibold"
+            fontSize={{ base: "sm", sm: "md" }}
+            _hover={{ textDecoration: "underline" }}
+          >
+            Login
+          </ChakraLink>
+
           <Box as="form" onSubmit={handleSubmit}>
             <Stack spacing={4}>
               <Input
