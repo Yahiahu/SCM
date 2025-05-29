@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
 import { Organization } from "./Organization";
 
 @Entity()
@@ -24,5 +24,6 @@ export class User {
   @ManyToOne(() => Organization, (organization) => organization.users, {
     onDelete: "SET NULL",
   })
+  @JoinColumn({ name: "organizationId" }) // 👈 Add this
   organization!: Organization;
 }
