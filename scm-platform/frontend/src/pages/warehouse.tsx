@@ -114,6 +114,36 @@ import Footer from "../components/footer";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+// API service functions
+import {
+  fetchWarehouses,
+  fetchWarehouseInventory,
+  fetchComponents,
+  fetchProducts,
+  fetchBOMs,
+  fetchPurchaseOrders,
+  fetchPOItems,
+  fetchShippingInfo,
+  createWarehouseInventory,
+  updateWarehouseInventory,
+  deleteWarehouseInventory,
+  createPurchaseOrder,
+  createPOItem,
+  createShippingInfo,
+} from "../services/api";
+
+// Types matching your backend
+import {
+  Warehouse as BackendWarehouse,
+  WarehouseInventory as BackendWarehouseInventory,
+  Component as BackendComponent,
+  Product as BackendProduct,
+  BOM as BackendBOM,
+  PurchaseOrder as BackendPurchaseOrder,
+  POItem as BackendPOItem,
+  ShippingInfo as BackendShippingInfo,
+} from "../../../backend/src/interfaces/index";
+
 // Custom theme for warehouse dashboard
 const theme = extendTheme({
   colors: {
@@ -167,51 +197,71 @@ const theme = extendTheme({
   },
 });
 
+// UI interfaces that map to backend models
 interface InventoryItem {
-  id: string;
-  sku: string;
-  name: string;
-  category: string;
-  location: string;
-  quantity: number;
-  minStockLevel: number;
-  status: "In Stock" | "Low Stock" | "Out of Stock" | "Backordered";
-  lastUpdated: string;
-  image?: string;
-  unitPrice?: number;
+  id: number;
+  componentId: number;
+  warehouseId: number;
+  currentQty: number;
+  incomingQty: number;
+  outgoingQty: number;
+  component: {
+    num: string;
+    description: string;
+    supplierPartNumber: string;
+    supplier: {
+      name: string;
+    };
+  };
+  warehouse: {
+    name: string;
+    location: string;
+  };
 }
 
 interface IncomingShipment {
-  id: string;
-  itemId: string;
-  itemName: string;
-  quantity: number;
-  from: string;
-  expectedDate: string;
-  status: "In Transit" | "Delayed" | "Arrived" | "Processing";
+  id: number;
+  poId: number;
+  componentId: number;
+  qty: number;
+  origin: string;
+  destination: string;
   carrier: string;
-  trackingNumber?: string;
+  trackingNumber: string;
+  estimatedArrival: string;
+  status: "In Transit" | "Delayed" | "Arrived" | "Processing";
+  component: {
+    description: string;
+  };
+  purchaseOrder: {
+    supplier: {
+      name: string;
+    };
+  };
 }
 
 interface OutgoingShipment {
-  id: string;
-  itemId: string;
-  itemName: string;
-  quantity: number;
+  id: number;
+  poId: number;
+  componentId: number;
+  qty: number;
   to: string;
   orderNumber: string;
   status: "Processing" | "Shipped" | "Delivered" | "Cancelled";
   shippingDate: string;
   trackingNumber?: string;
+  component: {
+    description: string;
+  };
 }
 
 interface WarehouseLocation {
-  id: string;
+  id: number;
   name: string;
-  type: "Bay" | "Shelf" | "Bin" | "Rack";
-  capacity: number;
-  currentOccupancy: number;
-  items: string[]; // Array of item IDs
+  location: string;
+  organizationId: number;
+  capacity?: number;
+  currentOccupancy?: number;
 }
 
 export default function WarehousePage() {
@@ -221,6 +271,12 @@ export default function WarehousePage() {
   const [incoming, setIncoming] = useState<IncomingShipment[]>([]);
   const [outgoing, setOutgoing] = useState<OutgoingShipment[]>([]);
   const [locations, setLocations] = useState<WarehouseLocation[]>([]);
+  const [components, setComponents] = useState<BackendComponent[]>([]);
+  const [products, setProducts] = useState<BackendProduct[]>([]);
+  const [boms, setBoms] = useState<BackendBOM[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<BackendPurchaseOrder[]>(
+    []
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -228,18 +284,16 @@ export default function WarehousePage() {
 
   // Form states
   const [formData, setFormData] = useState({
-    name: "",
-    sku: "",
-    category: "",
-    location: "",
-    quantity: "",
-    minStockLevel: "",
-    unitPrice: "",
+    componentId: "",
+    warehouseId: "",
+    currentQty: "",
+    incomingQty: "",
+    outgoingQty: "",
   });
 
   const [shipmentForm, setShipmentForm] = useState({
     type: "incoming",
-    itemId: "",
+    componentId: "",
     quantity: "",
     toFrom: "",
     expectedDate: "",
@@ -247,200 +301,109 @@ export default function WarehousePage() {
     trackingNumber: "",
   });
 
-  // Initialize with mock data
+  // Load data from backend
   useEffect(() => {
-    const loadData = () => {
-      setIsLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setInventory([
-          {
-            id: "INV001",
-            sku: "WGT-A-001",
-            name: "Widget A",
-            category: "Components",
-            location: "BAY-1-S2",
-            quantity: 150,
-            minStockLevel: 50,
-            status: "In Stock",
-            lastUpdated: new Date().toISOString().split("T")[0],
-            image: "https://via.placeholder.com/50",
-            unitPrice: 12.5,
-          },
-          {
-            id: "INV002",
-            sku: "GDT-B-002",
-            name: "Gadget B",
-            category: "Assemblies",
-            location: "BAY-3-S1",
-            quantity: 89,
-            minStockLevel: 100,
-            status: "Low Stock",
-            lastUpdated: new Date().toISOString().split("T")[0],
-            image: "https://via.placeholder.com/50",
-            unitPrice: 25.0,
-          },
-          {
-            id: "INV003",
-            sku: "PRT-C-003",
-            name: "Part C",
-            category: "Hardware",
-            location: "BAY-2-S3",
-            quantity: 240,
-            minStockLevel: 75,
-            status: "In Stock",
-            lastUpdated: new Date().toISOString().split("T")[0],
-            image: "https://via.placeholder.com/50",
-            unitPrice: 2.5,
-          },
-          {
-            id: "INV004",
-            sku: "MTR-D-004",
-            name: "Motor D",
-            category: "Electromechanical",
-            location: "BAY-4-S1",
-            quantity: 0,
-            minStockLevel: 10,
-            status: "Out of Stock",
-            lastUpdated: new Date().toISOString().split("T")[0],
-            image: "https://via.placeholder.com/50",
-            unitPrice: 45.0,
-          },
-          {
-            id: "INV005",
-            sku: "SNS-E-005",
-            name: "Sensor E",
-            category: "Electronics",
-            location: "BAY-1-S4",
-            quantity: 12,
-            minStockLevel: 25,
-            status: "Low Stock",
-            lastUpdated: new Date().toISOString().split("T")[0],
-            image: "https://via.placeholder.com/50",
-            unitPrice: 18.0,
-          },
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+
+        // Fetch all necessary data
+        const [
+          warehouses,
+          warehouseInventory,
+          allComponents,
+          allProducts,
+          allBoms,
+          pos,
+          shippingInfos,
+        ] = await Promise.all([
+          fetchWarehouses(),
+          fetchWarehouseInventory(),
+          fetchComponents(),
+          fetchProducts(),
+          fetchBOMs(),
+          fetchPurchaseOrders(),
+          fetchShippingInfo(),
         ]);
 
-        setIncoming([
-          {
-            id: "INC001",
-            itemId: "INV002",
-            itemName: "Gadget B",
-            quantity: 50,
-            from: "Montreal Supplier",
-            expectedDate: new Date(Date.now() + 86400000 * 3)
-              .toISOString()
-              .split("T")[0],
-            status: "In Transit",
-            carrier: "FedEx",
-            trackingNumber: "FX123456789",
-          },
-          {
-            id: "INC002",
-            itemId: "INV001",
-            itemName: "Widget A",
-            quantity: 30,
-            from: "Calgary Distributor",
-            expectedDate: new Date(Date.now() + 86400000 * 5)
-              .toISOString()
-              .split("T")[0],
-            status: "Processing",
-            carrier: "UPS",
-            trackingNumber: "UPS987654321",
-          },
-          {
-            id: "INC003",
-            itemId: "INV004",
-            itemName: "Motor D",
-            quantity: 15,
-            from: "Toronto Wholesale",
-            expectedDate: new Date(Date.now() - 86400000)
-              .toISOString()
-              .split("T")[0],
-            status: "Delayed",
-            carrier: "DHL",
-            trackingNumber: "DLH456789123",
-          },
-        ]);
+        // Set basic data
+        setLocations(warehouses);
+        setComponents(allComponents);
+        setProducts(allProducts);
+        setBoms(allBoms);
+        setPurchaseOrders(pos);
 
-        setOutgoing([
-          {
-            id: "OUT001",
-            itemId: "INV001",
-            itemName: "Widget A",
-            quantity: 20,
-            to: "Toronto Customer",
-            orderNumber: "ORD-2024-105",
-            status: "Shipped",
-            shippingDate: new Date(Date.now() - 86400000 * 2)
-              .toISOString()
-              .split("T")[0],
-            trackingNumber: "CAN123456789",
-          },
-          {
-            id: "OUT002",
-            itemId: "INV003",
-            itemName: "Part C",
-            quantity: 10,
-            to: "Vancouver Client",
-            orderNumber: "ORD-2024-106",
-            status: "Processing",
-            shippingDate: new Date(Date.now() + 86400000)
-              .toISOString()
-              .split("T")[0],
-          },
-          {
-            id: "OUT003",
-            itemId: "INV002",
-            itemName: "Gadget B",
-            quantity: 5,
-            to: "Ottawa Partner",
-            orderNumber: "ORD-2024-107",
-            status: "Delivered",
-            shippingDate: new Date(Date.now() - 86400000 * 5)
-              .toISOString()
-              .split("T")[0],
-            trackingNumber: "CAN987654321",
-          },
-        ]);
+        // Map warehouse inventory to UI format
+        const mappedInventory = warehouseInventory.map(
+          (item: BackendWarehouseInventory) => ({
+            id: item.id,
+            componentId: item.componentId,
+            warehouseId: item.warehouseId,
+            currentQty: item.current_qty,
+            incomingQty: item.incoming_qty,
+            outgoingQty: item.outgoing_qty,
+            component: {
+              num: item.component?.num || "",
+              description: item.component?.description || "",
+              supplierPartNumber: item.component?.supplier_part_number || "",
+              supplier: {
+                name: item.component?.supplier?.name || "Unknown",
+              },
+            },
+            warehouse: {
+              name: item.warehouse?.name || "Unknown",
+              location: item.warehouse?.location || "",
+            },
+          })
+        );
 
-        setLocations([
-          {
-            id: "BAY-1",
-            name: "Bay 1",
-            type: "Bay",
-            capacity: 1000,
-            currentOccupancy: 750,
-            items: ["INV001", "INV005"],
-          },
-          {
-            id: "BAY-2",
-            name: "Bay 2",
-            type: "Bay",
-            capacity: 1000,
-            currentOccupancy: 800,
-            items: ["INV003"],
-          },
-          {
-            id: "BAY-3",
-            name: "Bay 3",
-            type: "Bay",
-            capacity: 800,
-            currentOccupancy: 300,
-            items: ["INV002"],
-          },
-          {
-            id: "BAY-4",
-            name: "Bay 4",
-            type: "Bay",
-            capacity: 1200,
-            currentOccupancy: 400,
-            items: ["INV004"],
-          },
-        ]);
+        setInventory(mappedInventory);
 
+        // Map incoming shipments (from shipping info)
+        const mappedIncoming = shippingInfos.map(
+          (shipment: BackendShippingInfo) => ({
+            id: shipment.id,
+            poId: shipment.poId,
+            componentId: shipment.componentId,
+            qty: shipment.qty,
+            origin: shipment.origin,
+            destination: shipment.destination,
+            carrier: shipment.carrier,
+            trackingNumber: shipment.tracking_number || "",
+            estimatedArrival: shipment.estimated_arrival,
+            status: shipment.status as
+              | "In Transit"
+              | "Delayed"
+              | "Arrived"
+              | "Processing",
+            component: {
+              description: shipment.component?.description || "",
+            },
+            purchaseOrder: {
+              supplier: {
+                name: shipment.po?.supplier?.name || "Unknown",
+              },
+            },
+          })
+        );
+
+        setIncoming(mappedIncoming);
+
+        // For outgoing shipments, you might need to create a different mapping
+        // based on your business logic. This is a placeholder:
+        setOutgoing([]); // You'll need to implement this based on your data
+      } catch (error) {
+        console.error("Failed to load data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load warehouse data",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      } finally {
         setIsLoading(false);
-      }, 1000);
+      }
     };
 
     loadData();
@@ -460,156 +423,248 @@ export default function WarehousePage() {
     setShipmentForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newId = `INV${Math.random()
-      .toString(36)
-      .substring(2, 6)
-      .toUpperCase()}`;
-    const sku =
-      formData.sku ||
-      `${formData.name.substring(0, 3).toUpperCase()}-${formData.category
-        .substring(0, 1)
-        .toUpperCase()}-${Math.floor(Math.random() * 1000)
-        .toString()
-        .padStart(3, "0")}`;
-
-    const quantity = parseInt(formData.quantity) || 0;
-    const minStockLevel = parseInt(formData.minStockLevel) || 0;
-    const unitPrice = parseFloat(formData.unitPrice) || 0;
-
-    let status: InventoryItem["status"] = "In Stock";
-    if (quantity === 0) status = "Out of Stock";
-    else if (quantity <= minStockLevel) status = "Low Stock";
-
-    const newItem: InventoryItem = {
-      id: newId,
-      sku,
-      name: formData.name,
-      category: formData.category,
-      location: formData.location,
-      quantity,
-      minStockLevel,
-      status,
-      lastUpdated: new Date().toISOString().split("T")[0],
-      unitPrice,
-    };
-
-    setInventory((prev) => [...prev, newItem]);
-    setFormData({
-      name: "",
-      sku: "",
-      category: "",
-      location: "",
-      quantity: "",
-      minStockLevel: "",
-      unitPrice: "",
-    });
-    onClose();
-
-    toast({
-      title: "Item Added",
-      description: `${newItem.name} has been added to inventory`,
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-  };
-
-  const handleShipmentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const item = inventory.find((i) => i.id === shipmentForm.itemId);
-    if (!item) return;
-
-    if (shipmentForm.type === "incoming") {
-      const newId = `INC${Math.random()
-        .toString(36)
-        .substring(2, 6)
-        .toUpperCase()}`;
-      const newShipment: IncomingShipment = {
-        id: newId,
-        itemId: shipmentForm.itemId,
-        itemName: item.name,
-        quantity: parseInt(shipmentForm.quantity) || 0,
-        from: shipmentForm.toFrom,
-        expectedDate: shipmentForm.expectedDate,
-        status: "Processing",
-        carrier: shipmentForm.carrier,
-        trackingNumber: shipmentForm.trackingNumber,
+    try {
+      const newInventory: Omit<BackendWarehouseInventory, "id"> = {
+        componentId: parseInt(formData.componentId),
+        warehouseId: parseInt(formData.warehouseId),
+        current_qty: parseInt(formData.currentQty) || 0,
+        incoming_qty: parseInt(formData.incomingQty) || 0,
+        outgoing_qty: parseInt(formData.outgoingQty) || 0,
       };
 
-      setIncoming((prev) => [...prev, newShipment]);
-    } else {
-      const newId = `OUT${Math.random()
-        .toString(36)
-        .substring(2, 6)
-        .toUpperCase()}`;
-      const newShipment: OutgoingShipment = {
-        id: newId,
-        itemId: shipmentForm.itemId,
-        itemName: item.name,
-        quantity: parseInt(shipmentForm.quantity) || 0,
-        to: shipmentForm.toFrom,
-        orderNumber: `ORD-${new Date().getFullYear()}-${Math.floor(
-          Math.random() * 1000
-        )}`,
-        status: "Processing",
-        shippingDate: shipmentForm.expectedDate,
-        trackingNumber: shipmentForm.trackingNumber,
-      };
+      const createdItem = await createWarehouseInventory(newInventory);
 
-      setOutgoing((prev) => [...prev, newShipment]);
+      // Update local state with the new item
+      const component = components.find(
+        (c) => c.id === parseInt(formData.componentId)
+      );
+      const warehouse = locations.find(
+        (w) => w.id === parseInt(formData.warehouseId)
+      );
+
+      if (component && warehouse) {
+        setInventory((prev) => [
+          ...prev,
+          {
+            id: createdItem.id,
+            componentId: createdItem.componentId,
+            warehouseId: createdItem.warehouseId,
+            currentQty: createdItem.current_qty,
+            incomingQty: createdItem.incoming_qty,
+            outgoingQty: createdItem.outgoing_qty,
+            component: {
+              num: component.num,
+              description: component.description,
+              supplierPartNumber: component.supplier_part_number || "",
+              supplier: {
+                name: component.supplier?.name || "Unknown",
+              },
+            },
+            warehouse: {
+              name: warehouse.name,
+              location: warehouse.location,
+            },
+          },
+        ]);
+      }
+
+      setFormData({
+        componentId: "",
+        warehouseId: "",
+        currentQty: "",
+        incomingQty: "",
+        outgoingQty: "",
+      });
+      onClose();
+
+      toast({
+        title: "Item Added",
+        description: "New inventory item has been added",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Failed to create inventory item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add inventory item",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     }
-
-    setShipmentForm({
-      type: "incoming",
-      itemId: "",
-      quantity: "",
-      toFrom: "",
-      expectedDate: "",
-      carrier: "",
-      trackingNumber: "",
-    });
-
-    toast({
-      title: "Shipment Created",
-      description: `New ${shipmentForm.type} shipment has been created`,
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
   };
 
-  const deleteItem = (id: string) => {
-    setInventory((prev) => prev.filter((item) => item.id !== id));
-    toast({
-      title: "Item Deleted",
-      description: "The item has been removed from inventory",
-      status: "info",
-      duration: 3000,
-      isClosable: true,
-    });
-  };
+  const handleShipmentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (shipmentForm.type === "incoming") {
+        // Create a new purchase order for the incoming shipment
+        const newPO: Omit<BackendPurchaseOrder, "id"> = {
+          supplierId:
+            components.find((c) => c.id === parseInt(shipmentForm.componentId))
+              ?.supplierId || 0,
+          createdById: 1, // TODO: Replace with actual user ID
+          status: "Ordered",
+          date_created: new Date().toISOString(),
+          date_expected: shipmentForm.expectedDate,
+        };
 
-  const updateItemQuantity = (id: string, newQuantity: number) => {
-    setInventory((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          let status = item.status;
-          if (newQuantity === 0) status = "Out of Stock";
-          else if (newQuantity <= item.minStockLevel) status = "Low Stock";
-          else status = "In Stock";
+        const createdPO = await createPurchaseOrder(newPO);
 
-          return {
-            ...item,
-            quantity: newQuantity,
-            status,
-            lastUpdated: new Date().toISOString().split("T")[0],
-          };
+        // Create PO item
+        const newPOItem: Omit<BackendPOItem, "id"> = {
+          poId: createdPO.id,
+          componentId: parseInt(shipmentForm.componentId),
+          ordered_qty: parseInt(shipmentForm.quantity) || 0,
+          received_qty: 0,
+          unit_cost: 0, // TODO: Get actual unit cost
+        };
+
+        const createdPOItem = await createPOItem(newPOItem);
+
+        // Create shipping info
+        const newShippingInfo: Omit<BackendShippingInfo, "id"> = {
+          poId: createdPO.id,
+          componentId: parseInt(shipmentForm.componentId),
+          qty: parseInt(shipmentForm.quantity) || 0,
+          origin: shipmentForm.toFrom,
+          destination: "Warehouse", // TODO: Get actual warehouse
+          carrier: shipmentForm.carrier,
+          tracking_number: shipmentForm.trackingNumber,
+          estimated_arrival: shipmentForm.expectedDate,
+          status: "Processing",
+          po: undefined
+        };
+
+        const createdShippingInfo = await createShippingInfo(newShippingInfo);
+
+        // Update local state
+        const component = components.find(
+          (c) => c.id === parseInt(shipmentForm.componentId)
+        );
+        if (component) {
+          setIncoming((prev) => [
+            ...prev,
+            {
+              id: createdShippingInfo.id,
+              poId: createdShippingInfo.poId,
+              componentId: createdShippingInfo.componentId,
+              qty: createdShippingInfo.qty,
+              origin: createdShippingInfo.origin,
+              destination: createdShippingInfo.destination,
+              carrier: createdShippingInfo.carrier,
+              trackingNumber: createdShippingInfo.tracking_number || "",
+              estimatedArrival: createdShippingInfo.estimated_arrival,
+              status: createdShippingInfo.status as
+                | "In Transit"
+                | "Delayed"
+                | "Arrived"
+                | "Processing",
+              component: {
+                description: component.description,
+              },
+              purchaseOrder: {
+                supplier: {
+                  name: createdPO.supplier?.name || "Unknown",
+                },
+              },
+            },
+          ]);
         }
-        return item;
-      })
-    );
+      } else {
+        // Handle outgoing shipment creation
+        // TODO: Implement outgoing shipment creation
+      }
+
+      setShipmentForm({
+        type: "incoming",
+        componentId: "",
+        quantity: "",
+        toFrom: "",
+        expectedDate: "",
+        carrier: "",
+        trackingNumber: "",
+      });
+
+      toast({
+        title: "Shipment Created",
+        description: `New ${shipmentForm.type} shipment has been created`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Failed to create shipment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create shipment",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const deleteItem = async (id: number) => {
+    try {
+      await deleteWarehouseInventory(id);
+      setInventory((prev) => prev.filter((item) => item.id !== id));
+      toast({
+        title: "Item Deleted",
+        description: "The item has been removed from inventory",
+        status: "info",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Failed to delete inventory item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete inventory item",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const updateItemQuantity = async (id: number, newQuantity: number) => {
+    try {
+      const itemToUpdate = inventory.find((item) => item.id === id);
+      if (!itemToUpdate) return;
+
+      const updatedItem = await updateWarehouseInventory(id, {
+        componentId: itemToUpdate.componentId,
+        warehouseId: itemToUpdate.warehouseId,
+        current_qty: newQuantity,
+        incoming_qty: itemToUpdate.incomingQty,
+        outgoing_qty: itemToUpdate.outgoingQty,
+      });
+
+      setInventory((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                currentQty: updatedItem.current_qty,
+              }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update inventory quantity:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update inventory quantity",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -657,51 +712,57 @@ export default function WarehousePage() {
     }
   };
 
+  // Calculate inventory status based on quantity (simplified)
+  const getInventoryStatus = (item: InventoryItem) => {
+    // TODO: Replace with actual logic based on your business rules
+    if (item.currentQty <= 0) return "Out of Stock";
+    if (item.currentQty < 10) return "Low Stock"; // Assuming 10 is the threshold
+    return "In Stock";
+  };
+
   // Filter inventory based on search and active tab
   const filteredInventory = inventory
     .filter((item) => {
       const matchesSearch =
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.location.toLowerCase().includes(searchTerm.toLowerCase());
+        item.component.description
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        item.component.num.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.warehouse.name.toLowerCase().includes(searchTerm.toLowerCase());
 
+      const status = getInventoryStatus(item);
       let matchesTab = true;
       switch (activeTab) {
         case 0:
           matchesTab = true;
           break; // All
         case 1:
-          matchesTab = item.status === "In Stock";
+          matchesTab = status === "In Stock";
           break;
         case 2:
-          matchesTab = item.status === "Low Stock";
+          matchesTab = status === "Low Stock";
           break;
         case 3:
-          matchesTab = item.status === "Out of Stock";
+          matchesTab = status === "Out of Stock";
           break;
         case 4:
-          matchesTab = item.quantity <= item.minStockLevel;
+          matchesTab = item.currentQty < 10; // Assuming 10 is the min threshold
           break;
       }
 
       return matchesSearch && matchesTab;
     })
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort((a, b) =>
+      a.component.description.localeCompare(b.component.description)
+    );
 
   // Calculate inventory metrics
   const totalItems = inventory.length;
-  const totalValue = inventory.reduce(
-    (sum, item) => sum + item.quantity * (item.unitPrice || 10),
-    0
-  );
   const lowStockItems = inventory.filter(
-    (item) => item.status === "Low Stock"
+    (item) => getInventoryStatus(item) === "Low Stock"
   ).length;
   const outOfStockItems = inventory.filter(
-    (item) => item.status === "Out of Stock"
-  ).length;
-  const itemsNeedingReorder = inventory.filter(
-    (item) => item.quantity <= item.minStockLevel
+    (item) => getInventoryStatus(item) === "Out of Stock"
   ).length;
 
   // Shipment metrics
@@ -712,32 +773,95 @@ export default function WarehousePage() {
     (shipment) => shipment.status === "Processing"
   ).length;
 
-  // Location utilization
-  const totalCapacity = locations.reduce((sum, loc) => sum + loc.capacity, 0);
-  const totalOccupancy = locations.reduce(
-    (sum, loc) => sum + loc.currentOccupancy,
-    0
-  );
-  const utilizationPercentage = Math.round(
-    (totalOccupancy / totalCapacity) * 100
-  );
+  // Location utilization (simplified)
+  const utilizationPercentage = 75; // TODO: Calculate based on actual data
 
-  const refreshData = () => {
+  const refreshData = async () => {
     setIsLoading(true);
-    // Simulate refresh
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // Refetch all data
+      const [warehouseInventory, shippingInfos] = await Promise.all([
+        fetchWarehouseInventory(),
+        fetchShippingInfo(),
+      ]);
+
+      // Map warehouse inventory to UI format
+      const mappedInventory = warehouseInventory.map(
+        (item: BackendWarehouseInventory) => ({
+          id: item.id,
+          componentId: item.componentId,
+          warehouseId: item.warehouseId,
+          currentQty: item.current_qty,
+          incomingQty: item.incoming_qty,
+          outgoingQty: item.outgoing_qty,
+          component: {
+            num: item.component?.num || "",
+            description: item.component?.description || "",
+            supplierPartNumber: item.component?.supplier_part_number || "",
+            supplier: {
+              name: item.component?.supplier?.name || "Unknown",
+            },
+          },
+          warehouse: {
+            name: item.warehouse?.name || "Unknown",
+            location: item.warehouse?.location || "",
+          },
+        })
+      );
+
+      setInventory(mappedInventory);
+
+      // Map incoming shipments
+      const mappedIncoming = shippingInfos.map(
+        (shipment: BackendShippingInfo) => ({
+          id: shipment.id,
+          poId: shipment.poId,
+          componentId: shipment.componentId,
+          qty: shipment.qty,
+          origin: shipment.origin,
+          destination: shipment.destination,
+          carrier: shipment.carrier,
+          trackingNumber: shipment.tracking_number || "",
+          estimatedArrival: shipment.estimated_arrival,
+          status: shipment.status as
+            | "In Transit"
+            | "Delayed"
+            | "Arrived"
+            | "Processing",
+          component: {
+            description: shipment.component?.description || "",
+          },
+          purchaseOrder: {
+            supplier: {
+              name: shipment.po?.supplier?.name || "Unknown",
+            },
+          },
+        })
+      );
+
+      setIncoming(mappedIncoming);
+
       toast({
         title: "Data Refreshed",
         status: "success",
         duration: 2000,
         isClosable: true,
       });
-    }, 800);
+    } catch (error) {
+      console.error("Failed to refresh data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh data",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleTrackShipment = (trackingNumber: string, carrier: string) => {
-    // In a real app, this would redirect to the carrier's tracking page
     toast({
       title: "Tracking Information",
       description: `Opening tracking page for ${carrier} #${trackingNumber}`,
@@ -747,13 +871,12 @@ export default function WarehousePage() {
     });
   };
 
-  const handleViewLocation = (locationId: string) => {
-    // In a real app, this would show detailed location info
+  const handleViewLocation = (locationId: number) => {
     const location = locations.find((loc) => loc.id === locationId);
     if (location) {
       toast({
         title: `Location: ${location.name}`,
-        description: `Capacity: ${location.currentOccupancy}/${location.capacity}`,
+        description: `Location: ${location.location}`,
         status: "info",
         duration: 3000,
         isClosable: true,
@@ -839,10 +962,7 @@ export default function WarehousePage() {
               <Stat>
                 <StatLabel>Inventory Value</StatLabel>
                 <StatNumber>
-                  $
-                  {totalValue.toLocaleString(undefined, {
-                    maximumFractionDigits: 0,
-                  })}
+                  $0 {/* TODO: Calculate based on component values */}
                 </StatNumber>
                 <StatHelpText>
                   <StatArrow type="increase" />
@@ -925,11 +1045,10 @@ export default function WarehousePage() {
                         <Icon as={FiSearch} color="gray.400" />
                       </InputLeftElement>
                       <Input
-                        placeholder="Search by SKU, name, or location..."
+                        placeholder="Search by component, part number, or location..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
-                      \
                     </InputGroup>
                     <Menu>
                       <MenuButton
@@ -989,146 +1108,141 @@ export default function WarehousePage() {
                           <Table variant="striped" size="sm">
                             <Thead>
                               <Tr>
-                                <Th>SKU</Th>
-                                <Th>Item</Th>
-                                <Th>Category</Th>
-                                <Th>Location</Th>
+                                <Th>Part Number</Th>
+                                <Th>Description</Th>
+                                <Th>Supplier</Th>
+                                <Th>Warehouse</Th>
                                 <Th isNumeric>Quantity</Th>
-                                <Th isNumeric>Value</Th>
                                 <Th>Status</Th>
                                 <Th>Actions</Th>
                               </Tr>
                             </Thead>
                             <Tbody>
                               {filteredInventory.length > 0 ? (
-                                filteredInventory.map((item) => (
-                                  <Tr key={item.id}>
-                                    <Td fontWeight="medium">{item.sku}</Td>
-                                    <Td>
-                                      <HStack>
-                                        {item.image && (
+                                filteredInventory.map((item) => {
+                                  const status = getInventoryStatus(item);
+                                  return (
+                                    <Tr key={item.id}>
+                                      <Td fontWeight="medium">
+                                        {item.component.num}
+                                      </Td>
+                                      <Td>
+                                        <HStack>
                                           <Avatar
                                             size="sm"
-                                            src={item.image}
-                                            name={item.name}
+                                            name={item.component.description}
                                             bg="warehouse.100"
                                             color="warehouse.700"
                                           />
-                                        )}
-                                        <Text>{item.name}</Text>
-                                      </HStack>
-                                    </Td>
-                                    <Td>{item.category}</Td>
-                                    <Td>
-                                      <HStack>
-                                        <Text>{item.location}</Text>
-                                        <Tooltip label="View location details">
-                                          <IconButton
-                                            aria-label="View location"
-                                            icon={<FiMapPin />}
+                                          <Text>
+                                            {item.component.description}
+                                          </Text>
+                                        </HStack>
+                                      </Td>
+                                      <Td>{item.component.supplier.name}</Td>
+                                      <Td>
+                                        <HStack>
+                                          <Text>{item.warehouse.name}</Text>
+                                          <Tooltip label="View location details">
+                                            <IconButton
+                                              aria-label="View location"
+                                              icon={<FiMapPin />}
+                                              variant="ghost"
+                                              size="xs"
+                                              onClick={() =>
+                                                handleViewLocation(
+                                                  item.warehouseId
+                                                )
+                                              }
+                                            />
+                                          </Tooltip>
+                                        </HStack>
+                                      </Td>
+                                      <Td isNumeric>{item.currentQty}</Td>
+                                      <Td>
+                                        <Badge
+                                          colorScheme={getStatusColor(status)}
+                                          display="flex"
+                                          alignItems="center"
+                                          gap={1}
+                                          px={2}
+                                          py={1}
+                                          borderRadius="full"
+                                        >
+                                          {getStatusIcon(status)}
+                                          {status}
+                                        </Badge>
+                                      </Td>
+                                      <Td>
+                                        <Menu>
+                                          <MenuButton
+                                            as={IconButton}
+                                            aria-label="Actions"
+                                            icon={<FiMoreVertical />}
                                             variant="ghost"
-                                            size="xs"
-                                            onClick={() =>
-                                              handleViewLocation(item.location)
-                                            }
+                                            size="sm"
                                           />
-                                        </Tooltip>
-                                      </HStack>
-                                    </Td>
-                                    <Td isNumeric>
-                                      <Flex direction="column">
-                                        {item.quantity}
-                                        <Text fontSize="xs" color="gray.500">
-                                          Min: {item.minStockLevel}
-                                        </Text>
-                                      </Flex>
-                                    </Td>
-                                    <Td isNumeric>
-                                      $
-                                      {(
-                                        (item.unitPrice || 10) * item.quantity
-                                      ).toFixed(2)}
-                                    </Td>
-                                    <Td>
-                                      <Badge
-                                        colorScheme={getStatusColor(
-                                          item.status
-                                        )}
-                                        display="flex"
-                                        alignItems="center"
-                                        gap={1}
-                                        px={2}
-                                        py={1}
-                                        borderRadius="full"
-                                      >
-                                        {getStatusIcon(item.status)}
-                                        {item.status}
-                                      </Badge>
-                                    </Td>
-                                    <Td>
-                                      <Menu>
-                                        <MenuButton
-                                          as={IconButton}
-                                          aria-label="Actions"
-                                          icon={<FiMoreVertical />}
-                                          variant="ghost"
-                                          size="sm"
-                                        />
-                                        <MenuList>
-                                          <MenuItem icon={<FiEdit2 />}>
-                                            Edit
-                                          </MenuItem>
-                                          <MenuItem
-                                            icon={<FiArrowUp />}
-                                            onClick={() =>
-                                              updateItemQuantity(
-                                                item.id,
-                                                item.quantity + 1
-                                              )
-                                            }
-                                          >
-                                            Increase Quantity
-                                          </MenuItem>
-                                          <MenuItem
-                                            icon={<FiArrowDown />}
-                                            onClick={() =>
-                                              updateItemQuantity(
-                                                item.id,
-                                                Math.max(0, item.quantity - 1)
-                                              )
-                                            }
-                                          >
-                                            Decrease Quantity
-                                          </MenuItem>
-                                          <MenuItem
-                                            icon={<FiIncomingTruck />}
-                                            onClick={() => {
-                                              setShipmentForm({
-                                                ...shipmentForm,
-                                                itemId: item.id,
-                                                quantity:
-                                                  item.minStockLevel.toString(),
-                                              });
-                                              // Open shipment modal here
-                                            }}
-                                          >
-                                            Create Shipment
-                                          </MenuItem>
-                                          <MenuItem
-                                            icon={<FiTrash2 />}
-                                            color="red.500"
-                                            onClick={() => deleteItem(item.id)}
-                                          >
-                                            Delete
-                                          </MenuItem>
-                                        </MenuList>
-                                      </Menu>
-                                    </Td>
-                                  </Tr>
-                                ))
+                                          <MenuList>
+                                            <MenuItem icon={<FiEdit2 />}>
+                                              Edit
+                                            </MenuItem>
+                                            <MenuItem
+                                              icon={<FiArrowUp />}
+                                              onClick={() =>
+                                                updateItemQuantity(
+                                                  item.id,
+                                                  item.currentQty + 1
+                                                )
+                                              }
+                                            >
+                                              Increase Quantity
+                                            </MenuItem>
+                                            <MenuItem
+                                              icon={<FiArrowDown />}
+                                              onClick={() =>
+                                                updateItemQuantity(
+                                                  item.id,
+                                                  Math.max(
+                                                    0,
+                                                    item.currentQty - 1
+                                                  )
+                                                )
+                                              }
+                                            >
+                                              Decrease Quantity
+                                            </MenuItem>
+                                            <MenuItem
+                                              icon={<FiIncomingTruck />}
+                                              onClick={() => {
+                                                setShipmentForm({
+                                                  ...shipmentForm,
+                                                  componentId:
+                                                    item.componentId.toString(),
+                                                  quantity: "10", // Default quantity
+                                                });
+                                                // Open shipment modal here
+                                              }}
+                                            >
+                                              Create Shipment
+                                            </MenuItem>
+                                            <MenuItem
+                                              icon={<FiTrash2 />}
+                                              color="red.500"
+                                              onClick={() =>
+                                                deleteItem(item.id)
+                                              }
+                                            >
+                                              Delete
+                                            </MenuItem>
+                                          </MenuList>
+                                        </Menu>
+                                      </Td>
+                                    </Tr>
+                                  );
+                                })
                               ) : (
                                 <Tr>
-                                  <Td colSpan={8} textAlign="center" py={8}>
+                                  <Td colSpan={7} textAlign="center" py={8}>
                                     <Text color="gray.500">
                                       No inventory items found matching your
                                       criteria
@@ -1237,14 +1351,14 @@ export default function WarehousePage() {
                         <Tr key={shipment.id}>
                           <Td>
                             <Tooltip
-                              label={`From: ${shipment.from}\nExpected: ${shipment.expectedDate}`}
+                              label={`From: ${shipment.purchaseOrder.supplier.name}\nExpected: ${shipment.estimatedArrival}`}
                             >
                               <Text isTruncated maxW="100px">
-                                {shipment.itemName}
+                                {shipment.component.description}
                               </Text>
                             </Tooltip>
                           </Td>
-                          <Td isNumeric>{shipment.quantity}</Td>
+                          <Td isNumeric>{shipment.qty}</Td>
                           <Td>
                             <HStack>
                               <Badge
@@ -1263,7 +1377,7 @@ export default function WarehousePage() {
                                   variant="ghost"
                                   onClick={() =>
                                     handleTrackShipment(
-                                      shipment.trackingNumber!,
+                                      shipment.trackingNumber,
                                       shipment.carrier
                                     )
                                   }
@@ -1288,6 +1402,111 @@ export default function WarehousePage() {
       </Box>
 
       <Footer />
+
+      {/* Add Inventory Item Modal */}
+      <Modal isOpen={isOpen} onClose={onClose} size="lg">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Add Inventory Item</ModalHeader>
+          <ModalCloseButton />
+          <form onSubmit={handleSubmit}>
+            <ModalBody>
+              <VStack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Component</FormLabel>
+                  <Select
+                    name="componentId"
+                    value={formData.componentId}
+                    onChange={handleInputChange}
+                    placeholder="Select component"
+                  >
+                    {components.map((component) => (
+                      <option key={component.id} value={component.id}>
+                        {component.num} - {component.description}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel>Warehouse</FormLabel>
+                  <Select
+                    name="warehouseId"
+                    value={formData.warehouseId}
+                    onChange={handleInputChange}
+                    placeholder="Select warehouse"
+                  >
+                    {locations.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.name} - {location.location}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel>Current Quantity</FormLabel>
+                  <NumberInput
+                    min={0}
+                    value={formData.currentQty}
+                    onChange={(value) =>
+                      setFormData({ ...formData, currentQty: value })
+                    }
+                  >
+                    <NumberInputField name="currentQty" />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Incoming Quantity</FormLabel>
+                  <NumberInput
+                    min={0}
+                    value={formData.incomingQty}
+                    onChange={(value) =>
+                      setFormData({ ...formData, incomingQty: value })
+                    }
+                  >
+                    <NumberInputField name="incomingQty" />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Outgoing Quantity</FormLabel>
+                  <NumberInput
+                    min={0}
+                    value={formData.outgoingQty}
+                    onChange={(value) =>
+                      setFormData({ ...formData, outgoingQty: value })
+                    }
+                  >
+                    <NumberInputField name="outgoingQty" />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                </FormControl>
+              </VStack>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="ghost" mr={3} onClick={onClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="warehouse" type="submit">
+                Add Item
+              </Button>
+            </ModalFooter>
+          </form>
+        </ModalContent>
+      </Modal>
     </ChakraProvider>
   );
 }
