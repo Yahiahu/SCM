@@ -13,21 +13,22 @@ import {
   Td,
   Heading,
   VStack,
-  HStack, // For horizontal alignment like icon and text
+  HStack,
   Text,
   IconButton,
-  Tooltip, // For hover effect
+  Tooltip,
   Icon,
-  Divider, // For visual separation
+  Divider,
+  useToast,
+  Skeleton,
+  Button,
+  Badge,
 } from "@chakra-ui/react";
-import { CheckCircleIcon, InfoOutlineIcon } from "@chakra-ui/icons"; // Example icons
-import React, { useState } from "react";
-
-// Assuming Navbar and Footer components exist and are correctly imported
+import { CheckCircleIcon, InfoOutlineIcon } from "@chakra-ui/icons";
+import React, { useState, useEffect } from "react";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
 
-// Basic theme extension
 const theme = extendTheme({
   fonts: {
     body: "Inter, sans-serif",
@@ -35,140 +36,126 @@ const theme = extendTheme({
   },
 });
 
-// --- Data Types ---
-interface ProductItem {
-  id: string;
-  name: string;
-  quantity: number;
-  unitPrice: number;
-  description?: string; // Optional description for tooltip
-}
-
 interface ProductBundle {
-  id: string;
+  id: number;
   name: string;
   description: string;
-  products: ProductItem[];
-  discountPercentage?: number; // Optional discount for the bundle
+  qty: number;
+  notes?: string;
+  components: {
+    id: number;
+    num: string;
+    description: string;
+    required_qty: number;
+    supplier_part_number?: string;
+    current_qty?: number;
+    unit_cost?: number;
+  }[];
 }
 
-// --- Sample Data ---
-const sampleBundles: ProductBundle[] = [
-  {
-    id: "bundle001",
-    name: "Starter Kit",
-    description: "Essential tools to get you started.",
-    products: [
-      {
-        id: "p001",
-        name: "Basic Widget",
-        quantity: 2,
-        unitPrice: 25.0,
-        description: "A reliable basic widget.",
-      },
-      {
-        id: "p002",
-        name: "Standard Gadget",
-        quantity: 1,
-        unitPrice: 40.0,
-        description: "Your everyday standard gadget.",
-      },
-      {
-        id: "p003",
-        name: "Accessory Pack",
-        quantity: 1,
-        unitPrice: 15.0,
-        description: "Includes 3 essential accessories.",
-      },
-    ],
-    discountPercentage: 5, // 5% off this bundle
-  },
-  {
-    id: "bundle002",
-    name: "Pro Pack",
-    description: "Advanced tools for the professional user.",
-    products: [
-      {
-        id: "p004",
-        name: "Advanced Widget Pro",
-        quantity: 3,
-        unitPrice: 75.0,
-        description: "Top-of-the-line widget with advanced features.",
-      },
-      {
-        id: "p005",
-        name: "Super Gadget X",
-        quantity: 2,
-        unitPrice: 120.0,
-        description: "The ultimate gadget for power users.",
-      },
-      {
-        id: "p006",
-        name: "Premium Accessory Kit",
-        quantity: 1,
-        unitPrice: 50.0,
-        description: "All premium accessories included.",
-      },
-      {
-        id: "p007",
-        name: "Service Plan",
-        quantity: 1,
-        unitPrice: 100.0,
-        description: "1-year premium support.",
-      },
-    ],
-    discountPercentage: 10, // 10% off this bundle
-  },
-  {
-    id: "bundle003",
-    name: "Office Essentials",
-    description: "Everything your office needs.",
-    products: [
-      {
-        id: "p008",
-        name: "Ergonomic Chair",
-        quantity: 1,
-        unitPrice: 150.0,
-        description: "Comfortable and supportive.",
-      },
-      {
-        id: "p009",
-        name: "Desk Lamp LED",
-        quantity: 2,
-        unitPrice: 30.0,
-        description: "Bright and energy-efficient.",
-      },
-      {
-        id: "p010",
-        name: "Stationery Set",
-        quantity: 1,
-        unitPrice: 20.0,
-        description: "Pens, pencils, notebooks, and more.",
-      },
-    ],
-  },
-];
-
-// --- Marketplace Page Component ---
 export default function MarketplacePage() {
+  const [bundles, setBundles] = useState<ProductBundle[]>([]);
   const [selectedBundle, setSelectedBundle] = useState<ProductBundle | null>(
-    sampleBundles[0]
-  ); // Default to first bundle selected
+    null
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const toast = useToast();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch products (which will be our bundles)
+        const productsResponse = await fetch("/api/product");
+        if (!productsResponse.ok) throw new Error("Failed to load products");
+        const productsData = await productsResponse.json();
+
+        // Enhance products with their BOM components
+        const enhancedBundles = await Promise.all(
+          productsData.map(async (product: any) => {
+            const bomResponse = await fetch(`/api/bom?productId=${product.id}`);
+            if (!bomResponse.ok) throw new Error("Failed to load BOM data");
+            const bomData = await bomResponse.json();
+
+            // Get current quantities for components
+            const componentsWithInventory = await Promise.all(
+              bomData.map(async (bomItem: any) => {
+                const inventoryResponse = await fetch(
+                  `/api/warehouse_inventory?componentId=${bomItem.componentId}`
+                );
+                const inventoryData = inventoryResponse.ok
+                  ? await inventoryResponse.json()
+                  : [];
+
+                return {
+                  id: bomItem.component.id,
+                  num: bomItem.component.num,
+                  description: bomItem.component.description,
+                  required_qty: bomItem.required_qty,
+                  supplier_part_number: bomItem.component.supplier_part_number,
+                  current_qty: inventoryData[0]?.current_qty || 0,
+                  unit_cost: await getComponentCost(bomItem.componentId),
+                };
+              })
+            );
+
+            return {
+              ...product,
+              components: componentsWithInventory,
+            };
+          })
+        );
+
+        setBundles(enhancedBundles);
+        setSelectedBundle(enhancedBundles[0] || null);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load product bundles",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const getComponentCost = async (componentId: number) => {
+      try {
+        const response = await fetch(
+          `/api/supplier_quote?componentId=${componentId}`
+        );
+        if (response.ok) {
+          const quotes = await response.json();
+          return quotes[0]?.price_per_unit || 0;
+        }
+        return 0;
+      } catch (error) {
+        return 0;
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const calculateBundleCost = (bundle: ProductBundle | null) => {
     if (!bundle) {
       return { subtotal: 0, discountAmount: 0, tax: 0, total: 0 };
     }
-    const subtotal = bundle.products.reduce(
-      (acc, product) => acc + product.quantity * product.unitPrice,
+
+    const subtotal = bundle.components.reduce(
+      (acc, component) =>
+        acc + component.required_qty * (component.unit_cost || 0),
       0
     );
-    const discountAmount = bundle.discountPercentage
-      ? (subtotal * bundle.discountPercentage) / 100
-      : 0;
+
+    // In a real app, you might have bundle-specific discounts
+    const discountAmount = 0;
     const priceAfterDiscount = subtotal - discountAmount;
     const tax = priceAfterDiscount * 0.13; // Assuming 13% tax
     const total = priceAfterDiscount + tax;
+
     return {
       subtotal: parseFloat(subtotal.toFixed(2)),
       discountAmount: parseFloat(discountAmount.toFixed(2)),
@@ -179,18 +166,62 @@ export default function MarketplacePage() {
 
   const costs = calculateBundleCost(selectedBundle);
 
+  if (isLoading) {
+    return (
+      <ChakraProvider theme={theme}>
+        <Navbar isLoggedIn={true} />
+        <Box
+          pt={20}
+          px={{ base: 4, md: 6 }}
+          bg="gray.50"
+          minHeight="calc(100vh - 120px)"
+        >
+          <Flex direction={{ base: "column", lg: "row" }} gap={6}>
+            <VStack flex={{ base: 1, lg: 3 }} spacing={8} align="stretch">
+              {[...Array(3)].map((_, i) => (
+                <Box
+                  key={i}
+                  p={5}
+                  borderWidth="1px"
+                  borderRadius="lg"
+                  bg="white"
+                >
+                  <Skeleton height="30px" width="60%" mb={4} />
+                  <Skeleton height="20px" width="80%" mb={6} />
+                  <Skeleton height="200px" />
+                </Box>
+              ))}
+            </VStack>
+            <Box
+              flex={{ base: 1, lg: 1 }}
+              p={5}
+              borderWidth="1px"
+              borderRadius="lg"
+              bg="white"
+            >
+              <Skeleton height="30px" mb={4} />
+              <Skeleton height="150px" />
+            </Box>
+          </Flex>
+        </Box>
+        <Footer />
+      </ChakraProvider>
+    );
+  }
+
   return (
     <ChakraProvider theme={theme}>
       <Navbar isLoggedIn={true} />
-      <Box pt = {20} px={{ base: 4, md: 6 }} bg="gray.50" minHeight="calc(100vh - 120px)">
+      <Box
+        pt={20}
+        px={{ base: 4, md: 6 }}
+        bg="gray.50"
+        minHeight="calc(100vh - 120px)"
+      >
         <Flex direction={{ base: "column", lg: "row" }} gap={6}>
-          {/* Left Side: Product Bundles (takes more space) */}
-          <VStack
-            flex={{ base: 1, lg: 3 }} // Takes 3 parts of the width on lg screens
-            spacing={8} // Increased spacing between bundles
-            align="stretch"
-          >
-            {sampleBundles.map((bundle) => (
+          {/* Left Side: Product Bundles */}
+          <VStack flex={{ base: 1, lg: 3 }} spacing={8} align="stretch">
+            {bundles.map((bundle) => (
               <Box
                 key={bundle.id}
                 p={5}
@@ -214,28 +245,32 @@ export default function MarketplacePage() {
                   {bundle.name}
                 </Heading>
                 <Text fontSize="md" color="gray.600" mb={4}>
-                  {bundle.description}
+                  {bundle.description ||
+                    bundle.notes ||
+                    "No description available"}
                 </Text>
                 <Box overflowX="auto">
                   <Table variant="simple" size="md">
                     <Thead bg="gray.100">
                       <Tr>
-                        <Th>Product Name</Th>
-                        <Th isNumeric>Qty</Th>
-                        <Th isNumeric>Unit Price</Th>
-                        <Th isNumeric>Total Price</Th>
-                        <Th textAlign="center">Select</Th>
+                        <Th>Component</Th>
+                        <Th>Description</Th>
+                        <Th isNumeric>Req. Qty</Th>
+                        <Th isNumeric>Unit Cost</Th>
+                        <Th isNumeric>Total Cost</Th>
+                        <Th textAlign="center">Stock</Th>
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {bundle.products.map((product) => (
-                        <Tr key={product.id} _hover={{ bg: "gray.50" }}>
+                      {bundle.components.map((component) => (
+                        <Tr key={component.id} _hover={{ bg: "gray.50" }}>
+                          <Td fontWeight="medium">{component.num}</Td>
                           <Td>
                             <HStack spacing={2}>
-                              <Text fontWeight="medium">{product.name}</Text>
-                              {product.description && (
+                              <Text>{component.description}</Text>
+                              {component.supplier_part_number && (
                                 <Tooltip
-                                  label={product.description}
+                                  label={`Supplier PN: ${component.supplier_part_number}`}
                                   placement="top"
                                   hasArrow
                                 >
@@ -248,66 +283,54 @@ export default function MarketplacePage() {
                               )}
                             </HStack>
                           </Td>
-                          <Td isNumeric>{product.quantity}</Td>
-                          <Td isNumeric>${product.unitPrice.toFixed(2)}</Td>
+                          <Td isNumeric>{component.required_qty}</Td>
                           <Td isNumeric>
-                            ${(product.quantity * product.unitPrice).toFixed(2)}
+                            ${(component.unit_cost || 0).toFixed(2)}
+                          </Td>
+                          <Td isNumeric>
+                            $
+                            {(
+                              component.required_qty *
+                              (component.unit_cost || 0)
+                            ).toFixed(2)}
                           </Td>
                           <Td textAlign="center">
-                            <Tooltip
-                              label="Select this item"
-                              placement="top"
-                              hasArrow
+                            <Badge
+                              colorScheme={
+                                component.current_qty &&
+                                component.current_qty >= component.required_qty
+                                  ? "green"
+                                  : component.current_qty &&
+                                    component.current_qty > 0
+                                  ? "orange"
+                                  : "red"
+                              }
                             >
-                              <IconButton
-                                aria-label="Select item"
-                                icon={<CheckCircleIcon />}
-                                size="sm"
-                                variant="ghost"
-                                colorScheme="teal"
-                                _hover={{ bg: "teal.100" }}
-                                onClick={(e) => {
-                                  e.stopPropagation(); // Prevent bundle selection when clicking icon
-                                  console.log(
-                                    `Selected item: ${product.name} from ${bundle.name}`
-                                  );
-                                  // Add item selection logic here if needed
-                                }}
-                              />
-                            </Tooltip>
+                              {component.current_qty || 0} in stock
+                            </Badge>
                           </Td>
                         </Tr>
                       ))}
                     </Tbody>
                   </Table>
                 </Box>
-                {bundle.discountPercentage && (
-                  <Text
-                    mt={3}
-                    fontSize="sm"
-                    color="green.600"
-                    fontWeight="bold"
-                  >
-                    Bundle Discount: {bundle.discountPercentage}% off!
-                  </Text>
-                )}
               </Box>
             ))}
           </VStack>
 
-          {/* Right Side: Cost Breakdown (takes less space, sticky) */}
+          {/* Right Side: Cost Breakdown */}
           <Box
-            flex={{ base: 1, lg: 1 }} // Takes 1 part of the width on lg screens
+            flex={{ base: 1, lg: 1 }}
             p={5}
             borderWidth="1px"
             borderColor="gray.300"
             borderRadius="lg"
             boxShadow="md"
             bg="white"
-            position={{ lg: "sticky" }} // Makes it sticky on large screens
-            top={{ lg: "24px" }} // Adjust based on your navbar height or desired spacing
-            alignSelf={{ lg: "flex-start" }} // Aligns to top
-            height="fit-content" // Ensures it doesn't stretch unnecessarily
+            position={{ lg: "sticky" }}
+            top={{ lg: "24px" }}
+            alignSelf={{ lg: "flex-start" }}
+            height="fit-content"
           >
             <Heading size="lg" mb={4} color="gray.700">
               Cost Breakdown
@@ -315,7 +338,7 @@ export default function MarketplacePage() {
             {selectedBundle ? (
               <VStack spacing={3} align="stretch">
                 <HStack justifyContent="space-between">
-                  <Text fontWeight="medium">Selected Bundle:</Text>
+                  <Text fontWeight="medium">Selected Product:</Text>
                   <Text color="teal.600" fontWeight="bold">
                     {selectedBundle.name}
                   </Text>
@@ -325,16 +348,6 @@ export default function MarketplacePage() {
                   <Text>Subtotal:</Text>
                   <Text>${costs.subtotal.toFixed(2)}</Text>
                 </HStack>
-                {selectedBundle.discountPercentage && (
-                  <HStack justifyContent="space-between">
-                    <Text color="green.600">
-                      Discount ({selectedBundle.discountPercentage}%):
-                    </Text>
-                    <Text color="green.600">
-                      -${costs.discountAmount.toFixed(2)}
-                    </Text>
-                  </HStack>
-                )}
                 <HStack justifyContent="space-between">
                   <Text>Tax (13%):</Text>
                   <Text>${costs.tax.toFixed(2)}</Text>
@@ -349,29 +362,32 @@ export default function MarketplacePage() {
                   </Text>
                 </HStack>
                 <Tooltip
-                  label="Proceed to checkout with this bundle"
+                  label="Create purchase order for this product"
                   placement="bottom"
                   hasArrow
                 >
-                  <IconButton
+                  <Button
                     mt={4}
-                    aria-label="Proceed to Checkout"
-                    icon={<CheckCircleIcon />}
                     colorScheme="teal"
                     size="lg"
-                    onClick={() =>
-                      alert(
-                        `Proceeding to checkout with ${selectedBundle.name}`
-                      )
-                    }
+                    onClick={() => {
+                      // In a real app, this would create a PO for the components
+                      toast({
+                        title: "Purchase Order Created",
+                        description: `PO generated for ${selectedBundle.name}`,
+                        status: "success",
+                        duration: 3000,
+                        isClosable: true,
+                      });
+                    }}
                   >
-                    Proceed to Checkout
-                  </IconButton>
+                    Generate Purchase Order
+                  </Button>
                 </Tooltip>
               </VStack>
             ) : (
               <Text color="gray.500">
-                Select a bundle to see the cost breakdown.
+                Select a product to see the cost breakdown.
               </Text>
             )}
           </Box>

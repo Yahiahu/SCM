@@ -40,6 +40,7 @@ import {
   FormControl,
   FormLabel,
   Textarea,
+  useToast,
 } from "@chakra-ui/react";
 import { BiLeftArrowAlt, BiRightArrowAlt } from "react-icons/bi";
 import { AddIcon, ChevronDownIcon } from "@chakra-ui/icons";
@@ -95,60 +96,15 @@ const theme = extendTheme({
 interface Product {
   id: number;
   name: string;
-  category: string;
-  imageUrl: string;
-  stock: number;
   description: string;
-  price?: number;
+  qty: number;
+  notes?: string;
+  organizationId?: number;
   status?: "In Stock" | "Low Stock" | "Out of Stock";
+  category?: string;
+  imageUrl?: string;
+  price?: number;
 }
-
-const mockProducts: Product[] = [
-  {
-    id: 1,
-    name: "Smart Thermostat V1",
-    category: "Home Automation",
-    imageUrl:
-      "https://images.unsplash.com/photo-1516796181074-bf453fbfa3e6?auto=format&fit=crop&w=900&q=60",
-    stock: 150,
-    description: "WiFi enabled thermostat for modern homes.",
-    price: 199.99,
-    status: "In Stock",
-  },
-  {
-    id: 2,
-    name: "IoT Sensor Node",
-    category: "Industrial IoT",
-    imageUrl:
-      "https://images.unsplash.com/photo-1438183972690-6d4658e3290e?auto=format&fit=crop&w=2274&q=80",
-    stock: 300,
-    description: "A versatile multi-sensor platform.",
-    price: 149.99,
-    status: "In Stock",
-  },
-  {
-    id: 3,
-    name: "Precision Gearbox",
-    category: "Mechanical Parts",
-    imageUrl:
-      "https://images.unsplash.com/photo-1507237998874-b4d52d1dd655?auto=format&fit=crop&w=900&q=60",
-    stock: 5,
-    description: "High-torque gearbox for demanding applications.",
-    price: 299.99,
-    status: "Low Stock",
-  },
-  {
-    id: 4,
-    name: "Wireless Camera",
-    category: "Security",
-    imageUrl:
-      "https://images.unsplash.com/photo-1520390138845-fd2d229dd553?auto=format&fit=crop&w=900&q=60",
-    stock: 0,
-    description: "1080p HD wireless security camera with night vision.",
-    price: 129.99,
-    status: "Out of Stock",
-  },
-];
 
 function ProductProfileCard({ product }: { product: Product }) {
   const router = useRouter();
@@ -157,6 +113,17 @@ function ProductProfileCard({ product }: { product: Product }) {
     "Low Stock": "orange",
     "Out of Stock": "red",
   };
+
+  // Determine product status based on quantity
+  const getProductStatus = (
+    qty: number
+  ): "In Stock" | "Low Stock" | "Out of Stock" => {
+    if (qty <= 0) return "Out of Stock";
+    if (qty <= 10) return "Low Stock";
+    return "In Stock";
+  };
+
+  const status = getProductStatus(product.qty);
 
   return (
     <Box
@@ -180,7 +147,10 @@ function ProductProfileCard({ product }: { product: Product }) {
         <Image
           h={"180px"}
           w={"full"}
-          src={product.imageUrl}
+          src={
+            product.imageUrl ||
+            "https://via.placeholder.com/300x180?text=No+Image"
+          }
           objectFit={"cover"}
           alt={`Image of ${product.name}`}
         />
@@ -188,12 +158,12 @@ function ProductProfileCard({ product }: { product: Product }) {
           position="absolute"
           top={2}
           right={2}
-          colorScheme={statusColor[product.status || "In Stock"]}
+          colorScheme={statusColor[status]}
           px={2}
           py={1}
           rounded="full"
         >
-          {product.status}
+          {status}
         </Badge>
       </Box>
       <Box p={6}>
@@ -202,7 +172,7 @@ function ProductProfileCard({ product }: { product: Product }) {
             {product.name}
           </Heading>
           <Text color={"gray.500"} fontSize="sm">
-            {product.category}
+            {product.category || "Uncategorized"}
           </Text>
         </Stack>
 
@@ -212,17 +182,13 @@ function ProductProfileCard({ product }: { product: Product }) {
           </Text>
           <Flex align="center" mt={1}>
             <Text fontSize="sm" color="gray.500" mr={2}>
-              Stock: {product.stock}
+              Stock: {product.qty}
             </Text>
             <Progress
-              value={(product.stock / 100) * 100}
+              value={(product.qty / 100) * 100}
               size="xs"
               colorScheme={
-                product.stock > 20
-                  ? "green"
-                  : product.stock > 0
-                  ? "orange"
-                  : "red"
+                product.qty > 20 ? "green" : product.qty > 0 ? "orange" : "red"
               }
               flex="1"
               rounded="full"
@@ -249,13 +215,16 @@ function ProductProfileCard({ product }: { product: Product }) {
 
 function AddProductCard() {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const toast = useToast();
   const [formData, setFormData] = useState({
     name: "",
+    description: "",
+    qty: "",
+    notes: "",
     category: "",
     price: "",
-    stock: "",
-    description: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -266,10 +235,50 @@ function AddProductCard() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    onClose();
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/product", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          qty: parseInt(formData.qty),
+          notes: formData.notes,
+          organizationId: 1, // Default org ID - you might want to get this from user session
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create product");
+      }
+
+      toast({
+        title: "Product created",
+        description: "The new product has been added successfully",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+
+      onClose();
+      // You might want to refresh the product list here
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create product",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -320,7 +329,7 @@ function AddProductCard() {
                   />
                 </FormControl>
 
-                <FormControl isRequired>
+                <FormControl>
                   <FormLabel>Category</FormLabel>
                   <Select
                     name="category"
@@ -335,7 +344,7 @@ function AddProductCard() {
                   </Select>
                 </FormControl>
 
-                <FormControl isRequired>
+                <FormControl>
                   <FormLabel>Price</FormLabel>
                   <Input
                     name="price"
@@ -349,9 +358,9 @@ function AddProductCard() {
                 <FormControl isRequired>
                   <FormLabel>Stock Quantity</FormLabel>
                   <Input
-                    name="stock"
+                    name="qty"
                     type="number"
-                    value={formData.stock}
+                    value={formData.qty}
                     onChange={handleChange}
                     placeholder="Enter stock quantity"
                   />
@@ -367,12 +376,28 @@ function AddProductCard() {
                     rows={4}
                   />
                 </FormControl>
+
+                <FormControl gridColumn={{ md: "1 / -1" }}>
+                  <FormLabel>Notes</FormLabel>
+                  <Textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    placeholder="Additional notes"
+                    rows={2}
+                  />
+                </FormControl>
               </SimpleGrid>
             </form>
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="brand" mr={3} onClick={handleSubmit}>
+            <Button
+              colorScheme="brand"
+              mr={3}
+              onClick={handleSubmit}
+              isLoading={isSubmitting}
+            >
               Save Product
             </Button>
             <Button variant="ghost" onClick={onClose}>
@@ -454,12 +479,15 @@ function ProductCarousel({ products }: { products: Product[] }) {
         <BiRightArrowAlt size="40px" />
       </IconButton>
       <Slider {...settings} ref={(s) => setSlider(s)}>
-        {products.map((product) => (
+        {products.slice(0, 3).map((product) => (
           <Box
             key={product.id}
             height={{ base: "400px", md: "500px" }}
             position="relative"
-            backgroundImage={`url(${product.imageUrl})`}
+            backgroundImage={`url(${
+              product.imageUrl ||
+              "https://via.placeholder.com/1200x500?text=No+Image"
+            })`}
             backgroundPosition="center"
             backgroundRepeat="no-repeat"
             backgroundSize="cover"
@@ -509,6 +537,7 @@ function ProductCarousel({ products }: { products: Product[] }) {
 export default function HomePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const toast = useToast();
   const [isClient, setIsClient] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -516,12 +545,61 @@ export default function HomePage() {
 
   useEffect(() => {
     setIsClient(true);
-    // Simulate API fetch
-    setTimeout(() => {
-      setProducts(mockProducts);
-      setLoading(false);
-    }, 1000);
+    fetchProducts();
   }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch("/api/product");
+      if (!response.ok) {
+        throw new Error("Failed to fetch products");
+      }
+      const data = await response.json();
+      // Enhance products with additional UI-specific fields
+      const enhancedProducts = data.map((product: Product) => ({
+        ...product,
+        category: product.notes?.includes("batch")
+          ? "Industrial IoT"
+          : "Electronics", // Example mapping
+        imageUrl: getProductImage(product.name),
+        price: getProductPrice(product.name),
+      }));
+      setProducts(enhancedProducts);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper function to get appropriate image based on product name
+  const getProductImage = (name: string) => {
+    if (name.includes("Thermostat")) {
+      return "https://images.unsplash.com/photo-1516796181074-bf453fbfa3e6?auto=format&fit=crop&w=900&q=60";
+    } else if (name.includes("Sensor")) {
+      return "https://images.unsplash.com/photo-1438183972690-6d4658e3290e?auto=format&fit=crop&w=2274&q=80";
+    } else if (name.includes("Gearbox")) {
+      return "https://images.unsplash.com/photo-1507237998874-b4d52d1dd655?auto=format&fit=crop&w=900&q=60";
+    } else if (name.includes("Drone")) {
+      return "https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=900&q=60";
+    }
+    return "https://via.placeholder.com/300x180?text=No+Image";
+  };
+
+  // Helper function to assign prices based on product name
+  const getProductPrice = (name: string) => {
+    if (name.includes("Thermostat")) return 199.99;
+    if (name.includes("Sensor")) return 149.99;
+    if (name.includes("Gearbox")) return 299.99;
+    if (name.includes("Drone")) return 249.99;
+    return 99.99;
+  };
 
   useEffect(() => {
     if (status === "loading" || !isClient) return;
@@ -542,36 +620,44 @@ export default function HomePage() {
     (typeof window !== "undefined" && !!localStorage.getItem("user"));
 
   // Stats data
-  const stats = [
-    {
-      title: "Total Products",
-      value: products.length,
-      icon: FaBoxes,
-      change: "+12%",
-      isPositive: true,
-    },
-    {
-      title: "In Stock",
-      value: products.filter((p) => p.status === "In Stock").length,
-      icon: FaWarehouse,
-      change: "+5%",
-      isPositive: true,
-    },
-    {
-      title: "Low Stock",
-      value: products.filter((p) => p.status === "Low Stock").length,
-      icon: FaChartLine,
-      change: "-3%",
-      isPositive: false,
-    },
-    {
-      title: "Out of Stock",
-      value: products.filter((p) => p.status === "Out of Stock").length,
-      icon: FaShippingFast,
-      change: "+2%",
-      isPositive: false,
-    },
-  ];
+  const getProductStats = () => {
+    const inStock = products.filter((p) => p.qty > 10).length;
+    const lowStock = products.filter((p) => p.qty > 0 && p.qty <= 10).length;
+    const outOfStock = products.filter((p) => p.qty <= 0).length;
+
+    return [
+      {
+        title: "Total Products",
+        value: products.length,
+        icon: FaBoxes,
+        change: "+12%",
+        isPositive: true,
+      },
+      {
+        title: "In Stock",
+        value: inStock,
+        icon: FaWarehouse,
+        change: "+5%",
+        isPositive: true,
+      },
+      {
+        title: "Low Stock",
+        value: lowStock,
+        icon: FaChartLine,
+        change: "-3%",
+        isPositive: false,
+      },
+      {
+        title: "Out of Stock",
+        value: outOfStock,
+        icon: FaShippingFast,
+        change: "+2%",
+        isPositive: false,
+      },
+    ];
+  };
+
+  const stats = getProductStats();
 
   return (
     <ChakraProvider theme={theme}>
@@ -585,7 +671,7 @@ export default function HomePage() {
         minH="100vh"
       >
         <Container maxW="container.xl" px={{ base: 4, md: 8 }}>
-          <ProductCarousel products={products} />
+          {products.length > 0 && <ProductCarousel products={products} />}
 
           {/* Dashboard Stats */}
           <Box mb={12}>

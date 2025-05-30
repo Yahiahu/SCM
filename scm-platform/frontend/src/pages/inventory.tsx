@@ -129,39 +129,62 @@ const theme = extendTheme({
   },
 });
 
-interface OrderedItem {
-  id: string;
-  item: string;
-  quantity: number;
-  customer: string;
-  dateOrdered: string;
-  status: "Pending" | "Processing" | "Completed";
+interface PurchaseOrder {
+  id: number;
+  status: "Draft" | "Ordered" | "Received";
+  date_created: string;
+  date_expected?: string;
+  date_received?: string;
+  supplier: {
+    name: string;
+  };
+  createdBy: {
+    username: string;
+  };
+  items: {
+    component: {
+      num: string;
+      description: string;
+    };
+    ordered_qty: number;
+    received_qty: number;
+  }[];
 }
 
-interface ShippedItem {
-  id: string;
-  item: string;
-  quantity: number;
-  destination: string;
-  status: "In Transit" | "Delivered" | "Delayed";
-  estimatedArrival: string;
+interface ShippingInfo {
+  id: number;
+  status: "Processing" | "In Transit" | "Delivered" | "Delayed";
+  estimated_arrival: string;
   carrier: string;
+  tracking_number: string;
+  origin: string;
+  destination: string;
+  component: {
+    num: string;
+    description: string;
+  };
+  qty: number;
 }
 
-interface WarehousedItem {
-  id: string;
-  item: string;
-  quantity: number;
-  location: string;
-  lastStocked: string;
-  status: "In Stock" | "Low Stock" | "Out of Stock";
-  reorderLevel: number;
+interface WarehouseInventory {
+  id: number;
+  current_qty: number;
+  incoming_qty: number;
+  outgoing_qty: number;
+  component: {
+    num: string;
+    description: string;
+  };
+  warehouse: {
+    name: string;
+    location: string;
+  };
 }
 
 export default function LogisticsPage() {
-  const [orderedItems, setOrderedItems] = useState<OrderedItem[]>([]);
-  const [shippedItems, setShippedItems] = useState<ShippedItem[]>([]);
-  const [warehousedItems, setWarehousedItems] = useState<WarehousedItem[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [shipments, setShipments] = useState<ShippingInfo[]>([]);
+  const [inventory, setInventory] = useState<WarehouseInventory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
@@ -169,119 +192,40 @@ export default function LogisticsPage() {
   // Form state
   const [formData, setFormData] = useState({
     type: "order",
-    item: "",
+    componentId: "",
     quantity: "",
-    customer: "",
-    destination: "",
-    location: "",
+    supplierId: "",
+    status: "Draft",
     carrier: "",
-    reorderLevel: "",
+    trackingNumber: "",
+    origin: "",
+    destination: "",
+    warehouseId: "",
   });
 
-  // Fetch data (simulated)
+  // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        // Fetch purchase orders
+        const poResponse = await fetch("/api/purchase_order");
+        if (!poResponse.ok) throw new Error("Failed to load purchase orders");
+        const poData = await poResponse.json();
 
-        // Mock data - replace with actual API calls
-        setOrderedItems([
-          {
-            id: "ORD001",
-            item: "Sensor Unit X",
-            quantity: 50,
-            customer: "Tech Solutions Ltd.",
-            dateOrdered: "2024-05-15",
-            status: "Processing",
-          },
-          {
-            id: "ORD002",
-            item: "Actuator Arm Y",
-            quantity: 25,
-            customer: "Robotics Inc.",
-            dateOrdered: "2024-05-18",
-            status: "Pending",
-          },
-          {
-            id: "ORD003",
-            item: "Control Panel Z",
-            quantity: 10,
-            customer: "Automate Corp.",
-            dateOrdered: "2024-05-20",
-            status: "Completed",
-          },
-        ]);
+        // Fetch shipping info
+        const shippingResponse = await fetch("/api/shipping_info");
+        if (!shippingResponse.ok) throw new Error("Failed to load shipments");
+        const shippingData = await shippingResponse.json();
 
-        setShippedItems([
-          {
-            id: "SHP001",
-            item: "Sensor Unit X",
-            quantity: 50,
-            destination: "New York Hub",
-            status: "In Transit",
-            estimatedArrival: "2024-06-01",
-            carrier: "FedEx",
-          },
-          {
-            id: "SHP002",
-            item: "Actuator Arm Y",
-            quantity: 20,
-            destination: "London Depot",
-            status: "Delivered",
-            estimatedArrival: "2024-05-25",
-            carrier: "DHL",
-          },
-          {
-            id: "SHP003",
-            item: "Component A",
-            quantity: 100,
-            destination: "Tokyo Warehouse",
-            status: "Delayed",
-            estimatedArrival: "2024-06-10",
-            carrier: "UPS",
-          },
-        ]);
+        // Fetch warehouse inventory
+        const inventoryResponse = await fetch("/api/warehouse_inventory");
+        if (!inventoryResponse.ok) throw new Error("Failed to load inventory");
+        const inventoryData = await inventoryResponse.json();
 
-        setWarehousedItems([
-          {
-            id: "WH001",
-            item: "Component A",
-            quantity: 500,
-            location: "Shelf A1",
-            lastStocked: "2024-05-15",
-            status: "In Stock",
-            reorderLevel: 100,
-          },
-          {
-            id: "WH002",
-            item: "Part B",
-            quantity: 8,
-            location: "Bay B3",
-            lastStocked: "2024-05-18",
-            status: "Low Stock",
-            reorderLevel: 20,
-          },
-          {
-            id: "WH003",
-            item: "Sub-assembly C",
-            quantity: 0,
-            location: "Rack C2",
-            lastStocked: "2024-05-20",
-            status: "Out of Stock",
-            reorderLevel: 50,
-          },
-          {
-            id: "WH004",
-            item: "Microcontroller",
-            quantity: 35,
-            location: "Bin D4",
-            lastStocked: "2024-05-22",
-            status: "In Stock",
-            reorderLevel: 30,
-          },
-        ]);
+        setPurchaseOrders(poData);
+        setShipments(shippingData);
+        setInventory(inventoryData);
       } catch (error) {
         toast({
           title: "Error",
@@ -305,86 +249,100 @@ export default function LogisticsPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate adding new item
-    const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    try {
+      if (formData.type === "order") {
+        const response = await fetch("/api/purchase_order", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supplierId: parseInt(formData.supplierId),
+            status: formData.status,
+            items: [
+              {
+                componentId: parseInt(formData.componentId),
+                ordered_qty: parseInt(formData.quantity),
+                received_qty: 0,
+              },
+            ],
+          }),
+        });
+        if (!response.ok) throw new Error("Failed to create purchase order");
 
-    if (formData.type === "order") {
-      const newOrder: OrderedItem = {
-        id: `ORD${newId}`,
-        item: formData.item,
-        quantity: parseInt(formData.quantity),
-        customer: formData.customer,
-        dateOrdered: new Date().toISOString().split("T")[0],
-        status: "Pending",
-      };
-      setOrderedItems((prev) => [...prev, newOrder]);
-    } else if (formData.type === "shipment") {
-      const newShipment: ShippedItem = {
-        id: `SHP${newId}`,
-        item: formData.item,
-        quantity: parseInt(formData.quantity),
-        destination: formData.destination,
-        status: "In Transit",
-        estimatedArrival: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0],
-        carrier: formData.carrier,
-      };
-      setShippedItems((prev) => [...prev, newShipment]);
-    } else {
-      const newWarehouseItem: WarehousedItem = {
-        id: `WH${newId}`,
-        item: formData.item,
-        quantity: parseInt(formData.quantity),
-        location: formData.location,
-        lastStocked: new Date().toISOString().split("T")[0],
-        status:
-          parseInt(formData.quantity) > 10
-            ? "In Stock"
-            : parseInt(formData.quantity) > 0
-            ? "Low Stock"
-            : "Out of Stock",
-        reorderLevel: parseInt(formData.reorderLevel) || 0,
-      };
-      setWarehousedItems((prev) => [...prev, newWarehouseItem]);
+        const newOrder = await response.json();
+        setPurchaseOrders((prev) => [...prev, newOrder]);
+      } else if (formData.type === "shipment") {
+        const response = await fetch("/api/shipping_info", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            poId: 1, // You'll need to get this from context or form
+            componentId: parseInt(formData.componentId),
+            qty: parseInt(formData.quantity),
+            origin: formData.origin,
+            destination: formData.destination,
+            carrier: formData.carrier,
+            tracking_number: formData.trackingNumber,
+            status: "Processing",
+            estimated_arrival: new Date(
+              Date.now() + 7 * 24 * 60 * 60 * 1000
+            ).toISOString(),
+          }),
+        });
+        if (!response.ok) throw new Error("Failed to create shipment");
+
+        const newShipment = await response.json();
+        setShipments((prev) => [...prev, newShipment]);
+      }
+
+      toast({
+        title: "Success",
+        description: "Item added successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      setFormData({
+        type: "order",
+        componentId: "",
+        quantity: "",
+        supplierId: "",
+        status: "Draft",
+        carrier: "",
+        trackingNumber: "",
+        origin: "",
+        destination: "",
+        warehouseId: "",
+      });
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to add item",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     }
-
-    setFormData({
-      type: "order",
-      item: "",
-      quantity: "",
-      customer: "",
-      destination: "",
-      location: "",
-      carrier: "",
-      reorderLevel: "",
-    });
-    onClose();
-
-    toast({
-      title: "Success",
-      description: "Item added successfully",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Completed":
+      case "Received":
       case "Delivered":
-      case "In Stock":
         return "green";
-      case "Processing":
+      case "Ordered":
       case "In Transit":
-      case "Low Stock":
         return "orange";
-      case "Pending":
+      case "Draft":
       case "Delayed":
-      case "Out of Stock":
         return "red";
       default:
         return "gray";
@@ -393,17 +351,14 @@ export default function LogisticsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "Completed":
+      case "Received":
       case "Delivered":
-      case "In Stock":
         return <Icon as={FiCheckCircle} />;
-      case "Processing":
+      case "Ordered":
       case "In Transit":
-      case "Low Stock":
         return <Icon as={FiAlertTriangle} />;
-      case "Pending":
+      case "Draft":
       case "Delayed":
-      case "Out of Stock":
         return <Icon as={FiClock} />;
       default:
         return null;
@@ -411,26 +366,27 @@ export default function LogisticsPage() {
   };
 
   // Calculate inventory metrics
-  const inventoryValue = warehousedItems.reduce((sum, item) => {
-    // Mock unit prices - replace with actual data
+  const inventoryValue = inventory.reduce((sum, item) => {
+    // Mock unit prices - in a real app, you'd fetch actual component costs
     const unitPrices: Record<string, number> = {
-      "Component A": 12.5,
-      "Part B": 8.75,
-      "Sub-assembly C": 45.0,
-      Microcontroller: 22.3,
+      "CMP-001-RES": 0.05,
+      "CMP-002-CAP": 0.15,
+      "CMP-003-BOLT": 0.25,
+      "CMP-004-CASE": 5.2,
+      "CMP-005-CPU": 15.75,
     };
-    return sum + item.quantity * (unitPrices[item.item] || 10);
+    return sum + item.current_qty * (unitPrices[item.component.num] || 10);
   }, 0);
 
-  const itemsNeedingReorder = warehousedItems.filter(
-    (item) => item.quantity <= item.reorderLevel
+  const itemsNeedingReorder = inventory.filter(
+    (item) => item.current_qty < 10 // Simple threshold for demo
   ).length;
 
   return (
     <ChakraProvider theme={theme}>
       <Navbar isLoggedIn={true} />
 
-      <Box pt = {20} px={6} bg="gray.50" minH="calc(100vh - 128px)">
+      <Box pt={20} px={6} bg="gray.50" minH="calc(100vh - 128px)">
         {/* Header and Stats */}
         <Flex justify="space-between" align="center" mb={6}>
           <Heading size="xl" color="gray.800">
@@ -462,7 +418,10 @@ export default function LogisticsPage() {
               <Stat>
                 <StatLabel>Pending Orders</StatLabel>
                 <StatNumber>
-                  {orderedItems.filter((o) => o.status === "Pending").length}
+                  {
+                    purchaseOrders.filter((po) => po.status === "Ordered")
+                      .length
+                  }
                 </StatNumber>
                 <StatHelpText>
                   <StatArrow type="decrease" />
@@ -503,7 +462,7 @@ export default function LogisticsPage() {
               <Stat>
                 <StatLabel>In Transit Shipments</StatLabel>
                 <StatNumber>
-                  {shippedItems.filter((s) => s.status === "In Transit").length}
+                  {shipments.filter((s) => s.status === "In Transit").length}
                 </StatNumber>
                 <StatHelpText>
                   <StatArrow type="increase" />3 new shipments today
@@ -515,13 +474,13 @@ export default function LogisticsPage() {
 
         {/* Three Tables Layout */}
         <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={6} mb={6}>
-          {/* Orders Table */}
+          {/* Purchase Orders Table */}
           <Card boxShadow="sm">
             <CardHeader bg="brand.500" borderTopRadius="md">
               <HStack>
                 <Icon as={FiPackage} color="white" />
                 <Heading size="md" color="white">
-                  Orders
+                  Purchase Orders
                 </Heading>
               </HStack>
             </CardHeader>
@@ -536,21 +495,20 @@ export default function LogisticsPage() {
                 <Table variant="striped" size="sm">
                   <Thead>
                     <Tr>
-                      <Th>Order ID</Th>
-                      <Th>Item</Th>
-                      <Th isNumeric>Qty</Th>
+                      <Th>PO #</Th>
+                      <Th>Supplier</Th>
                       <Th>Status</Th>
+                      <Th>Expected</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {orderedItems.map((order) => (
-                      <Tr key={order.id}>
-                        <Td fontWeight="medium">{order.id}</Td>
-                        <Td>{order.item}</Td>
-                        <Td isNumeric>{order.quantity}</Td>
+                    {purchaseOrders.slice(0, 5).map((po) => (
+                      <Tr key={po.id}>
+                        <Td fontWeight="medium">{po.id}</Td>
+                        <Td>{po.supplier?.name || "N/A"}</Td>
                         <Td>
                           <Badge
-                            colorScheme={getStatusColor(order.status)}
+                            colorScheme={getStatusColor(po.status)}
                             display="flex"
                             alignItems="center"
                             gap={1}
@@ -558,10 +516,11 @@ export default function LogisticsPage() {
                             py={1}
                             borderRadius="full"
                           >
-                            {getStatusIcon(order.status)}
-                            {order.status}
+                            {getStatusIcon(po.status)}
+                            {po.status}
                           </Badge>
                         </Td>
+                        <Td>{po.date_expected || "N/A"}</Td>
                       </Tr>
                     ))}
                   </Tbody>
@@ -596,18 +555,17 @@ export default function LogisticsPage() {
                 <Table variant="striped" size="sm">
                   <Thead>
                     <Tr>
-                      <Th>Ship ID</Th>
+                      <Th>Component</Th>
                       <Th>Destination</Th>
-                      <Th isNumeric>Qty</Th>
                       <Th>Status</Th>
+                      <Th>ETA</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {shippedItems.map((shipment) => (
+                    {shipments.slice(0, 5).map((shipment) => (
                       <Tr key={shipment.id}>
-                        <Td fontWeight="medium">{shipment.id}</Td>
+                        <Td>{shipment.component?.num || "N/A"}</Td>
                         <Td>{shipment.destination}</Td>
-                        <Td isNumeric>{shipment.quantity}</Td>
                         <Td>
                           <Badge
                             colorScheme={getStatusColor(shipment.status)}
@@ -622,6 +580,7 @@ export default function LogisticsPage() {
                             {shipment.status}
                           </Badge>
                         </Td>
+                        <Td>{shipment.estimated_arrival}</Td>
                       </Tr>
                     ))}
                   </Tbody>
@@ -656,28 +615,27 @@ export default function LogisticsPage() {
                 <Table variant="striped" size="sm">
                   <Thead>
                     <Tr>
-                      <Th>Item</Th>
+                      <Th>Component</Th>
+                      <Th>Warehouse</Th>
                       <Th isNumeric>Qty</Th>
-                      <Th>Location</Th>
                       <Th>Status</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {warehousedItems.map((item) => (
+                    {inventory.slice(0, 5).map((item) => (
                       <Tr key={item.id}>
-                        <Td>{item.item}</Td>
-                        <Td isNumeric>
-                          <Flex direction="column">
-                            {item.quantity}
-                            <Text fontSize="xs" color="gray.500">
-                              Reorder: {item.reorderLevel}
-                            </Text>
-                          </Flex>
-                        </Td>
-                        <Td>{item.location}</Td>
+                        <Td>{item.component?.num || "N/A"}</Td>
+                        <Td>{item.warehouse?.name || "N/A"}</Td>
+                        <Td isNumeric>{item.current_qty}</Td>
                         <Td>
                           <Badge
-                            colorScheme={getStatusColor(item.status)}
+                            colorScheme={
+                              item.current_qty > 20
+                                ? "green"
+                                : item.current_qty > 0
+                                ? "orange"
+                                : "red"
+                            }
                             display="flex"
                             alignItems="center"
                             gap={1}
@@ -685,8 +643,18 @@ export default function LogisticsPage() {
                             py={1}
                             borderRadius="full"
                           >
-                            {getStatusIcon(item.status)}
-                            {item.status}
+                            {getStatusIcon(
+                              item.current_qty > 20
+                                ? "In Stock"
+                                : item.current_qty > 0
+                                ? "Low Stock"
+                                : "Out of Stock"
+                            )}
+                            {item.current_qty > 20
+                              ? "In Stock"
+                              : item.current_qty > 0
+                              ? "Low Stock"
+                              : "Out of Stock"}
                           </Badge>
                         </Td>
                       </Tr>
@@ -714,33 +682,31 @@ export default function LogisticsPage() {
               </HStack>
             </CardHeader>
             <CardBody>
-              {warehousedItems.filter(
-                (item) => item.quantity <= item.reorderLevel
-              ).length > 0 ? (
+              {inventory.filter((item) => item.current_qty < 10).length > 0 ? (
                 <Table size="sm">
                   <Thead>
                     <Tr>
-                      <Th>Item</Th>
+                      <Th>Component</Th>
                       <Th isNumeric>Current</Th>
-                      <Th isNumeric>Reorder At</Th>
+                      <Th>Warehouse</Th>
                       <Th>Action</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {warehousedItems
-                      .filter((item) => item.quantity <= item.reorderLevel)
+                    {inventory
+                      .filter((item) => item.current_qty < 10)
                       .map((item) => (
                         <Tr key={item.id}>
-                          <Td>{item.item}</Td>
+                          <Td>{item.component?.num || "N/A"}</Td>
                           <Td
                             isNumeric
                             color={
-                              item.quantity === 0 ? "red.500" : "orange.500"
+                              item.current_qty === 0 ? "red.500" : "orange.500"
                             }
                           >
-                            {item.quantity}
+                            {item.current_qty}
                           </Td>
-                          <Td isNumeric>{item.reorderLevel}</Td>
+                          <Td>{item.warehouse?.name || "N/A"}</Td>
                           <Td>
                             <Button size="xs" colorScheme="orange">
                               Create PO
@@ -771,15 +737,38 @@ export default function LogisticsPage() {
               <VStack align="stretch" spacing={4}>
                 <Box>
                   <Text fontWeight="bold">Today</Text>
-                  <Text fontSize="sm">• 3 new orders received</Text>
-                  <Text fontSize="sm">• 2 shipments marked as delivered</Text>
+                  <Text fontSize="sm">
+                    •{" "}
+                    {
+                      purchaseOrders.filter(
+                        (po) =>
+                          new Date(po.date_created).toDateString() ===
+                          new Date().toDateString()
+                      ).length
+                    }{" "}
+                    new orders created
+                  </Text>
+                  <Text fontSize="sm">
+                    • {shipments.filter((s) => s.status === "Delivered").length}{" "}
+                    shipments delivered
+                  </Text>
                 </Box>
                 <Box>
                   <Text fontWeight="bold">Yesterday</Text>
                   <Text fontSize="sm">
-                    • Inventory count completed for Section A
+                    •{" "}
+                    {
+                      inventory.filter(
+                        (i) =>
+                          new Date().getDate() - new Date(i.id).getDate() === 1
+                      ).length
+                    }{" "}
+                    inventory updates
                   </Text>
-                  <Text fontSize="sm">• 1 delayed shipment updated</Text>
+                  <Text fontSize="sm">
+                    • {shipments.filter((s) => s.status === "Delayed").length}{" "}
+                    delayed shipments
+                  </Text>
                 </Box>
               </VStack>
             </CardBody>
@@ -805,20 +794,26 @@ export default function LogisticsPage() {
                     value={formData.type}
                     onChange={handleInputChange}
                   >
-                    <option value="order">Order</option>
+                    <option value="order">Purchase Order</option>
                     <option value="shipment">Shipment</option>
-                    <option value="warehouse">Warehouse Item</option>
                   </Select>
                 </FormControl>
 
                 <FormControl isRequired>
-                  <FormLabel>Item Name</FormLabel>
-                  <Input
-                    name="item"
-                    value={formData.item}
+                  <FormLabel>Component</FormLabel>
+                  <Select
+                    name="componentId"
+                    value={formData.componentId}
                     onChange={handleInputChange}
-                    placeholder="e.g., Sensor Unit X"
-                  />
+                    placeholder="Select component"
+                  >
+                    {/* In a real app, you'd fetch components from your API */}
+                    <option value="1">CMP-001-RES (Resistor)</option>
+                    <option value="2">CMP-002-CAP (Capacitor)</option>
+                    <option value="3">CMP-003-BOLT (Bolt)</option>
+                    <option value="4">CMP-004-CASE (Case)</option>
+                    <option value="5">CMP-005-CPU (CPU)</option>
+                  </Select>
                 </FormControl>
 
                 <FormControl isRequired>
@@ -833,26 +828,53 @@ export default function LogisticsPage() {
                 </FormControl>
 
                 {formData.type === "order" && (
-                  <FormControl isRequired>
-                    <FormLabel>Customer</FormLabel>
-                    <Input
-                      name="customer"
-                      value={formData.customer}
-                      onChange={handleInputChange}
-                      placeholder="Customer name"
-                    />
-                  </FormControl>
+                  <>
+                    <FormControl isRequired>
+                      <FormLabel>Supplier</FormLabel>
+                      <Select
+                        name="supplierId"
+                        value={formData.supplierId}
+                        onChange={handleInputChange}
+                        placeholder="Select supplier"
+                      >
+                        <option value="1">Alpha Components</option>
+                        <option value="2">Beta Electronics</option>
+                        <option value="3">Gamma Mechanical</option>
+                        <option value="4">Delta Materials</option>
+                      </Select>
+                    </FormControl>
+                    <FormControl isRequired>
+                      <FormLabel>Status</FormLabel>
+                      <Select
+                        name="status"
+                        value={formData.status}
+                        onChange={handleInputChange}
+                      >
+                        <option value="Draft">Draft</option>
+                        <option value="Ordered">Ordered</option>
+                      </Select>
+                    </FormControl>
+                  </>
                 )}
 
                 {formData.type === "shipment" && (
                   <>
+                    <FormControl isRequired>
+                      <FormLabel>Origin</FormLabel>
+                      <Input
+                        name="origin"
+                        value={formData.origin}
+                        onChange={handleInputChange}
+                        placeholder="Origin location"
+                      />
+                    </FormControl>
                     <FormControl isRequired>
                       <FormLabel>Destination</FormLabel>
                       <Input
                         name="destination"
                         value={formData.destination}
                         onChange={handleInputChange}
-                        placeholder="Destination address"
+                        placeholder="Destination"
                       />
                     </FormControl>
                     <FormControl isRequired>
@@ -869,28 +891,13 @@ export default function LogisticsPage() {
                         <option value="USPS">USPS</option>
                       </Select>
                     </FormControl>
-                  </>
-                )}
-
-                {formData.type === "warehouse" && (
-                  <>
-                    <FormControl isRequired>
-                      <FormLabel>Location</FormLabel>
-                      <Input
-                        name="location"
-                        value={formData.location}
-                        onChange={handleInputChange}
-                        placeholder="e.g., Shelf A1"
-                      />
-                    </FormControl>
                     <FormControl>
-                      <FormLabel>Reorder Level</FormLabel>
+                      <FormLabel>Tracking Number</FormLabel>
                       <Input
-                        name="reorderLevel"
-                        type="number"
-                        value={formData.reorderLevel}
+                        name="trackingNumber"
+                        value={formData.trackingNumber}
                         onChange={handleInputChange}
-                        placeholder="Set reorder threshold"
+                        placeholder="Tracking number"
                       />
                     </FormControl>
                   </>

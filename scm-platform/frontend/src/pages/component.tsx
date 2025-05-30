@@ -117,12 +117,16 @@ const theme = extendTheme({
 
 interface Component {
   id: string;
-  name: string;
-  type: string;
-  quantity: number;
-  status: "In Stock" | "Low Stock" | "Out of Stock";
-  supplier: string;
-  lastUpdated: string;
+  num: string;
+  description: string;
+  notes?: string;
+  supplierPartNumber: string;
+  supplierId: number;
+  currentQty: number;
+  status?: "In Stock" | "Low Stock" | "Out of Stock";
+  type?: string;
+  supplier?: string;
+  lastUpdated?: string;
 }
 
 export default function ComponentsPage() {
@@ -136,71 +140,36 @@ export default function ComponentsPage() {
 
   // Form state
   const [formData, setFormData] = useState({
-    name: "",
-    type: "",
-    quantity: "",
-    supplier: "",
+    num: "",
+    description: "",
+    notes: "",
+    supplierPartNumber: "",
+    supplierId: 1, // Default supplier ID
   });
 
-  // Fetch components (simulated)
+  // Fetch components from API
   useEffect(() => {
     const fetchComponents = async () => {
       setIsLoading(true);
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        const response = await fetch("/api/component");
+        if (!response.ok) {
+          throw new Error("Failed to load components");
+        }
+        const data = await response.json();
 
-        // Mock data - replace with actual API call
-        const mockData: Component[] = [
-          {
-            id: "1",
-            name: "Capacitor 100μF",
-            type: "Electrical",
-            quantity: 500,
-            status: "In Stock",
-            supplier: "Alpha Components",
-            lastUpdated: "2023-05-15",
-          },
-          {
-            id: "2",
-            name: "Gear 20T",
-            type: "Mechanical",
-            quantity: 8,
-            status: "Low Stock",
-            supplier: "Gamma Mechanical",
-            lastUpdated: "2023-05-10",
-          },
-          {
-            id: "3",
-            name: "M3 Screw 10mm",
-            type: "Hardware",
-            quantity: 1200,
-            status: "In Stock",
-            supplier: "Delta Materials",
-            lastUpdated: "2023-05-12",
-          },
-          {
-            id: "4",
-            name: "Microcontroller ARM",
-            type: "Electronics",
-            quantity: 0,
-            status: "Out of Stock",
-            supplier: "Beta Electronics",
-            lastUpdated: "2023-05-01",
-          },
-          {
-            id: "5",
-            name: "Plastic Enclosure",
-            type: "Housing",
-            quantity: 45,
-            status: "In Stock",
-            supplier: "Delta Materials",
-            lastUpdated: "2023-05-14",
-          },
-        ];
+        // Enhance components with additional UI fields
+        const enhancedComponents = data.map((comp: any) => ({
+          ...comp,
+          currentQty: comp.warehouse_inventories?.[0]?.current_qty || 0,
+          type: getComponentType(comp.description),
+          supplier: getSupplierName(comp.supplierId),
+          lastUpdated: new Date().toISOString().split("T")[0], // Mock date
+          status: getStatus(comp.warehouse_inventories?.[0]?.current_qty || 0),
+        }));
 
-        setComponents(mockData);
-        setFilteredComponents(mockData);
+        setComponents(enhancedComponents);
+        setFilteredComponents(enhancedComponents);
       } catch (error) {
         toast({
           title: "Error",
@@ -217,6 +186,36 @@ export default function ComponentsPage() {
     fetchComponents();
   }, []);
 
+  // Helper functions
+  const getSupplierName = (supplierId: number) => {
+    const suppliers = [
+      { id: 1, name: "Alpha Components" },
+      { id: 2, name: "Beta Electronics" },
+      { id: 3, name: "Gamma Mechanical" },
+      { id: 4, name: "Delta Materials" },
+    ];
+    return (
+      suppliers.find((s) => s.id === supplierId)?.name || "Unknown Supplier"
+    );
+  };
+
+  const getComponentType = (description: string) => {
+    if (description.includes("Resistor")) return "Electrical";
+    if (description.includes("Capacitor")) return "Electrical";
+    if (description.includes("Bolt")) return "Hardware";
+    if (description.includes("CPU")) return "Electronics";
+    if (description.includes("Case")) return "Housing";
+    return "Other";
+  };
+
+  const getStatus = (
+    quantity: number
+  ): "In Stock" | "Low Stock" | "Out of Stock" => {
+    if (quantity <= 0) return "Out of Stock";
+    if (quantity <= 10) return "Low Stock";
+    return "In Stock";
+  };
+
   // Filter and sort components
   useEffect(() => {
     let result = [...components];
@@ -225,18 +224,20 @@ export default function ComponentsPage() {
     if (searchTerm) {
       result = result.filter(
         (comp) =>
-          comp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          comp.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          comp.supplier.toLowerCase().includes(searchTerm.toLowerCase())
+          comp.num.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          comp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (comp.supplier &&
+            comp.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
     // Sort
     result.sort((a, b) => {
-      if (sortBy === "name") return a.name.localeCompare(b.name);
-      if (sortBy === "type") return a.type.localeCompare(b.type);
-      if (sortBy === "quantity") return b.quantity - a.quantity;
-      if (sortBy === "status") return a.status.localeCompare(b.status);
+      if (sortBy === "name") return a.num.localeCompare(b.num);
+      if (sortBy === "type") return (a.type || "").localeCompare(b.type || "");
+      if (sortBy === "quantity") return b.currentQty - a.currentQty;
+      if (sortBy === "status")
+        return (a.status || "").localeCompare(b.status || "");
       return 0;
     });
 
@@ -244,46 +245,97 @@ export default function ComponentsPage() {
   }, [searchTerm, sortBy, components]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate adding a new component
-    const newComponent: Component = {
-      id: Math.random().toString(36).substring(2, 9),
-      name: formData.name,
-      type: formData.type,
-      quantity: parseInt(formData.quantity),
-      status:
-        parseInt(formData.quantity) > 10
-          ? "In Stock"
-          : parseInt(formData.quantity) > 0
-          ? "Low Stock"
-          : "Out of Stock",
-      supplier: formData.supplier,
-      lastUpdated: new Date().toISOString().split("T")[0],
-    };
+    try {
+      const response = await fetch("/api/component", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-    setComponents((prev) => [...prev, newComponent]);
-    setFormData({
-      name: "",
-      type: "",
-      quantity: "",
-      supplier: "",
-    });
-    onClose();
+      if (!response.ok) {
+        throw new Error("Failed to add component");
+      }
 
-    toast({
-      title: "Success",
-      description: "Component added successfully",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
+      const newComponent = await response.json();
+
+      // Enhance the new component with UI fields
+      const enhancedComponent = {
+        ...newComponent,
+        currentQty: 0, // New component starts with 0 quantity
+        type: getComponentType(newComponent.description),
+        supplier: getSupplierName(newComponent.supplierId),
+        lastUpdated: new Date().toISOString().split("T")[0],
+        status: "Out of Stock",
+      };
+
+      setComponents((prev) => [...prev, enhancedComponent]);
+      setFormData({
+        num: "",
+        description: "",
+        notes: "",
+        supplierPartNumber: "",
+        supplierId: 1,
+      });
+      onClose();
+
+      toast({
+        title: "Success",
+        description: "Component added successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add component",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/component/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete component");
+      }
+
+      setComponents((prev) => prev.filter((comp) => comp.id !== id));
+
+      toast({
+        title: "Success",
+        description: "Component deleted successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete component",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -316,7 +368,7 @@ export default function ComponentsPage() {
     <ChakraProvider theme={theme}>
       <Navbar isLoggedIn={true} />
 
-      <Box pt = {20} px={6} bg="gray.50" minH="calc(100vh - 128px)">
+      <Box pt={20} px={6} bg="gray.50" minH="calc(100vh - 128px)">
         <Flex direction={{ base: "column", lg: "row" }} gap={6}>
           {/* Main Content Area */}
           <Box flex={3}>
@@ -354,7 +406,7 @@ export default function ComponentsPage() {
                       onChange={(e) => setSortBy(e.target.value)}
                       minW="180px"
                     >
-                      <option value="name">Sort by Name</option>
+                      <option value="name">Sort by Part Number</option>
                       <option value="type">Sort by Type</option>
                       <option value="quantity">Sort by Quantity</option>
                       <option value="status">Sort by Status</option>
@@ -384,7 +436,8 @@ export default function ComponentsPage() {
                   <Table variant="striped" size="md">
                     <Thead>
                       <Tr>
-                        <Th>Component</Th>
+                        <Th>Part Number</Th>
+                        <Th>Description</Th>
                         <Th>Type</Th>
                         <Th>Quantity</Th>
                         <Th>Status</Th>
@@ -396,16 +449,19 @@ export default function ComponentsPage() {
                     <Tbody>
                       {filteredComponents.map((component) => (
                         <Tr key={component.id}>
-                          <Td fontWeight="medium">{component.name}</Td>
-                          <Td>{component.type}</Td>
+                          <Td fontWeight="medium">{component.num}</Td>
+                          <Td>{component.description}</Td>
+                          <Td>{component.type || "N/A"}</Td>
                           <Td>
                             <Flex align="center" gap={2}>
-                              {component.quantity}
+                              {component.currentQty}
                               <Progress
-                                value={Math.min(component.quantity, 100)}
+                                value={Math.min(component.currentQty, 100)}
                                 max={100}
                                 size="xs"
-                                colorScheme={getStatusColor(component.status)}
+                                colorScheme={getStatusColor(
+                                  component.status || ""
+                                )}
                                 flex="1"
                                 borderRadius="full"
                               />
@@ -413,7 +469,9 @@ export default function ComponentsPage() {
                           </Td>
                           <Td>
                             <Badge
-                              colorScheme={getStatusColor(component.status)}
+                              colorScheme={getStatusColor(
+                                component.status || ""
+                              )}
                               display="flex"
                               alignItems="center"
                               gap={1}
@@ -421,12 +479,12 @@ export default function ComponentsPage() {
                               py={1}
                               borderRadius="full"
                             >
-                              {getStatusIcon(component.status)}
+                              {getStatusIcon(component.status || "")}
                               {component.status}
                             </Badge>
                           </Td>
-                          <Td>{component.supplier}</Td>
-                          <Td>{component.lastUpdated}</Td>
+                          <Td>{component.supplier || "N/A"}</Td>
+                          <Td>{component.lastUpdated || "N/A"}</Td>
                           <Td>
                             <Menu>
                               <MenuButton
@@ -437,7 +495,11 @@ export default function ComponentsPage() {
                               />
                               <MenuList>
                                 <MenuItem icon={<FiEdit2 />}>Edit</MenuItem>
-                                <MenuItem icon={<FiTrash2 />} color="red.500">
+                                <MenuItem
+                                  icon={<FiTrash2 />}
+                                  color="red.500"
+                                  onClick={() => handleDelete(component.id)}
+                                >
                                   Delete
                                 </MenuItem>
                                 <MenuItem icon={<FiArrowRight />}>
@@ -560,50 +622,56 @@ export default function ComponentsPage() {
             <ModalBody>
               <VStack spacing={4}>
                 <FormControl isRequired>
-                  <FormLabel>Component Name</FormLabel>
+                  <FormLabel>Part Number</FormLabel>
                   <Input
-                    name="name"
-                    value={formData.name}
+                    name="num"
+                    value={formData.num}
                     onChange={handleInputChange}
-                    placeholder="e.g., Capacitor 100μF"
+                    placeholder="e.g., CMP-001-RES"
                   />
                 </FormControl>
 
                 <FormControl isRequired>
-                  <FormLabel>Type</FormLabel>
-                  <Select
-                    name="type"
-                    value={formData.type}
-                    onChange={handleInputChange}
-                    placeholder="Select type"
-                  >
-                    <option value="Electrical">Electrical</option>
-                    <option value="Mechanical">Mechanical</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Hardware">Hardware</option>
-                    <option value="Housing">Housing</option>
-                    <option value="Other">Other</option>
-                  </Select>
-                </FormControl>
-
-                <FormControl isRequired>
-                  <FormLabel>Quantity</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <Input
-                    name="quantity"
-                    type="number"
-                    value={formData.quantity}
+                    name="description"
+                    value={formData.description}
                     onChange={handleInputChange}
-                    placeholder="Enter quantity"
+                    placeholder="e.g., Resistor 10k Ohm 1/4W"
                   />
                 </FormControl>
 
                 <FormControl>
-                  <FormLabel>Supplier</FormLabel>
+                  <FormLabel>Supplier Part Number</FormLabel>
                   <Input
-                    name="supplier"
-                    value={formData.supplier}
+                    name="supplierPartNumber"
+                    value={formData.supplierPartNumber}
                     onChange={handleInputChange}
-                    placeholder="Optional supplier name"
+                    placeholder="e.g., ALPHA-RES-10K"
+                  />
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel>Supplier</FormLabel>
+                  <Select
+                    name="supplierId"
+                    value={formData.supplierId}
+                    onChange={handleInputChange}
+                  >
+                    <option value={1}>Alpha Components</option>
+                    <option value={2}>Beta Electronics</option>
+                    <option value={3}>Gamma Mechanical</option>
+                    <option value={4}>Delta Materials</option>
+                  </Select>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Notes</FormLabel>
+                  <Textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                    placeholder="Additional notes"
                   />
                 </FormControl>
               </VStack>
