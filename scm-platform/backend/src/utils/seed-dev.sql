@@ -12,7 +12,6 @@ INSERT INTO "user" (id, username, password_hash, email, phone, role, "organizati
 INSERT INTO "user" (id, username, password_hash, email, phone, role, "organizationId") VALUES (4, 'staff_ft', 'efgh', 'staff@futuretech.com', '5566778899', 'user', 4);
 INSERT INTO "user" (username, password_hash, email, phone, role, "organizationId") VALUES ('testuser', '1234', 'test@example.com', '1234567890', 'user', 1);
 
-
 -- ## Supplier
 INSERT INTO "supplier" (id, name, rating, contact_email, location, phone, historical_ontime_rate, avg_unit_cost, last_response_time, preferred) VALUES (1, 'Alpha Components', 4.5, 'sales@alpha.com', 'Shenzhen, China', '111222333', 0.95, 10.50, 24, true);
 INSERT INTO "supplier" (id, name, rating, contact_email, location, phone, historical_ontime_rate, avg_unit_cost, last_response_time, preferred) VALUES (2, 'Beta Electronics', 4.8, 'contact@beta.com', 'Taipei, Taiwan', '444555666', 0.98, 25.00, 12, true);
@@ -35,11 +34,11 @@ INSERT INTO "component" (id, num, description, notes, supplier_part_number, "sup
 INSERT INTO "component" (id, num, description, notes, supplier_part_number, "supplierId") VALUES (5, 'CMP-005-CPU', 'Microcontroller ARM M4', 'Main processing unit', 'BETA-CPU-M4', 2);
 
 -- ## Product
-INSERT INTO "product" (id, name, description, qty, notes, "organizationId") VALUES (1, 'Smart Thermostat V1', 'WiFi enabled thermostat', 150, 'Initial batch', 1);
+INSERT INTO "product" (id, name, description, qty, notes, "organizationId") VALUES (1, 'Smart Thermostat V2', 'WiFi enabled thermostat', 150, 'Initial batch', 1);
 INSERT INTO "product" (id, name, description, qty, notes, "organizationId") VALUES (2, 'IoT Sensor Node', 'Multi-sensor platform', 300, 'For industrial use', 2);
 INSERT INTO "product" (id, name, description, qty, notes, "organizationId") VALUES (3, 'Precision Gearbox', 'High-torque gearbox', 50, 'Requires special handling', 3);
 INSERT INTO "product" (id, name, description, qty, notes, "organizationId") VALUES (4, 'Advanced Drone Kit', 'DIY Drone assembly kit', 100, 'Includes all parts', 4);
-
+INSERT INTO "product" (id, name, description, qty, notes, "organizationId") VALUES (5, 'Mickey Mouse wedding ring', 'mickey and miney mouse set', 1, '* wife not included', 4);
 
 -- ## BOM (Bill of Materials)
 INSERT INTO "bom" (id, "productId", "componentId", required_qty) VALUES (1, 1, 1, 10); -- Thermostat needs 10 Resistors
