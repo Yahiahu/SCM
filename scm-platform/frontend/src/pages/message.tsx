@@ -160,7 +160,7 @@ export default function MessageBoardPage() {
   useEffect(() => {
     const fetchThreads = async () => {
       try {
-        const response = await fetch("/api/po_conversation_thread");
+        const response = await fetch("/api/poconversationthread");;
         if (!response.ok)
           throw new Error("Failed to load conversation threads");
         const threads = await response.json();
@@ -169,7 +169,7 @@ export default function MessageBoardPage() {
         const enhancedThreads = await Promise.all(
           threads.map(async (thread: ChatThread) => {
             const messagesResponse = await fetch(
-              `/api/chat_message?threadId=${thread.id}`
+              `/api/chatmessage?threadId=${thread.id}`
             );
             const messagesData = messagesResponse.ok
               ? await messagesResponse.json()
@@ -208,7 +208,7 @@ export default function MessageBoardPage() {
         setIsLoading(true);
         try {
           const response = await fetch(
-            `/api/chat_message?threadId=${activeThread}`
+            `/api/chatmessage?threadId=${activeThread}`
           );
           if (!response.ok) throw new Error("Failed to load messages");
 
@@ -261,7 +261,7 @@ export default function MessageBoardPage() {
         receiverId: 2, // Would be dynamic in a real app
       };
 
-      const response = await fetch("/api/chat_message", {
+      const response = await fetch("/api/chatmessage", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

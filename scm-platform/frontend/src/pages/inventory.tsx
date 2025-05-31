@@ -209,17 +209,17 @@ export default function LogisticsPage() {
       setIsLoading(true);
       try {
         // Fetch purchase orders
-        const poResponse = await fetch("/api/purchase_order");
+        const poResponse = await fetch("/api/purchaseorder");
         if (!poResponse.ok) throw new Error("Failed to load purchase orders");
         const poData = await poResponse.json();
 
         // Fetch shipping info
-        const shippingResponse = await fetch("/api/shipping_info");
+        const shippingResponse = await fetch("/api/shippinginfo");
         if (!shippingResponse.ok) throw new Error("Failed to load shipments");
         const shippingData = await shippingResponse.json();
 
         // Fetch warehouse inventory
-        const inventoryResponse = await fetch("/api/warehouse_inventory");
+        const inventoryResponse = await fetch("/api/warehouseinventory");
         if (!inventoryResponse.ok) throw new Error("Failed to load inventory");
         const inventoryData = await inventoryResponse.json();
 
