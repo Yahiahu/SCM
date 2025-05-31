@@ -5,10 +5,12 @@ import {
   ManyToOne,
   CreateDateColumn,
   OneToMany,
+  JoinColumn,
 } from "typeorm";
 import { User } from "./User";
 import { PurchaseOrder } from "./PurchaseOrder";
 import { MessageAttachment } from "./MessageAttachment";
+import { POConversationThread } from "./POConversationThread";
 
 @Entity()
 export class ChatMessage {
@@ -23,6 +25,16 @@ export class ChatMessage {
 
   @ManyToOne(() => PurchaseOrder, { nullable: true })
   po!: PurchaseOrder | null;
+
+  @ManyToOne(() => POConversationThread, {
+    nullable: true,
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({ name: "threadId" })
+  thread!: POConversationThread | null;
+
+  @Column({ nullable: true })
+  threadId!: number | null;
 
   @Column("text")
   message_body!: string;

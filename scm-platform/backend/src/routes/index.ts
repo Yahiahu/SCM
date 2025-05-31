@@ -20,6 +20,7 @@ import warehouseRoutes from "./warehouse.routes";
 import warehouseInventoryRoutes from "./warehouseinventory.routes";
 import warehouseLayoutRoutes from "./warehouselayout.routes";
 import aiSuggestionRoutes from "./aisuggestion.routes"; // if this is meant to be used
+import poConversationThreadRoutes from "./poconversationthread.routes";
 
 const router = Router();
 
@@ -43,5 +44,6 @@ router.use("/warehouse", warehouseRoutes);
 router.use("/warehouseinventory", warehouseInventoryRoutes);
 router.use("/warehouselayout", warehouseLayoutRoutes);
 router.use("/aisuggestion", aiSuggestionRoutes); 
+router.use("/poconversationthread", poConversationThreadRoutes);
 
 export default router;
