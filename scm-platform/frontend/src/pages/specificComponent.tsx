@@ -30,7 +30,6 @@ import {
 } from "lucide-react";
 import Sidebar from "../components/sidebar";
 import Navbar from "../components/navbar";
-import FixedNavbar from "../components/fixedNavbar";
 import Footer from "../components/footer";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -348,7 +347,7 @@ export default function ModernInventoryDashboard() {
           ml={sidebarVisible ? "180px" : "0"}
           transition="margin-left 0.3s ease"
         >
-          <FixedNavbar isLoggedIn={isLoggedIn} />
+          <Navbar isLoggedIn={isLoggedIn} />
           <Box p={6} pt={20}>
             {/* Search and Filter Bar */}
             <Box

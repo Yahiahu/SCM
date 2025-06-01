@@ -52,6 +52,7 @@ import {
   StatNumber,
   StatHelpText,
   StatArrow,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import {
   FiSearch,
@@ -76,7 +77,9 @@ import {
 } from "react-icons/fi";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import * as Papa from "papaparse";
 
 // Custom theme with blue color scheme (same as components page)
 const theme = extendTheme({
@@ -148,13 +151,18 @@ interface Supplier {
 }
 
 export default function SuppliersPage() {
+  const router = useRouter();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [isLoading, setIsLoading] = useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const toast = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useBreakpointValue({ base: true, lg: false });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -311,6 +319,62 @@ export default function SuppliersPage() {
     }
   };
 
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSupplier) return;
+
+    try {
+      const response = await fetch(`/api/supplier/${editingSupplier.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...editingSupplier,
+          preferred: editingSupplier.preferred,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update supplier");
+      }
+
+      const updatedSupplier = await response.json();
+
+      setSuppliers((prev) =>
+        prev.map((supplier) =>
+          supplier.id === updatedSupplier.id
+            ? {
+                ...updatedSupplier,
+                status: updatedSupplier.preferred ? "Active" : "Inactive",
+                components_supplied: supplier.components_supplied,
+                last_order_date: supplier.last_order_date,
+              }
+            : supplier
+        )
+      );
+
+      setIsEditModalOpen(false);
+      setEditingSupplier(null);
+
+      toast({
+        title: "Success",
+        description: "Supplier updated successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update supplier",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       const response = await fetch(`/api/supplier/${id}`, {
@@ -341,6 +405,195 @@ export default function SuppliersPage() {
     }
   };
 
+  const handleEdit = (supplier: Supplier) => {
+    setEditingSupplier(supplier);
+    setIsEditModalOpen(true);
+  };
+
+  const handleViewDetails = (supplierId: string) => {
+    router.push(`/suppliers/${supplierId}`);
+  };
+
+  const handleCreatePO = () => {
+    router.push("/purchaseOrder");
+  };
+
+  const handleShippingUpdates = () => {
+    router.push("/shipping");
+  };
+
+  const exportToCSV = () => {
+    const csvData = filteredSuppliers.map((supplier) => ({
+      Name: supplier.name,
+      Email: supplier.contact_email,
+      Phone: supplier.phone,
+      Location: supplier.location,
+      Rating: supplier.rating,
+      "On-Time Rate": supplier.historical_ontime_rate,
+      "Avg Unit Cost": supplier.avg_unit_cost,
+      "Last Response Time": supplier.last_response_time,
+      Status: supplier.status,
+      "Components Supplied": supplier.components_supplied,
+      "Last Order Date": supplier.last_order_date,
+    }));
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "suppliers.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const generatePerformanceReport = () => {
+    const reportData = {
+      totalSuppliers: suppliers.length,
+      preferredSuppliers: suppliers.filter((s) => s.preferred).length,
+      avgRating: (
+        suppliers.reduce((sum, s) => sum + s.rating, 0) / suppliers.length
+      ).toFixed(1),
+      avgOnTimeRate: (
+        (suppliers.reduce((sum, s) => sum + s.historical_ontime_rate, 0) /
+          suppliers.length) *
+        100
+      ).toFixed(1),
+      avgResponseTime: (
+        suppliers.reduce((sum, s) => sum + s.last_response_time, 0) /
+        suppliers.length
+      ).toFixed(1),
+      suppliers: filteredSuppliers.map((supplier) => ({
+        name: supplier.name,
+        rating: supplier.rating,
+        onTimeRate: supplier.historical_ontime_rate,
+        status: supplier.status,
+      })),
+    };
+
+    const reportContent = `
+      Supplier Performance Report
+      ==========================
+      
+      Summary:
+      - Total Suppliers: ${reportData.totalSuppliers}
+      - Preferred Suppliers: ${reportData.preferredSuppliers}
+      - Average Rating: ${reportData.avgRating}/5
+      - Average On-Time Rate: ${reportData.avgOnTimeRate}%
+      - Average Response Time: ${reportData.avgResponseTime} hours
+      
+      Supplier Details:
+      ${reportData.suppliers
+        .map(
+          (supplier) => `
+      ${supplier.name}
+      - Rating: ${supplier.rating}/5
+      - On-Time Rate: ${(supplier.onTimeRate * 100).toFixed(1)}%
+      - Status: ${supplier.status}
+      `
+        )
+        .join("\n")}
+    `;
+
+    const blob = new Blob([reportContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "supplier_performance_report.txt");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImportSuppliers = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      header: true,
+      complete: (results: { data: any[]; }) => {
+        const importedSuppliers = results.data.map((row: any) => ({
+          name: row.Name || row.name || "",
+          contact_email: row.Email || row.email || "",
+          phone: row.Phone || row.phone || "",
+          location: row.Location || row.location || "",
+          rating: parseFloat(row.Rating || row.rating || "4"),
+          historical_ontime_rate: parseFloat(
+            row["On-Time Rate"] || row.ontime_rate || "0.9"
+          ),
+          avg_unit_cost: parseFloat(
+            row["Avg Unit Cost"] || row.avg_cost || "10.0"
+          ),
+          last_response_time: parseFloat(
+            row["Last Response Time"] || row.response_time || "24"
+          ),
+          preferred: row.Preferred
+            ? row.Preferred.toLowerCase() === "true"
+            : false,
+        }));
+
+        // Validate and submit each supplier
+        importedSuppliers.forEach(async (supplier: any) => {
+          try {
+            const response = await fetch("/api/supplier", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(supplier),
+            });
+
+            if (!response.ok) {
+              throw new Error("Failed to import supplier");
+            }
+
+            const newSupplier = await response.json();
+
+            setSuppliers((prev) => [
+              ...prev,
+              {
+                ...newSupplier,
+                status: newSupplier.preferred ? "Active" : "Inactive",
+                components_supplied: 0,
+                last_order_date: "Never",
+              },
+            ]);
+          } catch (error) {
+            console.error("Error importing supplier:", error);
+          }
+        });
+
+        toast({
+          title: "Import Successful",
+          description: `${importedSuppliers.length} suppliers imported`,
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      },
+      error: () => {
+        toast({
+          title: "Import Error",
+          description: "Failed to parse CSV file",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      },
+    });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Active":
@@ -364,15 +617,27 @@ export default function SuppliersPage() {
   // Calculate metrics for the stats boxes
   const totalSuppliers = suppliers.length;
   const preferredSuppliers = suppliers.filter((s) => s.preferred).length;
-  const avgRating = suppliers.length > 0 
-    ? (suppliers.reduce((sum, s) => sum + s.rating, 0) / suppliers.length).toFixed(1)
-    : "0.0";
-  const avgOnTimeRate = suppliers.length > 0
-    ? (suppliers.reduce((sum, s) => sum + s.historical_ontime_rate, 0) / suppliers.length * 100).toFixed(1)
-    : "0.0";
-  const avgResponseTime = suppliers.length > 0
-    ? (suppliers.reduce((sum, s) => sum + s.last_response_time, 0) / suppliers.length).toFixed(1)
-    : "0.0";
+  const avgRating =
+    suppliers.length > 0
+      ? (
+          suppliers.reduce((sum, s) => sum + s.rating, 0) / suppliers.length
+        ).toFixed(1)
+      : "0.0";
+  const avgOnTimeRate =
+    suppliers.length > 0
+      ? (
+          (suppliers.reduce((sum, s) => sum + s.historical_ontime_rate, 0) /
+            suppliers.length) *
+          100
+        ).toFixed(1)
+      : "0.0";
+  const avgResponseTime =
+    suppliers.length > 0
+      ? (
+          suppliers.reduce((sum, s) => sum + s.last_response_time, 0) /
+          suppliers.length
+        ).toFixed(1)
+      : "0.0";
 
   return (
     <ChakraProvider theme={theme}>
@@ -481,10 +746,18 @@ export default function SuppliersPage() {
                         </Select>
                       </HStack>
 
-                      <Button leftIcon={<FiDownload />} variant="outline">
+                      <Button
+                        leftIcon={<FiDownload />}
+                        variant="outline"
+                        onClick={exportToCSV}
+                      >
                         Export
                       </Button>
-                      <Button leftIcon={<FiPrinter />} variant="outline">
+                      <Button
+                        leftIcon={<FiPrinter />}
+                        variant="outline"
+                        onClick={handlePrint}
+                      >
                         Print
                       </Button>
                     </Flex>
@@ -506,11 +779,15 @@ export default function SuppliersPage() {
                           <Tr>
                             <Th>Supplier</Th>
                             <Th>Contact</Th>
-                            <Th>Location</Th>
-                            <Th>Rating</Th>
-                            <Th>On-Time Rate</Th>
-                            <Th>Status</Th>
-                            <Th>Last Order</Th>
+                            {!isMobile && (
+                              <>
+                                <Th>Location</Th>
+                                <Th>Rating</Th>
+                                <Th>On-Time Rate</Th>
+                                <Th>Status</Th>
+                                <Th>Last Order</Th>
+                              </>
+                            )}
                             <Th>Actions</Th>
                           </Tr>
                         </Thead>
@@ -557,80 +834,91 @@ export default function SuppliersPage() {
                                   </HStack>
                                 </VStack>
                               </Td>
-                              <Td>
-                                <HStack>
-                                  <Icon
-                                    as={FiGlobe}
-                                    color="gray.500"
-                                    size="14px"
-                                  />
-                                  <Text>{supplier.location}</Text>
-                                </HStack>
-                              </Td>
-                              <Td>
-                                <Badge
-                                  colorScheme={getRatingColor(supplier.rating)}
-                                  display="flex"
-                                  alignItems="center"
-                                  gap={1}
-                                  px={2}
-                                  py={1}
-                                  borderRadius="full"
-                                >
-                                  <Icon as={FiStar} />
-                                  {supplier.rating.toFixed(1)}
-                                </Badge>
-                              </Td>
-                              <Td>
-                                <Flex align="center" gap={2}>
-                                  <Progress
-                                    value={supplier.historical_ontime_rate * 100}
-                                    max={100}
-                                    size="sm"
-                                    colorScheme={
-                                      supplier.historical_ontime_rate > 0.9
-                                        ? "green"
-                                        : supplier.historical_ontime_rate > 0.8
-                                        ? "orange"
-                                        : "red"
-                                    }
-                                    flex="1"
-                                    borderRadius="full"
-                                  />
-                                  <Text
-                                    fontSize="sm"
-                                    minW="50px"
-                                    textAlign="right"
-                                  >
-                                    {(
-                                      supplier.historical_ontime_rate * 100
-                                    ).toFixed(0)}
-                                    %
-                                  </Text>
-                                </Flex>
-                              </Td>
-                              <Td>
-                                <Badge
-                                  colorScheme={getStatusColor(supplier.status)}
-                                  px={2}
-                                  py={1}
-                                  borderRadius="full"
-                                >
-                                  {supplier.status}
-                                </Badge>
-                              </Td>
-                              <Td>
-                                <HStack>
-                                  <Icon
-                                    as={FiCalendar}
-                                    color="gray.500"
-                                    size="14px"
-                                  />
-                                  <Text fontSize="sm">
-                                    {supplier.last_order_date || "Never"}
-                                  </Text>
-                                </HStack>
-                              </Td>
+                              {!isMobile && (
+                                <>
+                                  <Td>
+                                    <HStack>
+                                      <Icon
+                                        as={FiGlobe}
+                                        color="gray.500"
+                                        size="14px"
+                                      />
+                                      <Text>{supplier.location}</Text>
+                                    </HStack>
+                                  </Td>
+                                  <Td>
+                                    <Badge
+                                      colorScheme={getRatingColor(
+                                        supplier.rating
+                                      )}
+                                      display="flex"
+                                      alignItems="center"
+                                      gap={1}
+                                      px={2}
+                                      py={1}
+                                      borderRadius="full"
+                                    >
+                                      <Icon as={FiStar} />
+                                      {supplier.rating.toFixed(1)}
+                                    </Badge>
+                                  </Td>
+                                  <Td>
+                                    <Flex align="center" gap={2}>
+                                      <Progress
+                                        value={
+                                          supplier.historical_ontime_rate * 100
+                                        }
+                                        max={100}
+                                        size="sm"
+                                        colorScheme={
+                                          supplier.historical_ontime_rate > 0.9
+                                            ? "green"
+                                            : supplier.historical_ontime_rate >
+                                              0.8
+                                            ? "orange"
+                                            : "red"
+                                        }
+                                        flex="1"
+                                        borderRadius="full"
+                                      />
+                                      <Text
+                                        fontSize="sm"
+                                        minW="50px"
+                                        textAlign="right"
+                                      >
+                                        {(
+                                          supplier.historical_ontime_rate * 100
+                                        ).toFixed(0)}
+                                        %
+                                      </Text>
+                                    </Flex>
+                                  </Td>
+                                  <Td>
+                                    <Badge
+                                      colorScheme={getStatusColor(
+                                        supplier.status
+                                      )}
+                                      px={2}
+                                      py={1}
+                                      borderRadius="full"
+                                    >
+                                      {supplier.status}
+                                    </Badge>
+                                  </Td>
+                                  <Td>
+                                    <HStack>
+                                      <Icon
+                                        as={FiCalendar}
+                                        color="gray.500"
+                                        size="14px"
+                                      />
+                                      <Text fontSize="sm">
+                                        {supplier.last_order_date || "Never"}
+                                      </Text>
+                                    </HStack>
+                                  </Td>
+                                </>
+                              )}
                               <Td>
                                 <Menu>
                                   <MenuButton
@@ -640,7 +928,12 @@ export default function SuppliersPage() {
                                     variant="ghost"
                                   />
                                   <MenuList>
-                                    <MenuItem icon={<FiEdit2 />}>Edit</MenuItem>
+                                    <MenuItem
+                                      icon={<FiEdit2 />}
+                                      onClick={() => handleEdit(supplier)}
+                                    >
+                                      Edit
+                                    </MenuItem>
                                     <MenuItem
                                       icon={<FiTrash2 />}
                                       color="red.500"
@@ -648,10 +941,18 @@ export default function SuppliersPage() {
                                     >
                                       Delete
                                     </MenuItem>
-                                    <MenuItem icon={<FiArrowRight />}>
+                                    <MenuItem
+                                      icon={<FiArrowRight />}
+                                      onClick={() =>
+                                        handleViewDetails(supplier.id)
+                                      }
+                                    >
                                       View Details
                                     </MenuItem>
-                                    <MenuItem icon={<FiDollarSign />}>
+                                    <MenuItem
+                                      icon={<FiDollarSign />}
+                                      onClick={handleCreatePO}
+                                    >
                                       Create PO
                                     </MenuItem>
                                   </MenuList>
@@ -700,7 +1001,7 @@ export default function SuppliersPage() {
                           Avg. Response Time
                         </Text>
                         <Progress
-                          value={100 - (parseFloat(avgResponseTime) / 72 * 100)}
+                          value={100 - (parseFloat(avgResponseTime) / 72) * 100}
                           max={100}
                           size="sm"
                           colorScheme="blue"
@@ -713,7 +1014,11 @@ export default function SuppliersPage() {
                     </VStack>
                   </CardBody>
                   <CardFooter>
-                    <Button colorScheme="brand" w="full">
+                    <Button
+                      colorScheme="brand"
+                      w="full"
+                      onClick={generatePerformanceReport}
+                    >
                       Supplier Performance Report
                     </Button>
                   </CardFooter>
@@ -732,13 +1037,25 @@ export default function SuppliersPage() {
                       >
                         Add Supplier
                       </Button>
-                      <Button leftIcon={<FiDollarSign />} variant="outline">
+                      <Button
+                        leftIcon={<FiDollarSign />}
+                        variant="outline"
+                        onClick={handleCreatePO}
+                      >
                         Create Purchase Order
                       </Button>
-                      <Button leftIcon={<FiDownload />} variant="outline">
+                      <Button
+                        leftIcon={<FiDownload />}
+                        variant="outline"
+                        onClick={handleImportSuppliers}
+                      >
                         Import Supplier List
                       </Button>
-                      <Button leftIcon={<FiTruck />} variant="outline">
+                      <Button
+                        leftIcon={<FiTruck />}
+                        variant="outline"
+                        onClick={handleShippingUpdates}
+                      >
                         View Shipping Updates
                       </Button>
                     </VStack>
@@ -840,6 +1157,140 @@ export default function SuppliersPage() {
           </form>
         </ModalContent>
       </Modal>
+
+      {/* Edit Supplier Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        size="lg"
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Edit Supplier</ModalHeader>
+          <ModalCloseButton />
+          {editingSupplier && (
+            <form onSubmit={handleEditSubmit}>
+              <ModalBody>
+                <VStack spacing={4}>
+                  <FormControl isRequired>
+                    <FormLabel>Supplier Name</FormLabel>
+                    <Input
+                      name="name"
+                      value={editingSupplier.name}
+                      onChange={(e) =>
+                        setEditingSupplier({
+                          ...editingSupplier,
+                          name: e.target.value,
+                        })
+                      }
+                    />
+                  </FormControl>
+
+                  <FormControl isRequired>
+                    <FormLabel>Contact Email</FormLabel>
+                    <Input
+                      name="contact_email"
+                      type="email"
+                      value={editingSupplier.contact_email}
+                      onChange={(e) =>
+                        setEditingSupplier({
+                          ...editingSupplier,
+                          contact_email: e.target.value,
+                        })
+                      }
+                    />
+                  </FormControl>
+
+                  <FormControl isRequired>
+                    <FormLabel>Phone Number</FormLabel>
+                    <Input
+                      name="phone"
+                      value={editingSupplier.phone}
+                      onChange={(e) =>
+                        setEditingSupplier({
+                          ...editingSupplier,
+                          phone: e.target.value,
+                        })
+                      }
+                    />
+                  </FormControl>
+
+                  <FormControl isRequired>
+                    <FormLabel>Location</FormLabel>
+                    <Input
+                      name="location"
+                      value={editingSupplier.location}
+                      onChange={(e) =>
+                        setEditingSupplier({
+                          ...editingSupplier,
+                          location: e.target.value,
+                        })
+                      }
+                    />
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>Rating</FormLabel>
+                    <Select
+                      name="rating"
+                      value={editingSupplier.rating}
+                      onChange={(e) =>
+                        setEditingSupplier({
+                          ...editingSupplier,
+                          rating: parseFloat(e.target.value),
+                        })
+                      }
+                    >
+                      <option value={5}>5 - Excellent</option>
+                      <option value={4}>4 - Good</option>
+                      <option value={3}>3 - Average</option>
+                      <option value={2}>2 - Below Average</option>
+                      <option value={1}>1 - Poor</option>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl display="flex" alignItems="center">
+                    <FormLabel mb="0">Preferred Supplier?</FormLabel>
+                    <input
+                      type="checkbox"
+                      name="preferred"
+                      checked={editingSupplier.preferred}
+                      onChange={(e) =>
+                        setEditingSupplier({
+                          ...editingSupplier,
+                          preferred: e.target.checked,
+                        })
+                      }
+                    />
+                  </FormControl>
+                </VStack>
+              </ModalBody>
+
+              <ModalFooter>
+                <Button
+                  variant="ghost"
+                  mr={3}
+                  onClick={() => setIsEditModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button colorScheme="brand" type="submit">
+                  Save Changes
+                </Button>
+              </ModalFooter>
+            </form>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Hidden file input for import */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        accept=".csv,.xlsx,.xls"
+        style={{ display: "none" }}
+      />
     </ChakraProvider>
   );
 }

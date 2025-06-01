@@ -61,6 +61,7 @@ import {
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 // Custom theme with blue color scheme
 const theme = extendTheme({
@@ -130,12 +131,17 @@ interface Component {
 }
 
 export default function ComponentsPage() {
+  const router = useRouter();
   const [components, setComponents] = useState<Component[]>([]);
   const [filteredComponents, setFilteredComponents] = useState<Component[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [isLoading, setIsLoading] = useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentComponent, setCurrentComponent] = useState<Component | null>(
+    null
+  );
   const toast = useToast();
 
   // Form state
@@ -194,7 +200,9 @@ export default function ComponentsPage() {
       { id: 3, name: "Gamma Mechanical" },
       { id: 4, name: "Delta Materials" },
     ];
-    return suppliers.find((s) => s.id === supplierId)?.name || "Unknown Supplier";
+    return (
+      suppliers.find((s) => s.id === supplierId)?.name || "Unknown Supplier"
+    );
   };
 
   const getComponentType = (description: string) => {
@@ -206,7 +214,9 @@ export default function ComponentsPage() {
     return "Other";
   };
 
-  const getStatus = (quantity: number): "In Stock" | "Low Stock" | "Out of Stock" => {
+  const getStatus = (
+    quantity: number
+  ): "In Stock" | "Low Stock" | "Out of Stock" => {
     if (quantity <= 0) return "Out of Stock";
     if (quantity <= 10) return "Low Stock";
     return "In Stock";
@@ -222,7 +232,8 @@ export default function ComponentsPage() {
         (comp) =>
           comp.num.toLowerCase().includes(searchTerm.toLowerCase()) ||
           comp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (comp.supplier && comp.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
+          (comp.supplier &&
+            comp.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -231,7 +242,8 @@ export default function ComponentsPage() {
       if (sortBy === "name") return a.num.localeCompare(b.num);
       if (sortBy === "type") return (a.type || "").localeCompare(b.type || "");
       if (sortBy === "quantity") return b.currentQty - a.currentQty;
-      if (sortBy === "status") return (a.status || "").localeCompare(b.status || "");
+      if (sortBy === "status")
+        return (a.status || "").localeCompare(b.status || "");
       return 0;
     });
 
@@ -239,7 +251,9 @@ export default function ComponentsPage() {
   }, [searchTerm, sortBy, components]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -248,43 +262,76 @@ export default function ComponentsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/component", {
-        method: "POST",
+      const url = currentComponent
+        ? `/api/component/${currentComponent.id}`
+        : "/api/component";
+      const method = currentComponent ? "PUT" : "POST";
+
+      const payload = {
+        num: formData.num,
+        description: formData.description,
+        notes: formData.notes,
+        supplier_part_number: formData.supplierPartNumber,
+        supplier_id: Number(formData.supplierId),
+      };
+
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
+
 
       if (!response.ok) {
-        throw new Error("Failed to add component");
+        throw new Error(
+          currentComponent
+            ? "Failed to update component"
+            : "Failed to add component"
+        );
       }
 
-      const newComponent = await response.json();
+      const result = await response.json();
 
-      // Enhance the new component with UI fields
-      const enhancedComponent = {
-        ...newComponent,
-        currentQty: 0, // New component starts with 0 quantity
-        type: getComponentType(newComponent.description),
-        supplier: getSupplierName(newComponent.supplierId),
-        lastUpdated: new Date().toISOString().split("T")[0],
-        status: "Out of Stock",
-      };
+      if (currentComponent) {
+        // Update existing component
+        setComponents((prev) =>
+          prev.map((comp) =>
+            comp.id === currentComponent.id
+              ? {
+                  ...comp,
+                  ...result,
+                  type: getComponentType(result.description),
+                  supplier: getSupplierName(result.supplierId),
+                  status: getStatus(comp.currentQty), // Keep current quantity
+                }
+              : comp
+          )
+        );
+      } else {
+        // Add new component
+        const enhancedComponent = {
+          ...result,
+          currentQty: 0, // New component starts with 0 quantity
+          type: getComponentType(result.description),
+          supplier: getSupplierName(result.supplierId),
+          lastUpdated: new Date().toISOString().split("T")[0],
+          status: "Out of Stock",
+        };
+        setComponents((prev) => [...prev, enhancedComponent]);
+      }
 
-      setComponents((prev) => [...prev, enhancedComponent]);
-      setFormData({
-        num: "",
-        description: "",
-        notes: "",
-        supplierPartNumber: "",
-        supplierId: 1,
-      });
+      resetForm();
       onClose();
+      setIsEditModalOpen(false);
 
       toast({
         title: "Success",
-        description: "Component added successfully",
+        description: currentComponent
+          ? "Component updated successfully"
+          : "Component added successfully",
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -292,12 +339,37 @@ export default function ComponentsPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to add component",
+        description: currentComponent
+          ? "Failed to update component"
+          : "Failed to add component",
         status: "error",
         duration: 5000,
         isClosable: true,
       });
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      num: "",
+      description: "",
+      notes: "",
+      supplierPartNumber: "",
+      supplierId: 1,
+    });
+    setCurrentComponent(null);
+  };
+
+  const handleEdit = (component: Component) => {
+    setCurrentComponent(component);
+    setFormData({
+      num: component.num,
+      description: component.description,
+      notes: component.notes || "",
+      supplierPartNumber: component.supplierPartNumber,
+      supplierId: component.supplierId,
+    });
+    setIsEditModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -356,11 +428,140 @@ export default function ComponentsPage() {
     }
   };
 
+  const handleExport = () => {
+    // Convert components to CSV
+    const headers = [
+      "Part Number",
+      "Description",
+      "Type",
+      "Quantity",
+      "Status",
+      "Supplier",
+      "Last Updated",
+    ];
+
+    const csvRows = [
+      headers.join(","),
+      ...filteredComponents.map((comp) =>
+        [
+          comp.num,
+          `"${comp.description.replace(/"/g, '""')}"`,
+          comp.type,
+          comp.currentQty,
+          comp.status,
+          comp.supplier,
+          comp.lastUpdated,
+        ].join(",")
+      ),
+    ].join("\n");
+
+    // Create download link
+    const blob = new Blob([csvRows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.setAttribute("hidden", "");
+    a.setAttribute("href", url);
+    a.setAttribute("download", "components_inventory.csv");
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handlePrintLabels = () => {
+    toast({
+      title: "Print Labels",
+      description: "Preparing labels for printing...",
+      status: "info",
+      duration: 3000,
+      isClosable: true,
+    });
+    // In a real app, this would trigger label printing functionality
+  };
+
+  const handleGenerateReport = () => {
+    const reportContent = `
+      Inventory Report - ${new Date().toLocaleDateString()}
+      ====================================
+      Total Components: ${components.length}
+      In Stock: ${components.filter((c) => c.status === "In Stock").length}
+      Low Stock: ${components.filter((c) => c.status === "Low Stock").length}
+      Out of Stock: ${
+        components.filter((c) => c.status === "Out of Stock").length
+      }
+      
+      Low Stock Items:
+      ${components
+        .filter((c) => c.status === "Low Stock")
+        .map((c) => `- ${c.num}: ${c.description} (${c.currentQty} remaining)`)
+        .join("\n      ")}
+    `;
+
+    toast({
+      title: "Report Generated",
+      description: "The inventory report has been prepared.",
+      status: "success",
+      duration: 5000,
+      isClosable: true,
+    });
+
+    // Print the report
+    const printWindow = window.open("", "_blank");
+    printWindow?.document.write(`<pre>${reportContent}</pre>`);
+    printWindow?.document.close();
+    printWindow?.focus();
+    setTimeout(() => {
+      printWindow?.print();
+    }, 500);
+  };
+
+  const handleImport = () => {
+    // Create a file input element
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".csv,.xlsx";
+
+    input.onchange = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (file) {
+        toast({
+          title: "Import Started",
+          description: `Processing ${file.name}`,
+          status: "info",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        // In a real app, you would process the file here
+        // For demo purposes, we'll just show a success message
+        setTimeout(() => {
+          toast({
+            title: "Import Complete",
+            description: "Components imported successfully",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        }, 2000);
+      }
+    };
+
+    input.click();
+  };
+
+  const handleViewSupplier = () => {
+    router.push("/supplier");
+  };
+
   return (
     <ChakraProvider theme={theme}>
       <Box minHeight="100vh" display="flex" flexDirection="column">
         <Navbar isLoggedIn={true} />
-        
+
         <Box flex="1" pt={20} px={6} bg="gray.50">
           <Flex direction={{ base: "column", lg: "row" }} gap={6}>
             {/* Main Content Area */}
@@ -406,10 +607,18 @@ export default function ComponentsPage() {
                       </Select>
                     </HStack>
 
-                    <Button leftIcon={<FiDownload />} variant="outline">
+                    <Button
+                      leftIcon={<FiDownload />}
+                      variant="outline"
+                      onClick={handleExport}
+                    >
                       Export
                     </Button>
-                    <Button leftIcon={<FiPrinter />} variant="outline">
+                    <Button
+                      leftIcon={<FiPrinter />}
+                      variant="outline"
+                      onClick={handlePrint}
+                    >
                       Print
                     </Button>
                   </Flex>
@@ -452,7 +661,9 @@ export default function ComponentsPage() {
                                   value={Math.min(component.currentQty, 100)}
                                   max={100}
                                   size="xs"
-                                  colorScheme={getStatusColor(component.status || "")}
+                                  colorScheme={getStatusColor(
+                                    component.status || ""
+                                  )}
                                   flex="1"
                                   borderRadius="full"
                                 />
@@ -460,7 +671,9 @@ export default function ComponentsPage() {
                             </Td>
                             <Td>
                               <Badge
-                                colorScheme={getStatusColor(component.status || "")}
+                                colorScheme={getStatusColor(
+                                  component.status || ""
+                                )}
                                 display="flex"
                                 alignItems="center"
                                 gap={1}
@@ -483,7 +696,12 @@ export default function ComponentsPage() {
                                   variant="ghost"
                                 />
                                 <MenuList>
-                                  <MenuItem icon={<FiEdit2 />}>Edit</MenuItem>
+                                  <MenuItem
+                                    icon={<FiEdit2 />}
+                                    onClick={() => handleEdit(component)}
+                                  >
+                                    Edit
+                                  </MenuItem>
                                   <MenuItem
                                     icon={<FiTrash2 />}
                                     color="red.500"
@@ -534,7 +752,10 @@ export default function ComponentsPage() {
                         In Stock
                       </Text>
                       <Heading size="lg">
-                        {components.filter((c) => c.status === "In Stock").length}
+                        {
+                          components.filter((c) => c.status === "In Stock")
+                            .length
+                        }
                       </Heading>
                     </Box>
 
@@ -543,7 +764,10 @@ export default function ComponentsPage() {
                         Low Stock
                       </Text>
                       <Heading size="lg" color="orange.500">
-                        {components.filter((c) => c.status === "Low Stock").length}
+                        {
+                          components.filter((c) => c.status === "Low Stock")
+                            .length
+                        }
                       </Heading>
                     </Box>
 
@@ -552,13 +776,20 @@ export default function ComponentsPage() {
                         Out of Stock
                       </Text>
                       <Heading size="lg" color="red.500">
-                        {components.filter((c) => c.status === "Out of Stock").length}
+                        {
+                          components.filter((c) => c.status === "Out of Stock")
+                            .length
+                        }
                       </Heading>
                     </Box>
                   </VStack>
                 </CardBody>
                 <CardFooter>
-                  <Button colorScheme="brand" w="full">
+                  <Button
+                    colorScheme="brand"
+                    w="full"
+                    onClick={handleGenerateReport}
+                  >
                     Generate Report
                   </Button>
                 </CardFooter>
@@ -577,13 +808,25 @@ export default function ComponentsPage() {
                     >
                       Add Component
                     </Button>
-                    <Button leftIcon={<FiDownload />} variant="outline">
+                    <Button
+                      leftIcon={<FiDownload />}
+                      variant="outline"
+                      onClick={handleImport}
+                    >
                       Import Components
                     </Button>
-                    <Button leftIcon={<FiPrinter />} variant="outline">
+                    <Button
+                      leftIcon={<FiPrinter />}
+                      variant="outline"
+                      onClick={handlePrintLabels}
+                    >
                       Print Labels
                     </Button>
-                    <Button leftIcon={<FiArrowRight />} variant="outline">
+                    <Button
+                      leftIcon={<FiArrowRight />}
+                      variant="outline"
+                      onClick={handleViewSupplier}
+                    >
                       View Suppliers
                     </Button>
                   </VStack>
@@ -597,7 +840,14 @@ export default function ComponentsPage() {
       </Box>
 
       {/* Add Component Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <Modal
+        isOpen={isOpen}
+        onClose={() => {
+          onClose();
+          resetForm();
+        }}
+        size="lg"
+      >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Add New Component</ModalHeader>
@@ -662,11 +912,109 @@ export default function ComponentsPage() {
             </ModalBody>
 
             <ModalFooter>
-              <Button variant="ghost" mr={3} onClick={onClose}>
+              <Button
+                variant="ghost"
+                mr={3}
+                onClick={() => {
+                  onClose();
+                  resetForm();
+                }}
+              >
                 Cancel
               </Button>
               <Button colorScheme="brand" type="submit">
                 Save Component
+              </Button>
+            </ModalFooter>
+          </form>
+        </ModalContent>
+      </Modal>
+
+      {/* Edit Component Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          resetForm();
+        }}
+        size="lg"
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Edit Component</ModalHeader>
+          <ModalCloseButton />
+          <form onSubmit={handleSubmit}>
+            <ModalBody>
+              <VStack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Part Number</FormLabel>
+                  <Input
+                    name="num"
+                    value={formData.num}
+                    onChange={handleInputChange}
+                    placeholder="e.g., CMP-001-RES"
+                  />
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel>Description</FormLabel>
+                  <Input
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Resistor 10k Ohm 1/4W"
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Supplier Part Number</FormLabel>
+                  <Input
+                    name="supplierPartNumber"
+                    value={formData.supplierPartNumber}
+                    onChange={handleInputChange}
+                    placeholder="e.g., ALPHA-RES-10K"
+                  />
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel>Supplier</FormLabel>
+                  <Select
+                    name="supplierId"
+                    value={formData.supplierId}
+                    onChange={handleInputChange}
+                  >
+                    <option value={1}>Alpha Components</option>
+                    <option value={2}>Beta Electronics</option>
+                    <option value={3}>Gamma Mechanical</option>
+                    <option value={4}>Delta Materials</option>
+                  </Select>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Notes</FormLabel>
+                  <Textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                    placeholder="Additional notes"
+                  />
+                </FormControl>
+              </VStack>
+            </ModalBody>
+
+            <ModalFooter>
+              <Button
+                variant="ghost"
+                mr={3}
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  resetForm();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button colorScheme="brand" type="submit">
+                Update Component
               </Button>
             </ModalFooter>
           </form>

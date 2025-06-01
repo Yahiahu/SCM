@@ -74,19 +74,24 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
               w={7}
               h={7}
               mr={1}
-              color="brand.500"
+              color="blue.500" // explicitly fixed
               transform="rotate(90deg)"
               transition="transform 0.3s ease"
               _hover={{
                 animation: `${rotateIn} 0.5s ease-out`,
+                color: "brand.500", // <<< ensure it doesn't change on hover
               }}
             />
+
             <Heading
               size="md"
               fontFamily="heading"
               letterSpacing="wide"
-              color="blue.700"
-              transition="color 0.3s ease"
+              color="blue.500" // fixed brand color
+              transition="none"
+              _hover={{
+                color: "blue.700", // <<< ensure it never changes
+              }}
             >
               Orontis
             </Heading>
@@ -95,7 +100,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
           <Stack direction="row" spacing={4} align="center">
             <Button
               as={Link}
-              href="/message"
+              href="/myAccount"
               fontSize="sm"
               variant="ghost"
               passHref
