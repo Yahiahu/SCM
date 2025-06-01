@@ -7,13 +7,12 @@ import {
   Button,
   Stack,
   useColorModeValue,
-  useDisclosure,
 } from "@chakra-ui/react";
-import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
-import { FaHome } from "react-icons/fa";
+import { HamburgerIcon } from "@chakra-ui/icons";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
+import Sidebar from "./sidebar";
 
 interface NavbarProps {
   isLoggedIn: boolean;
@@ -21,74 +20,79 @@ interface NavbarProps {
 
 export default function Navbar({ isLoggedIn }: NavbarProps) {
   const router = useRouter();
-  const [showNavBg, setShowNavBg] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn) router.push("/login");
   }, [isLoggedIn, router]);
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setShowNavBg(e.clientY < 80); // Show nav when mouse is near top
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
-
   if (!isLoggedIn) return null;
 
   return (
-    <Box
-      position="fixed"
-      top="0"
-      left="0"
-      width="100%"
-      zIndex="1000"
-      transition="background-color 0.3s ease, backdrop-filter 0.3s ease"
-      bg={showNavBg ? "rgba(255, 249, 255, 1)" : "transparent"}
-      backdropFilter={showNavBg ? "saturate(180%) blur(10px)" : "none"}
-      boxShadow={showNavBg ? "md" : "none"}
-    >
-      <Flex
-        color="gray.700"
-        minH={"60px"}
-        py={2}
-        px={4}
-        align="center"
-        justify="space-between"
+    <>
+      <Sidebar visible={sidebarVisible} setVisible={setSidebarVisible} />
+      <Box
+        position="fixed"
+        top="0"
+        left="0"
+        width="100%"
+        zIndex="1000"
+        bg="#089ce4" // Soft light blue background
+        opacity={1}
+        backdropFilter="saturate(180%) blur(10px)"
+        boxShadow="sm"
+        borderBottom="1px solid"
+        borderColor="blue.100"
       >
-        <IconButton
-          icon={<FaHome />}
-          variant="ghost"
-          aria-label="Home"
-          onClick={() => router.push("/product")}
-          _hover={{ bg: "pink.100", transform: "scale(1.1)" }}
-        />
-
-        <Stack direction="row" spacing={4} align="center">
-          <Button
-            fontSize="sm"
+        <Flex
+          color="gray.700"
+          minH={"60px"}
+          py={2}
+          px={4}
+          align="center"
+          justify="space-between"
+        >
+          <IconButton
+            icon={<HamburgerIcon />}
             variant="ghost"
-            onClick={() => router.push("/message")}
+            aria-label="Open Sidebar"
+            onClick={() => setSidebarVisible(!sidebarVisible)}
             _hover={{
-              bg: "pink.50",
-              transform: "scale(1.05)",
+              bg: "rgba(255,255,255,0.5)",
+              transform: "scale(1.1)",
             }}
-          >
-            My Account
-          </Button>
-          <Button
-            fontSize="sm"
-            fontWeight={600}
-            color="white"
-            bg="pink.400"
-            _hover={{ bg: "pink.500", transform: "scale(1.05)" }}
-            onClick={() => signOut({ callbackUrl: "/login" })}
-          >
-            Sign Out
-          </Button>
-        </Stack>
-      </Flex>
-    </Box>
+          />
+
+          <Stack direction="row" spacing={4} align="center">
+            <Button
+              fontSize="sm"
+              variant="ghost"
+              onClick={() => router.push("/message")}
+              _hover={{
+                bg: "rgba(255,255,255,0.5)",
+                color: "#2596be",
+                transform: "scale(1.05)",
+              }}
+            >
+              My Account
+            </Button>
+            <Button
+              fontSize="sm"
+              fontWeight={600}
+              color="white"
+              bg="#58BDEF" // Primary blue color
+              _hover={{
+                bg: "#1a7ca8", // Slightly darker blue on hover
+                transform: "scale(1.05)",
+                boxShadow: "0 0 0 2px rgba(37, 150, 190, 0.3)",
+              }}
+              onClick={() => signOut({ callbackUrl: "/login" })}
+            >
+              Sign Out
+            </Button>
+          </Stack>
+        </Flex>
+      </Box>
+    </>
   );
 }

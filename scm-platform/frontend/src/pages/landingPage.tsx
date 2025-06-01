@@ -63,6 +63,7 @@ import {
   FaMapMarkedAlt,
   FaClipboardCheck,
   FaExchangeAlt,
+  FaPlane,
 } from "react-icons/fa";
 import {
   MdOutlineSecurity,
@@ -73,6 +74,53 @@ import {
 import { GiFactory, GiDeliveryDrone } from "react-icons/gi";
 import { keyframes } from "@emotion/react";
 import { useRouter } from "next/navigation";
+
+// Plane Animation Keyframes
+const planeTakeoff = keyframes`
+  0% { 
+    transform: translateX(-100px) translateY(-5000px) scale(1); 
+    opacity: 0; 
+  }
+  10% { 
+    opacity: 1; 
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  20% { 
+    transform: translateX(50px) translateY(0px) rotate(5deg);
+  }
+  100% { 
+    transform: translateX(100vw) translateY(0px) rotate(10deg);
+  }
+`;
+
+const planeFlyover = keyframes`
+  0% { 
+    transform: translateX(-100px) translateY(-1000px) rotate(10deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(50vw) translateY(-1000px) rotate(0deg);
+  }
+  100% { 
+    transform: translateX(100vw) translateY(-1000px) rotate(-10deg);
+    opacity: 1;
+  }
+`;
+
+const planeLanding = keyframes`
+  0% { 
+    transform: translateX(-100px) translateY(0px) rotate(-10deg);
+    opacity: 1;
+  }
+  80% {
+    transform: translateX(50px) translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% { 
+    transform: translateX(100px) translateY(0px) scale(0.8);
+    opacity: 0;
+  }
+`;
 
 // Enhanced Chakra UI Theme with supply chain aesthetic
 const config = {
@@ -227,7 +275,6 @@ const truckMovement = keyframes`
   100% { transform: translateX(140vw) translateY(0); }
 `;
 
-
 const warehouseGlow = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(3, 169, 244, 0.4); }
   70% { box-shadow: 0 0 0 15px rgba(3, 169, 244, 0); }
@@ -282,6 +329,75 @@ const chainLink = keyframes`
   50% { transform: translateY(-10px); }
   100% { transform: translateY(0); }
 `;
+
+// Plane Animation Component
+const PlaneAnimation = () => {
+  const planeCount = 5;
+  const planeDelay = 4; // seconds between each plane
+
+const animationKeyframes = keyframes`
+  0% {
+    transform: translateX(-100px) translateY(20px) rotate(0deg);
+    opacity: 0.3;
+  }
+
+  10% {
+    transform: translateX(5vw) translateY(-100px) rotate(-20deg);
+    opacity: 0.6;
+  }
+
+  20% {
+    transform: translateX(15vw) translateY(-170px) rotate(-30deg);
+    opacity: 0.8;
+  }
+
+  40% {
+    transform: translateX(40vw) translateY(-210px) rotate(-5deg);
+    opacity: 1;
+  }
+
+  55% { /* ⬅️ Descent starts here — tweak this point */
+    transform: translateX(60vw) translateY(-210px) rotate(5deg);
+    opacity: 1;
+  }
+
+  70% {
+    transform: translateX(80vw) translateY(-160px) rotate(15deg); /* gentle curve */
+    opacity: 0.8;
+  }
+
+  85% {
+    transform: translateX(90vw) translateY(-80px) rotate(25deg); /* smoother entry to bottom */
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateX(100vw) translateY(30px) rotate(15deg); /* land */
+    opacity: 0.3;
+  }
+`;
+
+
+  return (
+    <>
+      {[...Array(planeCount)].map((_, index) => (
+        <Box
+          key={index}
+          position="absolute"
+          bottom="55px" // 🛫 Adjust this to move the entire path higher/lower relative to the factory
+          left="-50px"
+          zIndex={10}
+          animation={`${animationKeyframes} 12s linear ${
+            index * planeDelay
+          }s infinite`}
+        >
+          <Icon as={FaPlane} w={8} h={8} color="white" />
+        </Box>
+      ))}
+    </>
+  );
+};
+
 
 // Utility hook for scroll animations
 const useScrollAnimation = (
@@ -922,6 +1038,42 @@ export default function LandingPage() {
               >
                 Transform Your Supply Chain Operations
               </Heading>
+
+              {/* Add the flying words */}
+              <Box position="relative" height="100px" width="full">
+                <Text
+                  position="absolute"
+                  left="20%"
+                  top="30%"
+                  fontWeight="bold"
+                  opacity={0}
+                  animation={`${fadeIn} 1s ease-out 2s forwards`}
+                >
+                  Efficiency
+                </Text>
+                <Text
+                  position="absolute"
+                  left="40%"
+                  top="20%"
+                  fontWeight="bold"
+                  opacity={0}
+                  animation={`${fadeIn} 1s ease-out 2.5s forwards`}
+                >
+                  Visibility
+                </Text>
+                <Text
+                  position="absolute"
+                  left="60%"
+                  top="30%"
+                  fontWeight="bold"
+                  opacity={0}
+                  animation={`${fadeIn} 1s ease-out 3s forwards`}
+                >
+                  Speed
+                </Text>
+              </Box>
+
+              <PlaneAnimation />
 
               <Text
                 fontSize={{ base: "lg", md: "xl" }}
