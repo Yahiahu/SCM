@@ -12,7 +12,7 @@ import { ComponentDemand } from "./ComponentDemand";
 
 @Entity()
 export class Component {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment")
   id!: number;
 
   @Column()

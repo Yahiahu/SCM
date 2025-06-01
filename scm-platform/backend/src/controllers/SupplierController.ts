@@ -17,34 +17,51 @@ export const SupplierController = {
   }) as RequestHandler,
 
   create: (async (req: Request, res: Response) => {
-    const {
-      name,
-      rating,
-      contact_email,
-      location,
-      phone,
-      historical_ontime_rate,
-      avg_unit_cost,
-      last_response_time,
-      preferred,
-    } = req.body;
+    try {
+      const {
+        name,
+        rating,
+        contact_email,
+        location,
+        phone,
+        historical_ontime_rate,
+        avg_unit_cost,
+        last_response_time,
+        preferred,
+      } = req.body;
 
-    const supplier = SupplierRepository.create({
-      name,
-      rating,
-      contact_email,
-      location,
-      phone,
-      historical_ontime_rate,
-      avg_unit_cost,
-      last_response_time,
-      preferred,
-    });
+      // Validate required fields
+      if (!name || !contact_email || !phone || !location) {
+        return res.status(400).json({
+          message:
+            "Missing required fields: name, contact_email, phone, location",
+        });
+      }
 
-    const saved = await SupplierRepository.save(supplier);
-    res.status(201).json(saved);
+      const supplier = SupplierRepository.create({
+        name,
+        rating: rating ?? 4, // default to 4 if not provided
+        contact_email,
+        location,
+        phone,
+        historical_ontime_rate: historical_ontime_rate ?? 0.9,
+        avg_unit_cost: avg_unit_cost ?? 10.0,
+        last_response_time: last_response_time ?? 24,
+        preferred: preferred ?? false,
+      });
+
+      const saved = await SupplierRepository.save(supplier);
+      res.status(201).json(saved);
+    } catch (error: any) {
+      console.error("Supplier creation error:", error);
+      if (error.code === "23505") {
+        return res.status(409).json({ message: "Duplicate supplier entry" });
+      }
+      res.status(500).json({ message: "Failed to create supplier." });
+    }
   }) as RequestHandler,
 
+  
   update: (async (req: Request, res: Response) => {
     const supplier = await SupplierRepository.findOne({
       where: { id: Number(req.params.id) },
