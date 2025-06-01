@@ -974,7 +974,6 @@ export default function LandingPage() {
           </ChakraLink>
 
           <HStack spacing={6}>
-            <Navbar isLoggedIn={true} />
 
             <ChakraLink
               color="white"
