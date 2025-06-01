@@ -476,10 +476,10 @@ export default function LogisticsPage() {
         <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={6} mb={6}>
           {/* Purchase Orders Table */}
           <Card boxShadow="sm">
-            <CardHeader bg="brand.500" borderTopRadius="md">
+            <CardHeader bg="brand.50" borderTopRadius="md">
               <HStack>
-                <Icon as={FiPackage} color="white" />
-                <Heading size="md" color="white">
+                <Icon as={FiPackage} color="black" />
+                <Heading size="md" color="black">
                   Purchase Orders
                 </Heading>
               </HStack>
@@ -536,10 +536,10 @@ export default function LogisticsPage() {
 
           {/* Shipments Table */}
           <Card boxShadow="sm">
-            <CardHeader bg="brand.600" borderTopRadius="md">
+            <CardHeader bg="brand.50" borderTopRadius="md">
               <HStack>
-                <Icon as={FiTruck} color="white" />
-                <Heading size="md" color="white">
+                <Icon as={FiTruck} color="black" />
+                <Heading size="md" color="black">
                   Shipments
                 </Heading>
               </HStack>
@@ -596,10 +596,10 @@ export default function LogisticsPage() {
 
           {/* Warehouse Table */}
           <Card boxShadow="sm">
-            <CardHeader bg="brand.700" borderTopRadius="md">
+            <CardHeader bg="brand.50" borderTopRadius="md">
               <HStack>
-                <Icon as={FiHome} color="white" />
-                <Heading size="md" color="white">
+                <Icon as={FiHome} color="black" />
+                <Heading size="md" color="black">
                   Warehouse
                 </Heading>
               </HStack>
@@ -675,9 +675,9 @@ export default function LogisticsPage() {
         <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
           {/* Reorder Alerts */}
           <Card boxShadow="sm">
-            <CardHeader bg="orange.50">
+            <CardHeader bg="blue.50">
               <HStack>
-                <Icon as={FiAlertTriangle} color="orange.500" />
+                <Icon as={FiAlertTriangle} color="blue.500" />
                 <Heading size="md">Reorder Alerts</Heading>
               </HStack>
             </CardHeader>

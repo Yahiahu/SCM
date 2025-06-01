@@ -168,10 +168,10 @@ const theme = extendTheme({
       },
       variants: {
         solid: {
-          bg: "warehouse.500",
+          bg: "blue.500",
           color: "white",
           _hover: {
-            bg: "warehouse.600",
+            bg: "blue.600",
           },
         },
       },
@@ -186,7 +186,7 @@ const theme = extendTheme({
             tr: {
               "&:nth-of-type(odd)": {
                 td: {
-                  background: "warehouse.50",
+                  background: "blue.50",
                 },
               },
             },
@@ -1026,15 +1026,15 @@ export default function WarehousePage() {
           {/* Inventory Table */}
           <Box flex={3}>
             <Card>
-              <CardHeader bg="warehouse.500" borderTopRadius="md">
+              <CardHeader bg="blue.50" borderTopRadius="md">
                 <Flex
                   direction={{ base: "column", md: "row" }}
                   justify="space-between"
                   align="center"
                 >
                   <HStack>
-                    <Icon as={FiBox} color="white" />
-                    <Heading size="md" color="white">
+                    <Icon as={FiBox} color="black" />
+                    <Heading size="md" color="black">
                       Inventory Management
                     </Heading>
                   </HStack>
@@ -1284,7 +1284,7 @@ export default function WarehousePage() {
             <VStack spacing={6} align="stretch">
               {/* Quick Actions */}
               <Card>
-                <CardHeader bg="warehouse.50">
+                <CardHeader bg="blue.50">
                   <HStack>
                     <Icon as={FiPackage} color="warehouse.600" />
                     <Heading size="md">Quick Actions</Heading>

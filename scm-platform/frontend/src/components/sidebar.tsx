@@ -23,14 +23,14 @@ interface LinkItemProps {
 }
 
 const LinkItems: Array<LinkItemProps> = [
-  { name: "Home", icon: FiHome, path: "/home" },
+  { name: "Home", icon: FiHome, path: "/landingPage" },
   { name: "Products", icon: FiBox, path: "/product" },
   { name: "Components", icon: FiPackage, path: "/component" },
   { name: "Demo", icon: FiShoppingCart, path: "/demo" },
   { name: "Inventory", icon: FiDatabase, path: "/inventory" },
   { name: "Messages", icon: FiMessageSquare, path: "/message" },
   { name: "Marketplace", icon: FiShoppingBag, path: "/marketplace" },
-  { name: "Product Orders", icon: FiShoppingCart, path: "/productorder" },
+  { name: "Product Orders", icon: FiShoppingCart, path: "/productOrder" },
   { name: "Warehouse", icon: FiTruck, path: "/warehouse" },
   { name: "Settings", icon: FiSettings, path: "/settings" },
 ];

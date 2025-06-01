@@ -227,21 +227,21 @@ export default function MarketplacePage() {
                 p={5}
                 borderWidth="1px"
                 borderColor={
-                  selectedBundle?.id === bundle.id ? "teal.500" : "gray.300"
+                  selectedBundle?.id === bundle.id ? "blue.500" : "gray.300"
                 }
                 borderRadius="lg"
                 boxShadow={
                   selectedBundle?.id === bundle.id
-                    ? "0 0 0 2px var(--chakra-colors-teal-500)"
+                    ? "0 0 0 2px var(--chakra-colors-blue-500)"
                     : "md"
                 }
                 bg="white"
                 cursor="pointer"
                 onClick={() => setSelectedBundle(bundle)}
                 transition="all 0.2s ease-in-out"
-                _hover={{ borderColor: "teal.400", boxShadow: "lg" }}
+                _hover={{ borderColor: "blue.400", boxShadow: "lg" }}
               >
-                <Heading size="lg" mb={2} color="teal.600">
+                <Heading size="lg" mb={2} color="blue.500">
                   {bundle.name}
                 </Heading>
                 <Text fontSize="md" color="gray.600" mb={4}>
@@ -339,7 +339,7 @@ export default function MarketplacePage() {
               <VStack spacing={3} align="stretch">
                 <HStack justifyContent="space-between">
                   <Text fontWeight="medium">Selected Product:</Text>
-                  <Text color="teal.600" fontWeight="bold">
+                  <Text color="blue.500" fontWeight="bold">
                     {selectedBundle.name}
                   </Text>
                 </HStack>
@@ -368,7 +368,8 @@ export default function MarketplacePage() {
                 >
                   <Button
                     mt={4}
-                    colorScheme="teal"
+                    color="black"
+                    bg="#109ce4"
                     size="lg"
                     onClick={() => {
                       // In a real app, this would create a PO for the components

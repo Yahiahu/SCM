@@ -40,7 +40,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
         left="0"
         width="100%"
         zIndex="1000"
-        bg="#089ce4"
+        bg="blue.50"
         opacity={1}
         backdropFilter="saturate(180%) blur(10px)"
         boxShadow="sm"

@@ -65,6 +65,7 @@ import {
   FiClock,
   FiTrash2,
   FiUpload,
+  FiPlus,
 } from "react-icons/fi";
 import { useState, useEffect, useRef } from "react";
 import Navbar from "../components/navbar";
@@ -366,14 +367,15 @@ export default function MessageBoardPage() {
       <Flex height="calc(100vh - 128px)" pt={20} px={4} gap={4} bg="gray.50">
         {/* Sidebar - Conversation Threads */}
         <Card width="300px" overflow="hidden">
-          <CardHeader bg="brand.500" color="white">
+          <CardHeader bg="blue.50" color="black">
             <Flex justify="space-between" align="center">
               <Heading size="md">PO Conversations</Heading>
               <Button
                 size="sm"
-                leftIcon={<FiUsers />}
+                leftIcon={<FiPlus />}
                 variant="ghost"
-                color="white"
+                color="black"
+                bg = "blue.100"
                 onClick={onOpen}
               >
                 New Thread
@@ -666,7 +668,7 @@ export default function MessageBoardPage() {
         {/* Right Panel - Shared Files */}
         <Card width="300px" overflow="hidden">
           <CardHeader
-            bg="gray.50"
+            bg="blue.50"
             borderBottom="1px solid"
             borderColor="gray.200"
           >

@@ -708,15 +708,15 @@ export default function PurchaseOrderDashboard() {
 
           {/* Main Content */}
           <Card>
-            <CardHeader bg="po.500" borderTopRadius="md">
+            <CardHeader bg="po.50" borderTopRadius="md">
               <Flex
                 direction={{ base: "column", md: "row" }}
                 justify="space-between"
                 align="center"
               >
                 <HStack>
-                  <Icon as={FiShoppingCart} color="white" />
-                  <Heading size="md" color="white">
+                  <Icon as={FiShoppingCart} color="black" />
+                  <Heading size="md" color="black">
                     Purchase Orders
                   </Heading>
                 </HStack>
@@ -986,9 +986,9 @@ export default function PurchaseOrderDashboard() {
           <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6} mt={6}>
             {/* Overdue POs */}
             <Card>
-              <CardHeader bg="red.50">
+              <CardHeader bg="blue.50">
                 <HStack>
-                  <Icon as={FiAlertTriangle} color="red.500" />
+                  <Icon as={FiAlertTriangle} color="blue.500" />
                   <Heading size="md">Overdue Purchase Orders</Heading>
                 </HStack>
               </CardHeader>
