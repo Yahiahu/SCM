@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
 import { Warehouse } from "./Warehouse";
 import { Component } from "./Component";
-
+import { BinLocation } from "./new/BinLocation";
 @Entity()
 export class WarehouseInventory {
   @PrimaryGeneratedColumn()
@@ -23,4 +23,13 @@ export class WarehouseInventory {
 
   @Column({ type: "int", default: 0 })
   outgoing_qty!: number;
+  
+  @ManyToOne(() => BinLocation, (bin) => bin.inventory_items, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
+  bin_location!: BinLocation | null;
+
 }
+
+

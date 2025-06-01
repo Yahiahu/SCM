@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 import { Component } from "./Component";
 import { SupplierQuote } from "./SupplierQuote";
 import { PurchaseOrder } from "./PurchaseOrder";
+import { SupplierScore } from "./new/SupplierScorecard";
 
 @Entity()
 export class Supplier {
@@ -43,4 +44,11 @@ export class Supplier {
 
   @OneToMany(() => PurchaseOrder, (po) => po.supplier)
   purchase_orders!: PurchaseOrder[];
+
+  @OneToMany(() => SupplierScore, (score) => score.supplier)
+  scores!: SupplierScore[];
+  rfqs: any;
 }
+
+
+

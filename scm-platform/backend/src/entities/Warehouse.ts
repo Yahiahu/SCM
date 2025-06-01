@@ -9,6 +9,7 @@ import { Organization } from "./Organization";
 import { WarehouseInventory } from "./WarehouseInventory";
 import { MonthlyStock } from "./MonthlyStock";
 import { WarehouseLayout } from "./WarehouseLayout";
+import { BinLocation } from "./new/BinLocation";
 
 @Entity()
 export class Warehouse {
@@ -34,4 +35,9 @@ export class Warehouse {
 
   @OneToMany(() => WarehouseLayout, (layout) => layout.warehouse)
   layout_versions!: WarehouseLayout[];
+
+  @OneToMany(() => BinLocation, (bin) => bin.warehouse)
+  bin_locations!: BinLocation[];
+
 }
+

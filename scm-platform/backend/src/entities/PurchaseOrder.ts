@@ -9,6 +9,7 @@ import { Supplier } from "./Supplier";
 import { User } from "./User";
 import { POItem } from "./POItem";
 import { ShippingInfo } from "./ShippingInfo";
+import { PurchaseGroup } from "./new/PurchaseGroup";
 
 @Entity()
 export class PurchaseOrder {
@@ -40,4 +41,12 @@ export class PurchaseOrder {
 
   @OneToMany(() => ShippingInfo, (ship) => ship.po)
   shipments!: ShippingInfo[];
+
+  @ManyToOne(() => PurchaseGroup, (group) => group.purchase_orders, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
+  purchase_group!: PurchaseGroup | null;
+  return_orders: any;
 }
+
