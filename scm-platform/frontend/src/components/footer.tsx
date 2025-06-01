@@ -60,7 +60,7 @@ export default function LargeWithNewsletter() {
   return (
     <Box
       bg={useColorModeValue("gray.50", "gray.900")}
-      color={useColorModeValue("gray.700", "gray.200")}
+      color={useColorModeValue("#109ce4", "gray.200")}
     >
       <Container as={Stack} maxW={"6xl"} py={10}>
         <SimpleGrid
@@ -128,7 +128,7 @@ export default function LargeWithNewsletter() {
                 }}
               />
               <IconButton
-                bg={useColorModeValue("green.400", "green.800")}
+                bg={useColorModeValue("#109ce4", "#109ce4")}
                 color={useColorModeValue("white", "gray.800")}
                 _hover={{
                   bg: "green.600",

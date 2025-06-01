@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import Sidebar from "./sidebar";
+import Link from "next/link";
 
 interface NavbarProps {
   isLoggedIn: boolean;
@@ -21,12 +22,14 @@ interface NavbarProps {
 export default function Navbar({ isLoggedIn }: NavbarProps) {
   const router = useRouter();
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (!isLoggedIn) router.push("/login");
   }, [isLoggedIn, router]);
 
-  if (!isLoggedIn) return null;
+  if (!mounted || !isLoggedIn) return null;
 
   return (
     <>
@@ -37,7 +40,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
         left="0"
         width="100%"
         zIndex="1000"
-        bg="#089ce4" // Soft light blue background
+        bg="#089ce4"
         opacity={1}
         backdropFilter="saturate(180%) blur(10px)"
         boxShadow="sm"
@@ -65,9 +68,11 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
 
           <Stack direction="row" spacing={4} align="center">
             <Button
+              as={Link}
+              href="/message"
               fontSize="sm"
               variant="ghost"
-              onClick={() => router.push("/message")}
+              passHref
               _hover={{
                 bg: "rgba(255,255,255,0.5)",
                 color: "#2596be",
@@ -76,13 +81,14 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
             >
               My Account
             </Button>
+
             <Button
               fontSize="sm"
               fontWeight={600}
               color="white"
-              bg="#58BDEF" // Primary blue color
+              bg="#58BDEF"
               _hover={{
-                bg: "#1a7ca8", // Slightly darker blue on hover
+                bg: "#1a7ca8",
                 transform: "scale(1.05)",
                 boxShadow: "0 0 0 2px rgba(37, 150, 190, 0.3)",
               }}

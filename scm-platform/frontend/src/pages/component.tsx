@@ -184,7 +184,7 @@ export default function ComponentsPage() {
     };
 
     fetchComponents();
-  }, []);
+  }, [toast]);
 
   // Helper functions
   const getSupplierName = (supplierId: number) => {
@@ -194,9 +194,7 @@ export default function ComponentsPage() {
       { id: 3, name: "Gamma Mechanical" },
       { id: 4, name: "Delta Materials" },
     ];
-    return (
-      suppliers.find((s) => s.id === supplierId)?.name || "Unknown Supplier"
-    );
+    return suppliers.find((s) => s.id === supplierId)?.name || "Unknown Supplier";
   };
 
   const getComponentType = (description: string) => {
@@ -208,9 +206,7 @@ export default function ComponentsPage() {
     return "Other";
   };
 
-  const getStatus = (
-    quantity: number
-  ): "In Stock" | "Low Stock" | "Out of Stock" => {
+  const getStatus = (quantity: number): "In Stock" | "Low Stock" | "Out of Stock" => {
     if (quantity <= 0) return "Out of Stock";
     if (quantity <= 10) return "Low Stock";
     return "In Stock";
@@ -226,8 +222,7 @@ export default function ComponentsPage() {
         (comp) =>
           comp.num.toLowerCase().includes(searchTerm.toLowerCase()) ||
           comp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (comp.supplier &&
-            comp.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
+          (comp.supplier && comp.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -236,8 +231,7 @@ export default function ComponentsPage() {
       if (sortBy === "name") return a.num.localeCompare(b.num);
       if (sortBy === "type") return (a.type || "").localeCompare(b.type || "");
       if (sortBy === "quantity") return b.currentQty - a.currentQty;
-      if (sortBy === "status")
-        return (a.status || "").localeCompare(b.status || "");
+      if (sortBy === "status") return (a.status || "").localeCompare(b.status || "");
       return 0;
     });
 
@@ -245,9 +239,7 @@ export default function ComponentsPage() {
   }, [searchTerm, sortBy, components]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -366,251 +358,243 @@ export default function ComponentsPage() {
 
   return (
     <ChakraProvider theme={theme}>
-      <Navbar isLoggedIn={true} />
+      <Box minHeight="100vh" display="flex" flexDirection="column">
+        <Navbar isLoggedIn={true} />
+        
+        <Box flex="1" pt={20} px={6} bg="gray.50">
+          <Flex direction={{ base: "column", lg: "row" }} gap={6}>
+            {/* Main Content Area */}
+            <Box flex={3}>
+              <Flex justify="space-between" align="center" mb={6}>
+                <Heading size="xl" color="gray.800">
+                  Component Inventory
+                </Heading>
 
-      <Box pt={20} px={6} bg="gray.50" minH="calc(100vh - 128px)">
-        <Flex direction={{ base: "column", lg: "row" }} gap={6}>
-          {/* Main Content Area */}
-          <Box flex={3}>
-            <Flex justify="space-between" align="center" mb={6}>
-              <Heading size="xl" color="gray.800">
-                Component Inventory
-              </Heading>
-
-              <Button
-                colorScheme="brand"
-                leftIcon={<FiPlus />}
-                onClick={onOpen}
-              >
-                Add Component
-              </Button>
-            </Flex>
-
-            {/* Search and Filter Bar */}
-            <Card mb={6} boxShadow="sm">
-              <CardBody>
-                <Flex gap={4} flexWrap="wrap">
-                  <HStack flex={1} minW="300px">
-                    <Icon as={FiSearch} color="gray.500" />
-                    <Input
-                      placeholder="Search components..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </HStack>
-
-                  <HStack>
-                    <Icon as={FiFilter} color="gray.500" />
-                    <Select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                      minW="180px"
-                    >
-                      <option value="name">Sort by Part Number</option>
-                      <option value="type">Sort by Type</option>
-                      <option value="quantity">Sort by Quantity</option>
-                      <option value="status">Sort by Status</option>
-                    </Select>
-                  </HStack>
-
-                  <Button leftIcon={<FiDownload />} variant="outline">
-                    Export
-                  </Button>
-                  <Button leftIcon={<FiPrinter />} variant="outline">
-                    Print
-                  </Button>
-                </Flex>
-              </CardBody>
-            </Card>
-
-            {/* Components Table */}
-            <Card boxShadow="sm" overflowX="auto">
-              {isLoading ? (
-                <CardBody>
-                  {[...Array(5)].map((_, i) => (
-                    <Skeleton key={i} height="40px" mb={2} />
-                  ))}
-                </CardBody>
-              ) : (
-                <>
-                  <Table variant="striped" size="md">
-                    <Thead>
-                      <Tr>
-                        <Th>Part Number</Th>
-                        <Th>Description</Th>
-                        <Th>Type</Th>
-                        <Th>Quantity</Th>
-                        <Th>Status</Th>
-                        <Th>Supplier</Th>
-                        <Th>Last Updated</Th>
-                        <Th>Actions</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {filteredComponents.map((component) => (
-                        <Tr key={component.id}>
-                          <Td fontWeight="medium">{component.num}</Td>
-                          <Td>{component.description}</Td>
-                          <Td>{component.type || "N/A"}</Td>
-                          <Td>
-                            <Flex align="center" gap={2}>
-                              {component.currentQty}
-                              <Progress
-                                value={Math.min(component.currentQty, 100)}
-                                max={100}
-                                size="xs"
-                                colorScheme={getStatusColor(
-                                  component.status || ""
-                                )}
-                                flex="1"
-                                borderRadius="full"
-                              />
-                            </Flex>
-                          </Td>
-                          <Td>
-                            <Badge
-                              colorScheme={getStatusColor(
-                                component.status || ""
-                              )}
-                              display="flex"
-                              alignItems="center"
-                              gap={1}
-                              px={2}
-                              py={1}
-                              borderRadius="full"
-                            >
-                              {getStatusIcon(component.status || "")}
-                              {component.status}
-                            </Badge>
-                          </Td>
-                          <Td>{component.supplier || "N/A"}</Td>
-                          <Td>{component.lastUpdated || "N/A"}</Td>
-                          <Td>
-                            <Menu>
-                              <MenuButton
-                                as={IconButton}
-                                aria-label="Actions"
-                                icon={<FiMoreVertical />}
-                                variant="ghost"
-                              />
-                              <MenuList>
-                                <MenuItem icon={<FiEdit2 />}>Edit</MenuItem>
-                                <MenuItem
-                                  icon={<FiTrash2 />}
-                                  color="red.500"
-                                  onClick={() => handleDelete(component.id)}
-                                >
-                                  Delete
-                                </MenuItem>
-                                <MenuItem icon={<FiArrowRight />}>
-                                  View Details
-                                </MenuItem>
-                              </MenuList>
-                            </Menu>
-                          </Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-
-                  {filteredComponents.length === 0 && (
-                    <CardBody>
-                      <Text textAlign="center" py={8} color="gray.500">
-                        No components found. Try adjusting your search.
-                      </Text>
-                    </CardBody>
-                  )}
-                </>
-              )}
-            </Card>
-          </Box>
-
-          {/* Sidebar */}
-          <Box flex={1} minW="300px">
-            <Card boxShadow="sm" mb={6}>
-              <CardHeader>
-                <Heading size="md">Inventory Summary</Heading>
-              </CardHeader>
-              <CardBody>
-                <VStack align="stretch" spacing={4}>
-                  <Box>
-                    <Text fontSize="sm" color="gray.600">
-                      Total Components
-                    </Text>
-                    <Heading size="lg">{components.length}</Heading>
-                  </Box>
-
-                  <Box>
-                    <Text fontSize="sm" color="gray.600">
-                      In Stock
-                    </Text>
-                    <Heading size="lg">
-                      {components.filter((c) => c.status === "In Stock").length}
-                    </Heading>
-                  </Box>
-
-                  <Box>
-                    <Text fontSize="sm" color="gray.600">
-                      Low Stock
-                    </Text>
-                    <Heading size="lg" color="orange.500">
-                      {
-                        components.filter((c) => c.status === "Low Stock")
-                          .length
-                      }
-                    </Heading>
-                  </Box>
-
-                  <Box>
-                    <Text fontSize="sm" color="gray.600">
-                      Out of Stock
-                    </Text>
-                    <Heading size="lg" color="red.500">
-                      {
-                        components.filter((c) => c.status === "Out of Stock")
-                          .length
-                      }
-                    </Heading>
-                  </Box>
-                </VStack>
-              </CardBody>
-              <CardFooter>
-                <Button colorScheme="brand" w="full">
-                  Generate Report
+                <Button
+                  colorScheme="brand"
+                  leftIcon={<FiPlus />}
+                  onClick={onOpen}
+                >
+                  Add Component
                 </Button>
-              </CardFooter>
-            </Card>
+              </Flex>
 
-            <Card boxShadow="sm">
-              <CardHeader>
-                <Heading size="md">Quick Actions</Heading>
-              </CardHeader>
-              <CardBody>
-                <VStack align="stretch" spacing={3}>
-                  <Button
-                    leftIcon={<FiPlus />}
-                    variant="outline"
-                    onClick={onOpen}
-                  >
-                    Add Component
+              {/* Search and Filter Bar */}
+              <Card mb={6} boxShadow="sm">
+                <CardBody>
+                  <Flex gap={4} flexWrap="wrap">
+                    <HStack flex={1} minW="300px">
+                      <Icon as={FiSearch} color="gray.500" />
+                      <Input
+                        placeholder="Search components..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </HStack>
+
+                    <HStack>
+                      <Icon as={FiFilter} color="gray.500" />
+                      <Select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        minW="180px"
+                      >
+                        <option value="name">Sort by Part Number</option>
+                        <option value="type">Sort by Type</option>
+                        <option value="quantity">Sort by Quantity</option>
+                        <option value="status">Sort by Status</option>
+                      </Select>
+                    </HStack>
+
+                    <Button leftIcon={<FiDownload />} variant="outline">
+                      Export
+                    </Button>
+                    <Button leftIcon={<FiPrinter />} variant="outline">
+                      Print
+                    </Button>
+                  </Flex>
+                </CardBody>
+              </Card>
+
+              {/* Components Table */}
+              <Card boxShadow="sm" overflowX="auto">
+                {isLoading ? (
+                  <CardBody>
+                    {[...Array(5)].map((_, i) => (
+                      <Skeleton key={i} height="40px" mb={2} />
+                    ))}
+                  </CardBody>
+                ) : (
+                  <>
+                    <Table variant="striped" size="md">
+                      <Thead>
+                        <Tr>
+                          <Th>Part Number</Th>
+                          <Th>Description</Th>
+                          <Th>Type</Th>
+                          <Th>Quantity</Th>
+                          <Th>Status</Th>
+                          <Th>Supplier</Th>
+                          <Th>Last Updated</Th>
+                          <Th>Actions</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {filteredComponents.map((component) => (
+                          <Tr key={component.id}>
+                            <Td fontWeight="medium">{component.num}</Td>
+                            <Td>{component.description}</Td>
+                            <Td>{component.type || "N/A"}</Td>
+                            <Td>
+                              <Flex align="center" gap={2}>
+                                {component.currentQty}
+                                <Progress
+                                  value={Math.min(component.currentQty, 100)}
+                                  max={100}
+                                  size="xs"
+                                  colorScheme={getStatusColor(component.status || "")}
+                                  flex="1"
+                                  borderRadius="full"
+                                />
+                              </Flex>
+                            </Td>
+                            <Td>
+                              <Badge
+                                colorScheme={getStatusColor(component.status || "")}
+                                display="flex"
+                                alignItems="center"
+                                gap={1}
+                                px={2}
+                                py={1}
+                                borderRadius="full"
+                              >
+                                {getStatusIcon(component.status || "")}
+                                {component.status}
+                              </Badge>
+                            </Td>
+                            <Td>{component.supplier || "N/A"}</Td>
+                            <Td>{component.lastUpdated || "N/A"}</Td>
+                            <Td>
+                              <Menu>
+                                <MenuButton
+                                  as={IconButton}
+                                  aria-label="Actions"
+                                  icon={<FiMoreVertical />}
+                                  variant="ghost"
+                                />
+                                <MenuList>
+                                  <MenuItem icon={<FiEdit2 />}>Edit</MenuItem>
+                                  <MenuItem
+                                    icon={<FiTrash2 />}
+                                    color="red.500"
+                                    onClick={() => handleDelete(component.id)}
+                                  >
+                                    Delete
+                                  </MenuItem>
+                                  <MenuItem icon={<FiArrowRight />}>
+                                    View Details
+                                  </MenuItem>
+                                </MenuList>
+                              </Menu>
+                            </Td>
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+
+                    {filteredComponents.length === 0 && !isLoading && (
+                      <CardBody>
+                        <Text textAlign="center" py={8} color="gray.500">
+                          No components found. Try adjusting your search.
+                        </Text>
+                      </CardBody>
+                    )}
+                  </>
+                )}
+              </Card>
+            </Box>
+
+            {/* Sidebar */}
+            <Box flex={1} minW="300px">
+              <Card boxShadow="sm" mb={6}>
+                <CardHeader>
+                  <Heading size="md">Inventory Summary</Heading>
+                </CardHeader>
+                <CardBody>
+                  <VStack align="stretch" spacing={4}>
+                    <Box>
+                      <Text fontSize="sm" color="gray.600">
+                        Total Components
+                      </Text>
+                      <Heading size="lg">{components.length}</Heading>
+                    </Box>
+
+                    <Box>
+                      <Text fontSize="sm" color="gray.600">
+                        In Stock
+                      </Text>
+                      <Heading size="lg">
+                        {components.filter((c) => c.status === "In Stock").length}
+                      </Heading>
+                    </Box>
+
+                    <Box>
+                      <Text fontSize="sm" color="gray.600">
+                        Low Stock
+                      </Text>
+                      <Heading size="lg" color="orange.500">
+                        {components.filter((c) => c.status === "Low Stock").length}
+                      </Heading>
+                    </Box>
+
+                    <Box>
+                      <Text fontSize="sm" color="gray.600">
+                        Out of Stock
+                      </Text>
+                      <Heading size="lg" color="red.500">
+                        {components.filter((c) => c.status === "Out of Stock").length}
+                      </Heading>
+                    </Box>
+                  </VStack>
+                </CardBody>
+                <CardFooter>
+                  <Button colorScheme="brand" w="full">
+                    Generate Report
                   </Button>
-                  <Button leftIcon={<FiDownload />} variant="outline">
-                    Import Components
-                  </Button>
-                  <Button leftIcon={<FiPrinter />} variant="outline">
-                    Print Labels
-                  </Button>
-                  <Button leftIcon={<FiArrowRight />} variant="outline">
-                    View Suppliers
-                  </Button>
-                </VStack>
-              </CardBody>
-            </Card>
-          </Box>
-        </Flex>
+                </CardFooter>
+              </Card>
+
+              <Card boxShadow="sm">
+                <CardHeader>
+                  <Heading size="md">Quick Actions</Heading>
+                </CardHeader>
+                <CardBody>
+                  <VStack align="stretch" spacing={3}>
+                    <Button
+                      leftIcon={<FiPlus />}
+                      variant="outline"
+                      onClick={onOpen}
+                    >
+                      Add Component
+                    </Button>
+                    <Button leftIcon={<FiDownload />} variant="outline">
+                      Import Components
+                    </Button>
+                    <Button leftIcon={<FiPrinter />} variant="outline">
+                      Print Labels
+                    </Button>
+                    <Button leftIcon={<FiArrowRight />} variant="outline">
+                      View Suppliers
+                    </Button>
+                  </VStack>
+                </CardBody>
+              </Card>
+            </Box>
+          </Flex>
+        </Box>
+
+        <Footer />
       </Box>
-
-      <Footer />
 
       {/* Add Component Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="lg">
