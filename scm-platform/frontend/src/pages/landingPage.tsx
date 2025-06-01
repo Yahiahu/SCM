@@ -74,6 +74,7 @@ import {
 import { GiFactory, GiDeliveryDrone } from "react-icons/gi";
 import { keyframes } from "@emotion/react";
 import { useRouter } from "next/navigation";
+import Navbar from "../components/navbar";
 
 // Plane Animation Keyframes
 const planeTakeoff = keyframes`
@@ -973,6 +974,8 @@ export default function LandingPage() {
           </ChakraLink>
 
           <HStack spacing={6}>
+            <Navbar isLoggedIn={true} />
+
             <ChakraLink
               color="white"
               _hover={{ color: "brand.500", transform: "translateY(-2px)" }}
@@ -1043,33 +1046,33 @@ export default function LandingPage() {
               <Box position="relative" height="100px" width="full">
                 <Text
                   position="absolute"
-                  left="20%"
+                  left="15%"
                   top="30%"
                   fontWeight="bold"
                   opacity={0}
                   animation={`${fadeIn} 1s ease-out 2s forwards`}
                 >
-                  Efficiency
+                  Streamline Processes
                 </Text>
                 <Text
                   position="absolute"
-                  left="40%"
-                  top="20%"
+                  left="45%"
+                  top="30%"
                   fontWeight="bold"
                   opacity={0}
                   animation={`${fadeIn} 1s ease-out 2.5s forwards`}
                 >
-                  Visibility
+                  Sharpen Insights
                 </Text>
                 <Text
                   position="absolute"
-                  left="60%"
+                  left="70%"
                   top="30%"
                   fontWeight="bold"
                   opacity={0}
                   animation={`${fadeIn} 1s ease-out 3s forwards`}
                 >
-                  Speed
+                  Speed Up Results
                 </Text>
               </Box>
 
@@ -1102,7 +1105,7 @@ export default function LandingPage() {
                 animation={`${floatUp} 1s ease-out 0.6s forwards`}
                 opacity={1}
               >
-                <NextLink href="/" passHref legacyBehavior>
+                <NextLink href="/product" passHref legacyBehavior>
                   <Button
                     as="a"
                     size="lg"
@@ -1116,11 +1119,11 @@ export default function LandingPage() {
                       zIndex: 10,
                     }}
                   >
-                    Request a Demo
+                    Get Started
                   </Button>
                 </NextLink>
 
-                <NextLink href="#features" passHref legacyBehavior>
+                <NextLink href="/demo" passHref legacyBehavior>
                   <Button
                     as="a"
                     size="lg"

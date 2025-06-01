@@ -57,6 +57,7 @@ import Sidebar from "../components/sidebar";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Area, AreaChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // Theme extension with blue color scheme
 const theme = extendTheme({
@@ -213,6 +214,7 @@ function ProductProfileCard({ product }: { product: Product }) {
   );
 }
 
+
 function AddProductCard() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
@@ -223,7 +225,11 @@ function AddProductCard() {
     notes: "",
     category: "",
     price: "",
+    imageUrl: "",
+    designFiles: "",
+    warnings: "",
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
@@ -250,7 +256,10 @@ function AddProductCard() {
           description: formData.description,
           qty: parseInt(formData.qty),
           notes: formData.notes,
-          organizationId: 1, // Default org ID - you might want to get this from user session
+          image_url: formData.imageUrl,
+          design_files: formData.designFiles,
+          warnings: formData.warnings,
+          organizationId: 1,
         }),
       });
 
@@ -311,9 +320,15 @@ function AddProductCard() {
         </VStack>
       </Box>
 
-      <Modal isOpen={isOpen} onClose={onClose} size="xl">
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        size="xl"
+        isCentered
+        motionPreset="slideInBottom"
+      >
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent mt="0px" maxH="100vh" overflowY="auto">
           <ModalHeader>Add New Product</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
@@ -384,6 +399,36 @@ function AddProductCard() {
                     value={formData.notes}
                     onChange={handleChange}
                     placeholder="Additional notes"
+                    rows={2}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Image URL</FormLabel>
+                  <Input
+                    name="imageUrl"
+                    value={formData.imageUrl}
+                    onChange={handleChange}
+                    placeholder="https://example.com/image.png"
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Design Files (URL)</FormLabel>
+                  <Input
+                    name="designFiles"
+                    value={formData.designFiles}
+                    onChange={handleChange}
+                    placeholder="https://example.com/design.zip"
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Warnings</FormLabel>
+                  <Textarea
+                    name="warnings"
+                    value={formData.warnings}
+                    onChange={handleChange}
+                    placeholder="E.g., Handle with care"
                     rows={2}
                   />
                 </FormControl>
@@ -542,11 +587,40 @@ export default function HomePage() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  
 
   useEffect(() => {
     setIsClient(true);
     fetchProducts();
   }, []);
+
+  const handleExportCSV = () => {
+    const headers = ["Product", "Category", "Sales", "Revenue", "Stock"];
+    const rows = products
+      .sort((a, b) => (b.price || 0) * (b.qty || 0) - (a.price || 0) * (a.qty || 0))
+      .slice(0, 5)
+      .map((product) => [
+        product.name,
+        product.category,
+        Math.floor(Math.random() * 100) + 50,
+        ((product.price || 0) * 50).toFixed(2),
+        product.qty,
+      ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((field) => `"${field}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "product_analytics.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   const fetchProducts = async () => {
     try {
@@ -671,63 +745,375 @@ export default function HomePage() {
         minH="100vh"
       >
         <Container maxW="container.xl" px={{ base: 4, md: 8 }}>
-          {products.length > 0 && <ProductCarousel products={products} />}
+          {products.length > 0 && (
+            <Box bg="blue.100" borderRadius="lg" mb={12} p={4}>
+              <ProductCarousel products={products} />
+            </Box>
+          )}
 
           {/* Dashboard Stats */}
-          <Box mb={12}>
-            <Heading size="lg" mb={6} color="gray.700">
-              Inventory Overview
+{/* Dashboard Stats */}
+<Box mb={12}>
+  <Heading size="lg" mb={6} color="gray.700">
+    Inventory Overview
+  </Heading>
+  <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={6}>
+    {stats.map((stat, index) => (
+      <Box
+        key={index}
+        bg={stat.isPositive ? "green.50" : "red.50"}
+        p={6}
+        borderRadius="lg"
+        boxShadow="sm"
+        border="1px solid"
+        borderColor={stat.isPositive ? "green.100" : "red.100"}
+        borderLeft="4px solid"
+        borderLeftColor={stat.isPositive ? "green.400" : "red.400"}
+      >
+        <Stat>
+          <HStack justify="space-between">
+            <StatLabel color="gray.500">{stat.title}</StatLabel>
+            <Icon as={stat.icon} color="brand.500" boxSize={6} />
+          </HStack>
+          <StatNumber fontSize="2xl" mt={2} color="gray.800">
+            {stat.value}
+          </StatNumber>
+          <StatHelpText>
+            <StatArrow
+              type={stat.isPositive ? "increase" : "decrease"}
+              color={stat.isPositive ? "green.500" : "red.500"}
+            />
+            {stat.change}
+          </StatHelpText>
+        </Stat>
+      </Box>
+    ))}
+  </SimpleGrid>
+</Box>
+</Container>
+
+        {/* Analytics Dashboard */}
+        <Box bg="white" p={6} borderRadius="lg" boxShadow="sm" mb={12}>
+          <Flex justify="space-between" align="center" mb={8}>
+            <Heading size="lg" color="gray.700">
+              Product Analytics
             </Heading>
-            <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={6}>
-              {stats.map((stat, index) => (
-                <Box
-                  key={index}
-                  bg="white"
-                  p={6}
-                  borderRadius="lg"
-                  boxShadow="sm"
-                  border="1px solid"
-                  borderColor="gray.100"
-                >
-                  <Stat>
-                    <HStack justify="space-between">
-                      <StatLabel color="gray.500">{stat.title}</StatLabel>
-                      <Icon as={stat.icon} color="brand.500" boxSize={6} />
-                    </HStack>
-                    <StatNumber fontSize="2xl" mt={2} color="gray.800">
-                      {stat.value}
-                    </StatNumber>
-                    <StatHelpText>
-                      <StatArrow
-                        type={stat.isPositive ? "increase" : "decrease"}
-                      />
-                      {stat.change}
-                    </StatHelpText>
-                  </Stat>
+            <Button colorScheme="brand" size="sm" onClick={handleExportCSV}>
+              Export Data
+            </Button>
+          </Flex>
+
+          {/* Top Performing Products Table */}
+          <Box mb={10}>
+            <Heading size="md" mb={4} color="gray.600">
+              Top Performing Products
+            </Heading>
+            <Box overflowX="auto">
+              <Box
+                as="table"
+                width="full"
+                borderWidth="1px"
+                borderRadius="lg"
+                overflow="hidden"
+              >
+                <Box as="thead" bg="gray.50">
+                  <Box as="tr">
+                    <Box
+                      as="th"
+                      px={6}
+                      py={3}
+                      textAlign="left"
+                      fontWeight="semibold"
+                      color="gray.600"
+                    >
+                      Product
+                    </Box>
+                    <Box
+                      as="th"
+                      px={6}
+                      py={3}
+                      textAlign="right"
+                      fontWeight="semibold"
+                      color="gray.600"
+                    >
+                      Sales
+                    </Box>
+                    <Box
+                      as="th"
+                      px={6}
+                      py={3}
+                      textAlign="right"
+                      fontWeight="semibold"
+                      color="gray.600"
+                    >
+                      Revenue
+                    </Box>
+                    <Box
+                      as="th"
+                      px={6}
+                      py={3}
+                      textAlign="right"
+                      fontWeight="semibold"
+                      color="gray.600"
+                    >
+                      Stock
+                    </Box>
+                    <Box
+                      as="th"
+                      px={6}
+                      py={3}
+                      textAlign="right"
+                      fontWeight="semibold"
+                      color="gray.600"
+                    >
+                      % of Total
+                    </Box>
+                  </Box>
                 </Box>
-              ))}
-            </SimpleGrid>
+                <Box as="tbody">
+                  {products
+                    .sort(
+                      (a, b) =>
+                        (b.price || 0) * (b.qty || 0) -
+                        (a.price || 0) * (a.qty || 0)
+                    )
+                    .slice(0, 5)
+                    .map((product) => (
+                      <Box
+                        as="tr"
+                        key={product.id}
+                        _even={{ bg: "gray.50" }}
+                        _hover={{ bg: "gray.100" }}
+                      >
+                        <Box as="td" px={6} py={4} borderTopWidth="1px">
+                          <Text fontWeight="medium">{product.name}</Text>
+                          <Text fontSize="sm" color="gray.500">
+                            {product.category}
+                          </Text>
+                        </Box>
+                        <Box
+                          as="td"
+                          px={6}
+                          py={4}
+                          textAlign="right"
+                          borderTopWidth="1px"
+                        >
+                          {Math.floor(Math.random() * 100) + 50}
+                        </Box>
+                        <Box
+                          as="td"
+                          px={6}
+                          py={4}
+                          textAlign="right"
+                          borderTopWidth="1px"
+                        >
+                          ${((product.price || 0) * 50).toLocaleString()}
+                        </Box>
+                        <Box
+                          as="td"
+                          px={6}
+                          py={4}
+                          textAlign="right"
+                          borderTopWidth="1px"
+                        >
+                          {product.qty}
+                        </Box>
+                        <Box
+                          as="td"
+                          px={6}
+                          py={4}
+                          textAlign="right"
+                          borderTopWidth="1px"
+                        >
+                          <Progress
+                            value={Math.floor(Math.random() * 30) + 20}
+                            size="sm"
+                            colorScheme="brand"
+                            borderRadius="full"
+                          />
+                        </Box>
+                      </Box>
+                    ))}
+                </Box>
+              </Box>
+            </Box>
           </Box>
 
-          {/* Products Section */}
-          <Box bg="white" p={6} borderRadius="lg" boxShadow="sm" mb={12}>
-            <Flex justify="space-between" align="center" mb={8}>
-              <Heading size="lg" color="gray.700">
-                Product Inventory
+          {/* Sales Breakdown */}
+          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8} mb={10}>
+            <Box>
+              <Heading size="md" mb={4} color="gray.600">
+                Sales by Category
               </Heading>
-              <Button colorScheme="brand" size="sm">
-                Export Data
-              </Button>
-            </Flex>
+              <Box
+                bg="white"
+                p={4}
+                borderRadius="lg"
+                height="300px"
+                border="1px solid"
+                borderColor="gray.200"
+                boxShadow="sm"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: "Electronics", value: 400, color: "#3182CE" },
+                        {
+                          name: "Home Automation",
+                          value: 300,
+                          color: "#805AD5",
+                        },
+                        {
+                          name: "Industrial IoT",
+                          value: 200,
+                          color: "#38A169",
+                        },
+                        {
+                          name: "Mechanical Parts",
+                          value: 100,
+                          color: "#DD6B20",
+                        },
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) =>
+                        `${name}: ${(percent * 100).toFixed(0)}%`
+                      }
+                    >
+                      {[
+                        { name: "Electronics", value: 400, color: "#3182CE" },
+                        {
+                          name: "Home Automation",
+                          value: 300,
+                          color: "#805AD5",
+                        },
+                        {
+                          name: "Industrial IoT",
+                          value: 200,
+                          color: "#38A169",
+                        },
+                        {
+                          name: "Mechanical Parts",
+                          value: 100,
+                          color: "#DD6B20",
+                        },
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => [`${value} sales`, ""]}
+                      contentStyle={{
+                        backgroundColor: "white",
+                        border: "1px solid #E2E8F0",
+                        borderRadius: "md",
+                        boxShadow: "md",
+                      }}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Box>
+            </Box>
+            <Box>
+              <Heading size="md" mb={4} color="gray.600">
+                Monthly Sales Trend
+              </Heading>
+              <Box
+                bg="white"
+                p={4}
+                borderRadius="lg"
+                height="300px"
+                border="1px solid"
+                borderColor="gray.200"
+                boxShadow="sm"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={[
+                      { name: "Jan", sales: 4000 },
+                      { name: "Feb", sales: 3000 },
+                      { name: "Mar", sales: 5000 },
+                      { name: "Apr", sales: 2780 },
+                      { name: "May", sales: 1890 },
+                      { name: "Jun", sales: 2390 },
+                      { name: "Jul", sales: 3490 },
+                    ]}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient
+                        id="colorSales"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#3182CE"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#3182CE"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: "#718096" }}
+                      tickLine={{ stroke: "#E2E8F0" }}
+                    />
+                    <YAxis
+                      tick={{ fill: "#718096" }}
+                      tickLine={{ stroke: "#E2E8F0" }}
+                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "white",
+                        border: "1px solid #E2E8F0",
+                        borderRadius: "md",
+                        boxShadow: "md",
+                      }}
+                      formatter={(value) => [`$${value}`, "Sales"]}
+                      labelFormatter={(label) => `Month: ${label}`}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="sales"
+                      stroke="#3182CE"
+                      fillOpacity={1}
+                      fill="url(#colorSales)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Box>
+            </Box>
+          </SimpleGrid>
+        </Box>
+        {/* Products Section */}
+        <Box bg="white" p={6} borderRadius="lg" boxShadow="sm" mb={12}>
+          <Flex justify="space-between" align="center" mb={8}>
+            <Heading size="lg" color="gray.700">
+              Product Inventory
+            </Heading>
+          </Flex>
 
-            <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={8}>
-              <AddProductCard />
-              {products.map((product) => (
-                <ProductProfileCard key={product.id} product={product} />
-              ))}
-            </SimpleGrid>
-          </Box>
-        </Container>
+          <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={8}>
+            <AddProductCard />
+            {products.map((product) => (
+              <ProductProfileCard key={product.id} product={product} />
+            ))}
+          </SimpleGrid>
+        </Box>
         <Footer />
       </Box>
     </ChakraProvider>

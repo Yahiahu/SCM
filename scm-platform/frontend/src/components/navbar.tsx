@@ -3,21 +3,28 @@
 import {
   Box,
   Flex,
-  IconButton,
   Button,
   Stack,
-  useColorModeValue,
+  Heading,
+  Icon,
+  Link as ChakraLink,
 } from "@chakra-ui/react";
-import { HamburgerIcon } from "@chakra-ui/icons";
+import { FaCodeBranch } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import Sidebar from "./sidebar";
 import Link from "next/link";
+import { keyframes } from "@emotion/react";
 
 interface NavbarProps {
   isLoggedIn: boolean;
 }
+
+const rotateIn = keyframes`
+  0% { transform: rotate(0deg) scale(0.8); opacity: 0; }
+  100% { transform: rotate(90deg) scale(1); opacity: 1; }
+`;
 
 export default function Navbar({ isLoggedIn }: NavbarProps) {
   const router = useRouter();
@@ -55,16 +62,35 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
           align="center"
           justify="space-between"
         >
-          <IconButton
-            icon={<HamburgerIcon />}
-            variant="ghost"
-            aria-label="Open Sidebar"
+          <Flex
+            align="center"
+            gap={4}
+            cursor="pointer"
             onClick={() => setSidebarVisible(!sidebarVisible)}
-            _hover={{
-              bg: "rgba(255,255,255,0.5)",
-              transform: "scale(1.1)",
-            }}
-          />
+            _hover={{ opacity: 0.8 }}
+          >
+            <Icon
+              as={FaCodeBranch}
+              w={7}
+              h={7}
+              mr={1}
+              color="brand.500"
+              transform="rotate(90deg)"
+              transition="transform 0.3s ease"
+              _hover={{
+                animation: `${rotateIn} 0.5s ease-out`,
+              }}
+            />
+            <Heading
+              size="md"
+              fontFamily="heading"
+              letterSpacing="wide"
+              color="blue.700"
+              transition="color 0.3s ease"
+            >
+              Orontis
+            </Heading>
+          </Flex>
 
           <Stack direction="row" spacing={4} align="center">
             <Button

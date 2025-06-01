@@ -52,6 +52,8 @@ import {
 } from "react-icons/fa";
 import { GiFactory } from "react-icons/gi";
 import { MdInventory, MdOutlineSecurity } from "react-icons/md";
+import Navbar from "../components/navbar";
+import Footer from "../components/footer";
 
 const SupplyChainDashboard = () => {
   const cardBg = useColorModeValue("white", "gray.800");
@@ -115,20 +117,13 @@ const SupplyChainDashboard = () => {
   ];
 
   return (
-    <Box p={4} maxW="container.xl" mx="auto">
+    <><Navbar isLoggedIn={true} /><><Box p={4} maxW="container.xl" mx="auto">
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
-        <Heading size="xl" color={highlightColor}>
-          Orontis
-        </Heading>
-        <HStack spacing={4}>
-          <Button leftIcon={<FaBell />} variant="ghost" />
-          <Avatar size="sm" icon={<FaUserCircle />} />
-        </HStack>
       </Flex>
 
       {/* Search and Filters */}
-      <Flex mb={8} gap={4} flexWrap="wrap">
+      <Flex mb={8} gap={4} flexWrap="wrap" pt ={6}>
         <InputGroup flex="1" minW="300px">
           <InputLeftElement pointerEvents="none">
             <FaSearch color="gray.300" />
@@ -234,13 +229,11 @@ const SupplyChainDashboard = () => {
                       <Td>{item.location}</Td>
                       <Td>
                         <Badge
-                          colorScheme={
-                            item.status === "In Stock"
-                              ? "green"
-                              : item.status === "Low Stock"
+                          colorScheme={item.status === "In Stock"
+                            ? "green"
+                            : item.status === "Low Stock"
                               ? "yellow"
-                              : "red"
-                          }
+                              : "red"}
                         >
                           {item.status}
                         </Badge>
@@ -279,13 +272,11 @@ const SupplyChainDashboard = () => {
                         </Box>
                         <Box>
                           <Badge
-                            colorScheme={
-                              shipment.status === "Delivered"
-                                ? "green"
-                                : shipment.status === "Delayed"
+                            colorScheme={shipment.status === "Delivered"
+                              ? "green"
+                              : shipment.status === "Delayed"
                                 ? "red"
-                                : "blue"
-                            }
+                                : "blue"}
                           >
                             {shipment.status}
                           </Badge>
@@ -296,23 +287,18 @@ const SupplyChainDashboard = () => {
                         </Box>
                       </Flex>
                       <Progress
-                        value={
-                          shipment.status === "Delivered"
-                            ? 100
-                            : shipment.status === "Delayed"
+                        value={shipment.status === "Delivered"
+                          ? 100
+                          : shipment.status === "Delayed"
                             ? 60
-                            : 80
-                        }
+                            : 80}
                         size="sm"
-                        colorScheme={
-                          shipment.status === "Delivered"
-                            ? "green"
-                            : shipment.status === "Delayed"
+                        colorScheme={shipment.status === "Delivered"
+                          ? "green"
+                          : shipment.status === "Delayed"
                             ? "red"
-                            : "blue"
-                        }
-                        mt={2}
-                      />
+                            : "blue"}
+                        mt={2} />
                     </CardBody>
                   </Card>
                 ))}
@@ -428,7 +414,8 @@ const SupplyChainDashboard = () => {
           </Card>
         </GridItem>
       </Grid>
-    </Box>
+    </Box><Footer /></></>
+
   );
 };
 
