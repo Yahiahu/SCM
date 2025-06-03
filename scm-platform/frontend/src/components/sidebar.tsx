@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Box, Flex, Icon, Text, useColorModeValue } from "@chakra-ui/react";
 import {
   FiHome,
   FiBox,
@@ -16,6 +15,7 @@ import {
 } from "react-icons/fi";
 import { IconType } from "react-icons";
 import Link from "next/link";
+import * as Separator from "@radix-ui/react-separator";
 
 interface LinkItemProps {
   name: string;
@@ -43,53 +43,50 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ visible, setVisible }: SidebarProps) {
-  const sidebarWidth = "200px";
-  const hoverBg = "#2596be20"; // 20% opacity of the blue color
-  const activeBg = "#2596be40"; // 40% opacity of the blue color
+  const sidebarWidth = "w-52"; // 208px
+  const hoverBg = "hover:bg-blue-500/10"; // 10% opacity
+  const activeBg = "bg-blue-500/20"; // 20% opacity
 
   return (
     <>
       {/* Hover zone */}
-      <Box
-        position="fixed"
-        top="0"
-        left="0"
-        h="100vh"
-        w="10px"
-        zIndex="overlay"
+      <div
+        className="fixed top-0 left-0 h-screen w-3 z-50"
         onMouseEnter={() => setVisible(true)}
       />
 
       {/* Sidebar */}
-      <Box
-        position="fixed"
-        top="0"
-        left={visible ? "0" : `-${sidebarWidth}`}
-        h="100vh"
-        w={sidebarWidth}
-        zIndex="overlay"
-        bg="white"
-        borderRight="1px solid"
-        borderColor="gray.200"
-        transition="left 0.3s ease"
+      <div
+        className={`fixed top-0 h-screen ${sidebarWidth} z-40 bg-white border-r border-gray-200 transition-all duration-300 ease-in-out shadow-lg ${
+          visible ? "left-0" : "-left-52"
+        }`}
         onMouseLeave={() => setVisible(false)}
       >
-        <Flex align="flex-start" justify="center" px="4" mt="4" mb="2">
-          <Text fontSize="lg" fontWeight="bold" color="#2596be">
-            Orontis
-          </Text>
-        </Flex>
-        {LinkItems.map((link) => (
-          <NavItem
-            key={link.name}
-            icon={link.icon}
-            label={link.name}
-            path={link.path}
-            hoverBg={hoverBg}
-            activeBg={activeBg}
-          />
-        ))}
-      </Box>
+        <div className="flex flex-col h-full">
+          {/* Logo/Brand */}
+          <div className="flex items-center justify-center px-4 py-6">
+            <span className="text-xl font-bold text-blue-600">Orontis</span>
+          </div>
+
+          <Separator.Root className="h-px bg-gray-200 w-full" />
+
+          {/* Navigation Items */}
+          <nav className="flex-1 overflow-y-auto py-4">
+            <ul className="space-y-1 px-2">
+              {LinkItems.map((link) => (
+                <NavItem
+                  key={link.name}
+                  icon={link.icon}
+                  label={link.name}
+                  path={link.path}
+                  hoverBg={hoverBg}
+                  activeBg={activeBg}
+                />
+              ))}
+            </ul>
+          </nav>
+        </div>
+      </div>
     </>
   );
 }
@@ -102,34 +99,24 @@ interface NavItemProps {
   activeBg: string;
 }
 
-const NavItem = ({ icon, label, path, hoverBg, activeBg }: NavItemProps) => {
+const NavItem = ({
+  icon: Icon,
+  label,
+  path,
+  hoverBg,
+  activeBg,
+}: NavItemProps) => {
   return (
-    <Link href={path} passHref>
-      <Flex
-        as="a"
-        align="center"
-        px="4"
-        py="3"
-        mx="2"
-        my="1"
-        borderRadius="md"
-        cursor="pointer"
-        transition="all 0.2s"
-        _hover={{
-          bg: hoverBg,
-          color: "#2596be",
-        }}
-        _activeLink={{
-          bg: activeBg,
-          color: "#2596be",
-          fontWeight: "bold",
-        }}
-      >
-        <Icon as={icon} fontSize="20" color="#2596be" />
-        <Text ml="4" fontSize="sm" color="gray.700">
-          {label}
-        </Text>
-      </Flex>
-    </Link>
+    <li>
+      <Link href={path} passHref>
+        <div
+          className={`flex items-center px-4 py-3 mx-2 rounded-md cursor-pointer transition-colors duration-200 ${hoverBg} text-gray-700
+            hover:text-blue-600 [&.active]:${activeBg} [&.active]:text-blue-600 [&.active]:font-medium`}
+        >
+          <Icon className="w-5 h-5 text-blue-600" />
+          <span className="ml-4 text-sm">{label}</span>
+        </div>
+      </Link>
+    </li>
   );
 };

@@ -1,145 +1,112 @@
 "use client";
 
-import {
-  Box,
-  chakra,
-  Container,
-  SimpleGrid,
-  Stack,
-  Text,
-  VisuallyHidden,
-  Input,
-  IconButton,
-  useColorModeValue,
-} from "@chakra-ui/react";
-import { ReactNode } from "react";
 import { FaInstagram, FaTwitter, FaYoutube } from "react-icons/fa";
 import { BiMailSend } from "react-icons/bi";
+import * as Separator from "@radix-ui/react-separator";
+import { Flex, TextField, IconButton } from "@radix-ui/themes";
+
+export default function Footer() {
+  return (
+    <footer className="bg-gradient-to-b from-gray-50 to-gray-100 text-blue-600">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Social Links */}
+          <div className="space-y-6">
+            <div className="flex items-center space-x-4">
+              <SocialButton label="Twitter" href="#">
+                <FaTwitter className="w-5 h-5" />
+              </SocialButton>
+              <SocialButton label="YouTube" href="#">
+                <FaYoutube className="w-5 h-5" />
+              </SocialButton>
+              <SocialButton label="Instagram" href="#">
+                <FaInstagram className="w-5 h-5" />
+              </SocialButton>
+            </div>
+          </div>
+
+          {/* Company Links */}
+          <div className="space-y-4">
+            <FooterHeading>Company</FooterHeading>
+            <FooterLink href="#">About us</FooterLink>
+            <FooterLink href="#">Blog</FooterLink>
+            <FooterLink href="#">Contact us</FooterLink>
+            <FooterLink href="#">Pricing</FooterLink>
+            <FooterLink href="#">Testimonials</FooterLink>
+          </div>
+
+          {/* Support Links */}
+          <div className="space-y-4">
+            <FooterHeading>Support</FooterHeading>
+            <FooterLink href="#">Help Center</FooterLink>
+            <FooterLink href="#">Terms of Service</FooterLink>
+            <FooterLink href="#">Legal</FooterLink>
+            <FooterLink href="#">Privacy Policy</FooterLink>
+            <FooterLink href="#">Status</FooterLink>
+          </div>
+
+          {/* Newsletter */}
+          <div className="space-y-4">
+            <FooterHeading>Stay up to date</FooterHeading>
+            <Flex gap="2">
+              <TextField.Root
+                  placeholder="Your email address"
+                  className="bg-white/80 backdrop-blur-sm focus:bg-white focus:ring-2 focus:ring-blue-500"
+                />
+              <IconButton className="bg-blue-600 hover:bg-blue-700 text-white transition-colors">
+                <BiMailSend className="w-5 h-5" />
+              </IconButton>
+            </Flex>
+          </div>
+        </div>
+
+        <Separator.Root className="my-8 h-px bg-gray-200 w-full" />
+
+        <div className="text-center text-sm text-gray-500">
+          © {new Date().getFullYear()} Orontis. All rights reserved.
+        </div>
+      </div>
+    </footer>
+  );
+}
 
 const SocialButton = ({
   children,
   label,
   href,
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
   label: string;
   href: string;
 }) => {
   return (
-    <chakra.button
-      bg={useColorModeValue("blackAlpha.100", "whiteAlpha.100")}
-      rounded={"full"}
-      w={8}
-      h={8}
-      cursor={"pointer"}
-      as={"a"}
+    <a
       href={href}
-      display={"inline-flex"}
-      alignItems={"center"}
-      justifyContent={"center"}
-      transition={"background 0.3s ease"}
-      _hover={{
-        bg: useColorModeValue("blackAlpha.200", "whiteAlpha.200"),
-      }}
+      aria-label={label}
+      className="p-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:bg-blue-50 text-blue-600 hover:text-blue-700"
     >
-      <VisuallyHidden>{label}</VisuallyHidden>
       {children}
-    </chakra.button>
+    </a>
   );
 };
 
-const ListHeader = ({ children }: { children: ReactNode }) => {
-  return (
-    <Text fontWeight={"500"} fontSize={"lg"} mb={2}>
-      {children}
-    </Text>
-  );
+const FooterHeading = ({ children }: { children: React.ReactNode }) => {
+  return <h4 className="text-lg font-medium text-blue-700">{children}</h4>;
 };
 
-export default function LargeWithNewsletter() {
+const FooterLink = ({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) => {
   return (
-    <Box
-      bg={useColorModeValue("gray.50", "gray.900")}
-      color={useColorModeValue("#109ce4", "gray.200")}
+    <a
+      href={href}
+      className="block text-blue-600 hover:text-blue-800 transition-colors duration-200"
     >
-      <Container as={Stack} maxW={"6xl"} py={10}>
-        <SimpleGrid
-          templateColumns={{ sm: "1fr 1fr", md: "2fr 1fr 1fr 2fr" }}
-          spacing={8}
-        >
-          <Stack spacing={6}>
-            <Stack direction={"row"} spacing={6}>
-              <SocialButton label={"Twitter"} href={"#"}>
-                <FaTwitter />
-              </SocialButton>
-              <SocialButton label={"YouTube"} href={"#"}>
-                <FaYoutube />
-              </SocialButton>
-              <SocialButton label={"Instagram"} href={"#"}>
-                <FaInstagram />
-              </SocialButton>
-            </Stack>
-          </Stack>
-          <Stack align={"flex-start"}>
-            <ListHeader>Company</ListHeader>
-            <Box as="a" href={"#"}>
-              About us
-            </Box>
-            <Box as="a" href={"#"}>
-              Blog
-            </Box>
-            <Box as="a" href={"#"}>
-              Contact us
-            </Box>
-            <Box as="a" href={"#"}>
-              Pricing
-            </Box>
-            <Box as="a" href={"#"}>
-              Testimonials
-            </Box>
-          </Stack>
-          <Stack align={"flex-start"}>
-            <ListHeader>Support</ListHeader>
-            <Box as="a" href={"#"}>
-              Help Center
-            </Box>
-            <Box as="a" href={"#"}>
-              Terms of Service
-            </Box>
-            <Box as="a" href={"#"}>
-              Legal
-            </Box>
-            <Box as="a" href={"#"}>
-              Privacy Policy
-            </Box>
-            <Box as="a" href={"#"}>
-              Satus
-            </Box>
-          </Stack>
-          <Stack align={"flex-start"}>
-            <ListHeader>Stay up to date</ListHeader>
-            <Stack direction={"row"}>
-              <Input
-                placeholder={"Your email address"}
-                bg={useColorModeValue("blackAlpha.100", "whiteAlpha.100")}
-                border={0}
-                _focus={{
-                  bg: "whiteAlpha.300",
-                }}
-              />
-              <IconButton
-                bg={useColorModeValue("#109ce4", "#109ce4")}
-                color={useColorModeValue("white", "gray.800")}
-                _hover={{
-                  bg: "green.600",
-                }}
-                aria-label="Subscribe"
-                icon={<BiMailSend />}
-              />
-            </Stack>
-          </Stack>
-        </SimpleGrid>
-      </Container>
-    </Box>
+      {children}
+    </a>
   );
-}
+};
