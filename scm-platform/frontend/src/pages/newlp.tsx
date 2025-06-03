@@ -50,21 +50,6 @@ const floatUp = "animate-float-up";
 const scaleUp = "animate-scale-up";
 const pulseGlow = "animate-pulse-glow";
 
-const GradientTransition = ({ progress }: { progress: number }) => {
-  return (
-    <div
-      className="fixed inset-0 pointer-events-none z-40"
-      style={{
-        background: `linear-gradient(to bottom, 
-          rgba(30, 58, 138, ${1 - progress}) 0%, 
-          rgba(30, 58, 138, ${0.8 - progress * 0.8}) 20%, 
-          rgba(255, 255, 255, ${progress}) 100%)`,
-        mixBlendMode: "multiply",
-      }}
-    />
-  );
-};
-
 const PlaneAnimation = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -165,7 +150,7 @@ const FeatureCard = ({
   );
 };
 
-const SupplyChainNetwork = ({ scrollProgress }: { scrollProgress: number }) => {
+const SupplyChainNetwork = () => {
   const [ref, isVisible] = useScrollAnimation(0.3);
   const nodes = [
     { icon: FaBoxOpen, label: "Suppliers" },
@@ -175,20 +160,13 @@ const SupplyChainNetwork = ({ scrollProgress }: { scrollProgress: number }) => {
     { icon: GiDeliveryDrone, label: "Last Mile" },
   ];
 
-  // Calculate background color based on scroll progress
-  const bgOpacity = 1 - Math.min(scrollProgress * 1.5, 1);
-  const bgColor = `rgba(255, 255, 255, ${1 - bgOpacity})`;
-
   return (
     <div
       ref={ref}
-      className={cn("py-16 relative", isVisible ? fadeIn : "opacity-0")}
-      style={{
-        backgroundColor: bgColor,
-        background: `linear-gradient(to bottom, 
-          rgba(30, 58, 138, ${bgOpacity * 0.8}), 
-          rgba(255, 255, 255, ${1 - bgOpacity}))`,
-      }}
+      className={cn(
+        "py-16 relative bg-gradient-to-b from-blue-900 via-blue-100 to-white",
+        isVisible ? fadeIn : "opacity-0"
+      )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
@@ -239,12 +217,9 @@ const SupplyChainNetwork = ({ scrollProgress }: { scrollProgress: number }) => {
   );
 };
 
-const InventoryDashboardPreview = ({
-  scrollProgress,
-}: {
-  scrollProgress: number;
-}) => {
+const InventoryDashboardPreview = () => {
   const [ref, isVisible] = useScrollAnimation(0.3);
+
   const inventoryItems = [
     { id: "SKU-1001", name: "Widget A", quantity: 245, location: "WH-1-A12" },
     { id: "SKU-1002", name: "Gadget B", quantity: 189, location: "WH-2-B05" },
@@ -257,20 +232,13 @@ const InventoryDashboardPreview = ({
     { id: "SKU-1004", name: "Part D", quantity: 76, location: "WH-3-D14" },
   ];
 
-  // Calculate background color based on scroll progress
-  const bgOpacity = 1 - Math.min(scrollProgress * 1.8, 1);
-  const bgColor = `rgba(249, 250, 251, ${1 - bgOpacity})`;
-
   return (
     <div
       ref={ref}
-      className={cn("py-16", isVisible ? fadeIn : "opacity-0")}
-      style={{
-        backgroundColor: bgColor,
-        background: `linear-gradient(to bottom, 
-          rgba(30, 58, 138, ${bgOpacity * 0.6}), 
-          rgba(249, 250, 251, ${1 - bgOpacity}))`,
-      }}
+      className={cn(
+        "py-16 bg-gray-50 dark:bg-gray-900",
+        isVisible ? fadeIn : "opacity-0"
+      )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8">
@@ -361,7 +329,7 @@ const InventoryDashboardPreview = ({
   );
 };
 
-const SupplyChainMetrics = ({ scrollProgress }: { scrollProgress: number }) => {
+const SupplyChainMetrics = () => {
   const [ref, isVisible] = useScrollAnimation(0.3);
   const metrics = [
     { value: "98.7%", label: "Order Accuracy", icon: FaClipboardCheck },
@@ -370,20 +338,13 @@ const SupplyChainMetrics = ({ scrollProgress }: { scrollProgress: number }) => {
     { value: "99.9%", label: "System Uptime", icon: FaShieldAlt },
   ];
 
-  // Calculate background color based on scroll progress
-  const bgOpacity = 1 - Math.min(scrollProgress * 2.2, 1);
-  const bgColor = `rgba(239, 246, 255, ${1 - bgOpacity})`;
-
   return (
     <div
       ref={ref}
-      className={cn("py-16", isVisible ? fadeIn : "opacity-0")}
-      style={{
-        backgroundColor: bgColor,
-        background: `linear-gradient(to bottom, 
-          rgba(30, 58, 138, ${bgOpacity * 0.4}), 
-          rgba(239, 246, 255, ${1 - bgOpacity}))`,
-      }}
+      className={cn(
+        "py-16 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30",
+        isVisible ? fadeIn : "opacity-0"
+      )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8">
@@ -437,20 +398,10 @@ const SupplyChainMetrics = ({ scrollProgress }: { scrollProgress: number }) => {
 export default function LandingPage() {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-
-      // Calculate progress (0 to 1) based on scroll position
-      const progress = Math.min(scrollY / (documentHeight - windowHeight), 1);
-      setScrollProgress(progress);
-
-      // Existing scroll handler for header
-      setIsScrolled(scrollY > 50);
+      setIsScrolled(window.scrollY > 50);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -465,10 +416,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 overflow-x-hidden">
-      {/* Gradient Transition Overlay */}
-      <GradientTransition progress={scrollProgress} />
-
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900 text-white overflow-x-hidden">
       {/* Fixed Header */}
       <header
         className={cn(
@@ -527,6 +475,32 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
         <PlaneAnimation />
 
+        {/* Animated Factory to Warehouse Supply Path */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 z-10 pointer-events-none">
+          {/* Factory */}
+          <div className="absolute bottom-0 left-0 w-20 h-20 flex items-end justify-center z-20">
+            <GiFactory className="w-16 h-16 text-white" />
+          </div>
+
+          {/* Warehouse */}
+          <div className="absolute bottom-0 right-0 w-20 h-20 flex items-end justify-center z-20">
+            <FaWarehouse className="w-16 h-16 text-white" />
+          </div>
+
+          {/* Animated Trucks */}
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="absolute bottom-2 left-0"
+              style={{
+                animation: `truck-drive 14s linear ${i * 2}s infinite`,
+              }}
+            >
+              <FaTruck className="w-8 h-8 text-white" />
+            </div>
+          ))}
+        </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col gap-8">
             <h1
@@ -579,22 +553,15 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Animated truck */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-16 h-16">
-          <FaTruck
-            className="w-full h-full text-white/80"
-            style={{
-              animation: "truck-movement 8s ease-in-out infinite alternate",
-            }}
-          />
-        </div>
       </section>
 
       {/* Supply Chain Network */}
-      <SupplyChainNetwork scrollProgress={scrollProgress} />
+      <section>
+        <SupplyChainNetwork />
+      </section>
 
       {/* Inventory Dashboard Preview */}
-      <InventoryDashboardPreview scrollProgress={scrollProgress} />
+      <InventoryDashboardPreview />
 
       {/* Key Features Section */}
       <section id="features" className="py-16 bg-white dark:bg-gray-900">
@@ -665,7 +632,7 @@ export default function LandingPage() {
       </section>
 
       {/* Supply Chain Metrics */}
-      <SupplyChainMetrics scrollProgress={scrollProgress} />
+      <SupplyChainMetrics />
 
       {/* Problem/Solution Section */}
       <section id="solutions" className="py-16 bg-white dark:bg-gray-900">
@@ -742,7 +709,7 @@ export default function LandingPage() {
       </section>
 
       {/* Call to Action */}
-      <section id="contact" className="py-16 bg-white dark:bg-gray-900">
+      <section id="contact" className="py-16 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8 text-center">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
             Ready to Optimize Your Supply Chain?
@@ -998,26 +965,36 @@ export default function LandingPage() {
         }
         @keyframes plane-animation {
           0% {
-            transform: translateX(-100px) translateY(20px) rotate(0deg);
-            opacity: 0;
+            transform: translateX(-0px) translateY(20px) rotate(0deg);
+            opacity: 0.3;
           }
           10% {
+            transform: translateX(10vw) translateY(-100px) rotate(-20deg);
             opacity: 0.6;
           }
           20% {
-            transform: translateX(15vw) translateY(-100px) rotate(-10deg);
+            transform: translateX(20vw) translateY(-170px) rotate(-30deg);
+            opacity: 0.8;
+          }
+          40% {
+            transform: translateX(45vw) translateY(-210px) rotate(-5deg);
             opacity: 1;
           }
-          80% {
-            transform: translateX(85vw) translateY(-100px) rotate(10deg);
+          55% {
+            transform: translateX(65vw) translateY(-210px) rotate(5deg);
             opacity: 1;
           }
-          90% {
+          70% {
+            transform: translateX(85vw) translateY(-160px) rotate(15deg);
+            opacity: 0.8;
+          }
+          85% {
+            transform: translateX(95vw) translateY(-80px) rotate(25deg);
             opacity: 0.6;
           }
           100% {
-            transform: translateX(100vw) translateY(20px) rotate(0deg);
-            opacity: 0;
+            transform: translateX(100vw) translateY(30px) rotate(15deg);
+            opacity: 0.3;
           }
         }
 
@@ -1038,6 +1015,20 @@ export default function LandingPage() {
         }
         .animate-pulse-glow {
           animation: pulse-glow 1.5s infinite;
+        }
+        @keyframes truck-drive {
+          0% {
+            transform: translateX(-10%);
+            opacity: 1;
+          }
+          50% {
+            transform: translateX(50vw);
+            opacity: 1;
+          }
+          100% {
+            transform: translateX(100vw);
+            opacity: 0;
+          }
         }
       `}</style>
     </div>
