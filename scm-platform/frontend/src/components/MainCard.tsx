@@ -1,12 +1,7 @@
+"use client";
+
 import { forwardRef, ReactNode } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Divider,
-  SxProps,
-  Theme,
-} from "@mui/material";
+import * as Separator from "@radix-ui/react-separator";
 
 type MainCardProps = {
   border?: boolean;
@@ -14,23 +9,18 @@ type MainCardProps = {
   children?: ReactNode;
   subheader?: string;
   content?: boolean;
-  contentSX?: SxProps<Theme>;
   darkTitle?: boolean;
   divider?: boolean;
   elevation?: number;
   secondary?: ReactNode;
   shadow?: string;
-  sx?: SxProps<Theme>;
   title?: string | ReactNode;
   codeHighlight?: boolean;
   codeString?: string;
   modal?: boolean;
-  [key: string]: any; // catch-all for rest props
-};
-
-const headerSX = {
-  p: 2.5,
-  "& .MuiCardHeader-action": { m: "0px auto", alignSelf: "center" },
+  className?: string;
+  contentClassName?: string;
+  [key: string]: any;
 };
 
 const MainCard = forwardRef<HTMLDivElement, MainCardProps>(
@@ -41,73 +31,61 @@ const MainCard = forwardRef<HTMLDivElement, MainCardProps>(
       children,
       subheader,
       content = true,
-      contentSX = {},
       darkTitle,
       divider = true,
-      elevation,
       secondary,
       shadow,
-      sx = {},
       title,
-      codeHighlight = false,
-      codeString,
       modal = false,
+      className = "",
+      contentClassName = "",
       ...others
     },
     ref
   ) => {
     return (
-      <Card
-        elevation={elevation || 0}
-        sx={[
-          (theme) => ({
-            position: "relative",
-            border: border ? "1px solid" : "none",
-            borderRadius: 1,
-            borderColor: theme.palette.grey[800],
-            boxShadow:
-              boxShadow && !border ? shadow || theme.shadows[1] : "inherit",
-            ":hover": {
-              boxShadow: boxShadow ? shadow || theme.shadows[1] : "inherit",
-            },
-            ...(modal && {
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: { xs: `calc(100% - 50px)`, sm: "auto" },
-              maxWidth: 768,
-              "& .MuiCardContent-root": {
-                overflowY: "auto",
-                minHeight: "auto",
-                maxHeight: `calc(100vh - 200px)`,
-              },
-            }),
-          }),
-          sx,
-        ]}
+      <div
         ref={ref}
+        className={`
+          relative
+          ${border ? "border border-gray-700" : "border-none"}
+          rounded-md
+          ${boxShadow && !border ? shadow || "shadow-sm" : ""}
+          ${
+            modal
+              ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-50px)] sm:w-auto max-w-3xl"
+              : ""
+          }
+          hover:${boxShadow ? shadow || "shadow-sm" : ""}
+          ${className}
+        `}
         {...others}
       >
         {title && !darkTitle && (
-          <CardHeader
-            sx={headerSX}
-            title={title}
-            subheader={subheader}
-            action={secondary}
-          />
+          <>
+            <div className="p-2.5 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-medium">{title}</h3>
+                {subheader && (
+                  <p className="text-sm text-gray-500">{subheader}</p>
+                )}
+              </div>
+              {secondary && <div className="ml-auto">{secondary}</div>}
+            </div>
+            {divider && <Separator.Root className="h-px bg-gray-700 w-full" />}
+          </>
         )}
 
-        {title && divider && <Divider />}
-
         {content ? (
-          <CardContent sx={contentSX}>{children}</CardContent>
+          <div className={`p-4 ${contentClassName}`}>{children}</div>
         ) : (
           children
         )}
-      </Card>
+      </div>
     );
   }
 );
+
+MainCard.displayName = "MainCard";
 
 export default MainCard;

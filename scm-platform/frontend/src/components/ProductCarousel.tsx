@@ -1,19 +1,10 @@
+"use client";
+
 import Slider from "react-slick";
-import {
-  Box,
-  IconButton,
-  useBreakpointValue,
-  Stack,
-  Heading,
-  Text,
-  Container,
-  Button, // Added for a "View" button
-} from "@chakra-ui/react";
 import { BiLeftArrowAlt, BiRightArrowAlt } from "react-icons/bi";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // Added for navigation
+import { useRouter } from "next/navigation";
 
-// Assuming 'Product' interface is defined in the parent or globally
 interface Product {
   id: number;
   name: string;
@@ -24,10 +15,9 @@ interface Product {
 }
 
 interface ProductCarouselProps {
-  products: Product[]; // Accept products as a prop
+  products: Product[];
 }
 
-// Slider settings
 const settings = {
   dots: true,
   arrows: false,
@@ -42,27 +32,21 @@ const settings = {
 
 function ProductCarousel({ products }: ProductCarouselProps) {
   const [slider, setSlider] = useState<Slider | null>(null);
-  const router = useRouter(); // Hook for navigation
+  const router = useRouter();
 
-  // Responsive settings for arrows
-  const top = useBreakpointValue({ base: "90%", md: "50%" });
-  const side = useBreakpointValue({ base: "30%", md: "40px" });
-
-  // Use a fallback image if product.imageUrl is missing
   const fallbackImage =
     "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=60";
 
-  // Don't render if no products
   if (!products || products.length === 0) {
     return (
-      <Box mb={16}>
-        <Text>No featured products to display.</Text>
-      </Box>
+      <div className="mb-16">
+        <p>No featured products to display.</p>
+      </div>
     );
   }
 
   return (
-    <Box position="relative" width="full" overflow="hidden" mb={16}>
+    <div className="relative w-full overflow-hidden mb-16">
       {/* Slick Carousel CSS links */}
       <link
         rel="stylesheet"
@@ -76,90 +60,57 @@ function ProductCarousel({ products }: ProductCarouselProps) {
       />
 
       {/* Left Arrow */}
-      <IconButton
+      <button
         aria-label="left-arrow"
-        variant="ghost"
-        position="absolute"
-        left={side}
-        top={top}
-        transform="translate(0%, -50%)"
-        zIndex={2}
+        className="absolute z-20 left-[30%] md:left-10 top-[90%] md:top-1/2 transform -translate-y-1/2 text-white hover:bg-black/30 rounded-full p-2 transition-colors duration-200"
         onClick={() => slider?.slickPrev()}
-        color="white" // Ensure arrows are visible on dark images
-        _hover={{ bg: "blackAlpha.300" }}
       >
         <BiLeftArrowAlt size="40px" />
-      </IconButton>
+      </button>
 
       {/* Right Arrow */}
-      <IconButton
+      <button
         aria-label="right-arrow"
-        variant="ghost"
-        position="absolute"
-        right={side}
-        top={top}
-        transform="translate(0%, -50%)"
-        zIndex={2}
+        className="absolute z-20 right-[30%] md:right-10 top-[90%] md:top-1/2 transform -translate-y-1/2 text-white hover:bg-black/30 rounded-full p-2 transition-colors duration-200"
         onClick={() => slider?.slickNext()}
-        color="white" // Ensure arrows are visible on dark images
-        _hover={{ bg: "blackAlpha.300" }}
       >
         <BiRightArrowAlt size="40px" />
-      </IconButton>
+      </button>
 
       {/* Slider Component */}
       <Slider {...settings} ref={(s) => setSlider(s)}>
-        {/* Map over the products prop */}
         {products.map((product) => (
-          <Box
-            key={product.id} // Use product.id as the key
-            height="600px"
-            position="relative" // Needed for the overlay
-            backgroundImage={`url(${product.imageUrl || fallbackImage})`}
-            backgroundPosition="center"
-            backgroundRepeat="no-repeat"
-            backgroundSize="cover"
+          <div
+            key={product.id}
+            className="h-[600px] relative bg-center bg-cover bg-no-repeat"
+            style={{
+              backgroundImage: `url(${product.imageUrl || fallbackImage})`,
+            }}
           >
-            {/* Add an overlay for better text readability */}
-            <Box
-              position="absolute"
-              top="0"
-              left="0"
-              right="0"
-              bottom="0"
-              bg="blackAlpha.500" // Adjust darkness as needed
-            />
-            <Container size="container.lg" height="600px" position="relative">
-              <Stack
-                spacing={6}
-                w="full"
-                maxW="lg"
-                position="absolute"
-                top="50%"
-                transform="translate(0, -50%)"
-                color="white" // Set text color to white for contrast
-              >
-                <Heading fontSize={{ base: "3xl", md: "4xl", lg: "5xl" }}>
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-black/50" />
+
+            <div className="container mx-auto h-[600px] relative px-4">
+              <div className="max-w-lg absolute top-1/2 transform -translate-y-1/2 text-white space-y-6">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold">
                   {product.name}
-                </Heading>
-                <Text fontSize={{ base: "md", lg: "lg" }} color="gray.100">
+                </h1>
+                <p className="text-base lg:text-lg text-gray-100">
                   {product.description}
-                </Text>
-                {/* Optional: Add a button */}
-                <Button
-                  colorScheme="cyan"
-                  variant="solid"
-                  size="lg"
-                  w="fit-content"
+                </p>
+                <button
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors duration-200 w-fit"
                   onClick={() => router.push(`/product/${product.id}`)}
                 >
                   View Product
-                </Button>
-              </Stack>
-            </Container>
-          </Box>
+                </button>
+              </div>
+            </div>
+          </div>
         ))}
       </Slider>
-    </Box>
+    </div>
   );
 }
+
+export default ProductCarousel;

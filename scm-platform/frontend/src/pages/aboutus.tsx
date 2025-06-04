@@ -1,230 +1,27 @@
-"use client";
-
-import {
-  Box,
-  ChakraProvider,
-  extendTheme,
-  Flex,
-  Heading,
-  VStack,
-  HStack,
-  Text,
-  Icon,
-  useColorModeValue,
-  Container,
-  SimpleGrid,
-  Divider,
-  Image,
-  Grid,
-  GridItem,
-  Avatar,
-  AvatarGroup,
-  useBreakpointValue,
-  Button,
-  Input,
-  Textarea,
-} from "@chakra-ui/react";
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  RefObject,
-} from "react";
-import { Link as ChakraLink } from "@chakra-ui/react";
-import NextLink from "next/link";
-import { keyframes } from "@emotion/react";
+import { useState, useEffect, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import {
   FaCodeBranch,
   FaUsers,
-  FaAward,
-  FaSeedling,
-  FaHandshake,
+  FaTrophy,
+  FaRocket,
+  FaHeart,
   FaQuoteLeft,
   FaArrowRight,
+  FaPlay,
+  FaStar,
+  FaGithub,
+  FaTwitter,
+  FaLinkedin,
+  FaDribbble,
 } from "react-icons/fa";
-import { FaEye as FaVision } from "react-icons/fa";
-import { FiChevronDown } from "react-icons/fi";
-
-// Theme configuration
-const config = {
-  initialColorMode: "dark",
-  useSystemColorMode: false,
-};
-
-const colors = {
-  brand: {
-    50: "#e0f7fa",
-    100: "#b3e5fc",
-    200: "#81d4fa",
-    300: "#4fc3f7",
-    400: "#29b6f6",
-    500: "#03a9f4",
-    600: "#039be5",
-    700: "#0288d1",
-    800: "#0277bd",
-    900: "#01579b",
-  },
-  dark: {
-    bg: "#1A202C",
-    text: "#E2E8F0",
-    card: "#2D3748",
-    border: "#4A5568",
-  },
-  light: {
-    bg: "#F7FAFC",
-    text: "#2D3748",
-    card: "#FFFFFF",
-    border: "#E2E8F0",
-  },
-};
-
-const theme = extendTheme({
-  config,
-  colors,
-  fonts: {
-    heading: `'Inter', sans-serif`,
-    body: `'Inter', sans-serif`,
-  },
-  styles: {
-    global: (props: { colorMode: string }) => ({
-      body: {
-        bg: props.colorMode === "dark" ? "dark.bg" : "light.bg",
-        color: props.colorMode === "dark" ? "dark.text" : "light.text",
-        transitionProperty: "background-color",
-        transitionDuration: "normal",
-        overflowX: "hidden",
-      },
-      "::selection": {
-        bg: "brand.500",
-        color: "white",
-      },
-    }),
-  },
-  components: {
-    Button: {
-      baseStyle: {
-        borderRadius: "none",
-        fontWeight: "semibold",
-      },
-      variants: {
-        solid: (props: { colorMode: string }) => ({
-          bg: props.colorMode === "dark" ? "brand.500" : "brand.600",
-          color: "white",
-          _hover: {
-            bg: props.colorMode === "dark" ? "brand.600" : "brand.700",
-          },
-        }),
-        outline: (props: { colorMode: string }) => ({
-          borderColor: props.colorMode === "dark" ? "brand.500" : "brand.600",
-          color: props.colorMode === "dark" ? "brand.500" : "brand.600",
-          _hover: {
-            bg: props.colorMode === "dark" ? "brand.500" : "brand.600",
-            color: "white",
-          },
-        }),
-      },
-    },
-  },
-});
-
-// Animations
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-
-const slideInLeft = keyframes`
-  from { opacity: 0; transform: translateX(-50px); }
-  to { opacity: 1; transform: translateX(0); }
-`;
-
-const slideInRight = keyframes`
-  from { opacity: 0; transform: translateX(50px); }
-  to { opacity: 1; transform: translateX(0); }
-`;
-
-const slideInUp = keyframes`
-  from { opacity: 0; transform: translateY(50px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-
-const scaleIn = keyframes`
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-`;
-
-// Scroll animation hook
-const useScrollAnimation = (
-  threshold: number = 0.2
-): [RefObject<HTMLDivElement>, boolean] => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  const handleScroll = useCallback(() => {
-    if (ref.current) {
-      const { top } = ref.current.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      if (top < viewportHeight * (1 - threshold)) {
-        setIsVisible(true);
-      }
-    }
-  }, [threshold]);
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
-
-  return [ref, isVisible];
-};
-
-interface AnimatedSectionProps {
-  children: React.ReactNode;
-  animationKeyframes?: string;
-  delay?: number;
-  [key: string]: any;
-}
-
-const AnimatedSection = ({
-  children,
-  animationKeyframes = fadeIn,
-  delay = 0,
-  ...props
-}: AnimatedSectionProps) => {
-  const [ref, isVisible] = useScrollAnimation(0.1);
-  const cardBg = useColorModeValue("light.card", "dark.card");
-
-  return (
-    <Box
-      ref={ref}
-      {...props}
-      style={{
-        animation: isVisible
-          ? `${animationKeyframes} 0.8s ease-out ${delay}s forwards`
-          : "none",
-        opacity: isVisible ? 1 : 0,
-      }}
-    >
-      {children}
-    </Box>
-  );
-};
-
-const ColorBlock = ({ color }: { color: string }) => (
-  <Box
-    w="100%"
-    h="300px"
-    bg={color}
-    transition="all 0.3s ease"
-    _hover={{ transform: "scale(1.05)" }}
-  />
-);
+import { FiChevronDown, FiCheck } from "react-icons/fi";
 
 const AboutUsPage = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const isMobile = useBreakpointValue({ base: true, md: false });
+  const { scrollYProgress } = useScroll();
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -234,542 +31,588 @@ const AboutUsPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const stats = [
+    { value: "150+", label: "Projects Delivered", icon: <FaRocket /> },
+    { value: "98%", label: "Client Satisfaction", icon: <FaHeart /> },
+    { value: "50+", label: "Team Members", icon: <FaUsers /> },
+    { value: "5", label: "Years of Excellence", icon: <FaTrophy /> },
+  ];
+
+  const testimonials = [
+    {
+      quote:
+        "FlowChain transformed our digital presence completely. Their innovative approach and attention to detail is unmatched. The results exceeded all our expectations.",
+      name: "Sarah Johnson",
+      role: "CEO, TechVision",
+      image: "https://randomuser.me/api/portraits/women/44.jpg",
+      rating: 5,
+    },
+    {
+      quote:
+        "Working with FlowChain was a game-changer. They understood our vision perfectly and delivered a solution that drove 300% growth in our user engagement.",
+      name: "Michael Chen",
+      role: "Founder, InnovateCorp",
+      image: "https://randomuser.me/api/portraits/men/32.jpg",
+      rating: 5,
+    },
+    {
+      quote:
+        "The team's expertise in modern technologies and user experience design helped us launch our product successfully. Highly recommended!",
+      name: "Emily Rodriguez",
+      role: "CTO, StartupHub",
+      image: "https://randomuser.me/api/portraits/women/68.jpg",
+      rating: 5,
+    },
+  ];
+
+  const values = [
+    {
+      icon: <FaRocket className="w-8 h-8" />,
+      title: "Innovation First",
+      description:
+        "We push boundaries and embrace cutting-edge technologies to deliver revolutionary solutions.",
+    },
+    {
+      icon: <FaUsers className="w-8 h-8" />,
+      title: "Client Partnership",
+      description:
+        "We believe in true collaboration, working as an extension of your team to achieve shared goals.",
+    },
+    {
+      icon: <FaTrophy className="w-8 h-8" />,
+      title: "Excellence Driven",
+      description:
+        "Every project is an opportunity to exceed expectations and deliver exceptional results.",
+    },
+    {
+      icon: <FaHeart className="w-8 h-8" />,
+      title: "Passion Powered",
+      description:
+        "Our love for creating amazing digital experiences drives everything we do.",
+    },
+  ];
+
   return (
-    <ChakraProvider theme={theme}>
-      <Box minH="100vh" overflowX="hidden">
-        {/* Header */}
-        <Flex
-          as="header"
-          position="fixed"
-          top={0}
-          left={0}
-          right={0}
-          zIndex={100}
-          p={4}
-          justifyContent="space-between"
-          alignItems="center"
-          bg={isScrolled ? "white" : "transparent"}
-          boxShadow={isScrolled ? "sm" : "none"}
-          transition="all 0.3s ease"
-        >
-          <NextLink href="/" passHref legacyBehavior>
-            <ChakraLink
-              display="flex"
-              alignItems="center"
-              _hover={{ textDecoration: "none" }}
-            >
-              <Icon as={FaCodeBranch} w={8} h={8} mr={2} color="brand.500" />
-              <Heading size="md" fontFamily="heading" letterSpacing="wide">
-                FlowChain
-              </Heading>
-            </ChakraLink>
-          </NextLink>
-
-          <HStack spacing={6}>
-            <NextLink href="/" passHref legacyBehavior>
-              <ChakraLink _hover={{ color: "brand.500" }}>Home</ChakraLink>
-            </NextLink>
-            <NextLink href="/about" passHref legacyBehavior>
-              <ChakraLink _hover={{ color: "brand.500" }} fontWeight="bold">
-                About
-              </ChakraLink>
-            </NextLink>
-            <NextLink href="/contact" passHref legacyBehavior>
-              <ChakraLink _hover={{ color: "brand.500" }}>Contact</ChakraLink>
-            </NextLink>
-          </HStack>
-        </Flex>
-
-        {/* Split Hero Section */}
-        <Box
-          position="relative"
-          h="100vh"
-          display="flex"
-          flexDirection={{ base: "column", md: "row" }}
-        >
-          {/* Left Blue Section */}
-          <Box
-            flex={1}
-            bg="brand.600"
-            color="white"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            p={8}
+    <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      {/* Navigation */}
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className={`fixed top-0 left-0 right-0 z-50 px-6 py-4 transition-all duration-500 ${
+          isScrolled
+            ? "bg-black/80 backdrop-blur-xl border-b border-white/10"
+            : "bg-transparent"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="flex items-center group cursor-pointer"
           >
-            <AnimatedSection animationKeyframes={slideInLeft} delay={0.2}>
-              <VStack spacing={6} align="flex-start" maxW="500px">
-                <Heading
-                  as="h1"
-                  size="2xl"
-                  fontWeight="bold"
-                  lineHeight="shorter"
-                >
-                  We Build Digital Experiences
-                </Heading>
-                <Text fontSize="xl">
-                  Transforming ideas into powerful digital solutions that drive
-                  business growth.
-                </Text>
-                <Button
-                  rightIcon={<FaArrowRight />}
-                  variant="outline"
-                  color="white"
-                  borderColor="white"
-                  _hover={{ bg: "white", color: "brand.600" }}
-                  size="lg"
-                >
-                  Learn More
-                </Button>
-              </VStack>
-            </AnimatedSection>
-          </Box>
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center mr-3 group-hover:rotate-12 transition-transform">
+              <FaCodeBranch className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              FlowChain
+            </span>
+          </motion.div>
 
-          {/* Right White Section */}
-          <Box
-            flex={1}
-            bg="white"
-            position="relative"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <Box
-              position="absolute"
-              left={0}
-              top={0}
-              bottom={0}
-              w="1px"
-              bg="gray.200"
-            />
-            <AnimatedSection animationKeyframes={slideInRight} delay={0.4}>
-              <VStack spacing={6} maxW="500px" p={8}>
-                <Heading
-                  as="h2"
-                  size="xl"
-                  fontWeight="bold"
-                  color="brand.600"
-                  textAlign="center"
+          <div className="hidden md:flex items-center space-x-8">
+            {["Home", "About", "Services", "Work", "Contact"].map(
+              (item, index) => (
+                <motion.a
+                  key={item}
+                  href="#"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="relative text-gray-300 hover:text-white transition-colors group"
                 >
-                  Innovation at Every Step
-                </Heading>
-                <Text fontSize="lg" color="gray.600" textAlign="center">
-                  Our team combines creativity with technical expertise to
-                  deliver exceptional results.
-                </Text>
-                <Box mt={8}>
-                  <Icon
-                    as={FiChevronDown}
-                    w={12}
-                    h={12}
-                    color="brand.500"
-                    animation={`${keyframes`
-                      0%, 100% { transform: translateY(0); }
-                      50% { transform: translateY(10px); }
-                    `} 2s infinite`}
-                  />
-                </Box>
-              </VStack>
-            </AnimatedSection>
-          </Box>
-        </Box>
-
-        {/* About Us Text Section */}
-        <AnimatedSection
-          py={20}
-          px={{ base: 4, md: 8 }}
-          bg="white"
-          animationKeyframes={fadeIn}
-        >
-          <Container maxW="6xl">
-            <Grid
-              templateColumns={{ base: "1fr", md: "1fr 1fr" }}
-              gap={12}
-              alignItems="center"
+                  {item}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-full transition-all duration-300"></span>
+                </motion.a>
+              )
+            )}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full font-medium hover:shadow-lg hover:shadow-blue-500/25 transition-all"
             >
-              <GridItem>
-                <VStack spacing={6} align="flex-start">
-                  <Text
-                    fontSize="sm"
-                    fontWeight="bold"
-                    color="brand.500"
-                    letterSpacing="wide"
-                  >
-                    ABOUT US
-                  </Text>
-                  <Heading as="h2" size="xl" fontWeight="bold">
-                    Our Story
-                  </Heading>
-                  <Divider borderColor="brand.500" w="50px" borderWidth="2px" />
-                  <Text fontSize="lg" color="gray.600">
-                    Founded in 2018, FlowChain started as a small team of
-                    passionate developers and designers with a vision to
-                    revolutionize digital experiences.
-                  </Text>
-                  <Text fontSize="lg" color="gray.600">
-                    Today, we've grown into a full-service digital agency
-                    serving clients across multiple industries, delivering
-                    innovative solutions that drive real business results.
-                  </Text>
-                </VStack>
-              </GridItem>
-              <GridItem>
-                <Box
-                  position="relative"
-                  h="400px"
-                  bg="brand.50"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <Box
-                    position="absolute"
-                    top="-20px"
-                    left="-20px"
-                    w="100%"
-                    h="100%"
-                    border="2px solid"
-                    borderColor="brand.500"
-                    zIndex={0}
-                  />
-                  <Box
-                    position="relative"
-                    zIndex={1}
-                    w="90%"
-                    h="90%"
-                    bg="brand.100"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <Text fontWeight="bold" color="brand.600">
-                      Our Team
-                    </Text>
-                  </Box>
-                </Box>
-              </GridItem>
-            </Grid>
-          </Container>
-        </AnimatedSection>
+              Get Started
+            </motion.button>
+          </div>
+        </div>
+      </motion.nav>
 
-        {/* Image Gallery */}
-        <AnimatedSection
-          py={20}
-          px={{ base: 4, md: 8 }}
-          bg="gray.50"
-          animationKeyframes={scaleIn}
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20"></div>
+          <motion.div style={{ y }} className="absolute inset-0 opacity-30">
+            {/* Floating geometric shapes */}
+            <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-gradient-to-br from-blue-500/30 to-purple-500/30 blur-xl"></div>
+            <div className="absolute top-40 right-20 w-24 h-24 rounded-full bg-gradient-to-br from-pink-500/30 to-red-500/30 blur-xl"></div>
+            <div className="absolute bottom-40 left-1/4 w-40 h-40 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 blur-xl"></div>
+            <div className="absolute bottom-20 right-1/3 w-28 h-28 rounded-full bg-gradient-to-br from-cyan-500/30 to-blue-500/30 blur-xl"></div>
+          </motion.div>
+
+          {/* Grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+        </div>
+
+        <motion.div
+          style={{ opacity }}
+          className="relative z-10 text-center px-6 max-w-6xl mx-auto"
         >
-          <Container maxW="6xl">
-            <VStack spacing={12}>
-              <VStack spacing={4} textAlign="center">
-                <Text
-                  fontSize="sm"
-                  fontWeight="bold"
-                  color="brand.500"
-                  letterSpacing="wide"
-                >
-                  OUR WORK
-                </Text>
-                <Heading as="h2" size="xl" fontWeight="bold">
-                  Project Gallery
-                </Heading>
-                <Divider
-                  borderColor="brand.500"
-                  w="50px"
-                  borderWidth="2px"
-                  mx="auto"
-                />
-              </VStack>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-8"
+          >
+            <motion.span
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-full text-sm font-medium text-blue-300 backdrop-blur-sm"
+            >
+              ✨ Digital Innovation Agency
+            </motion.span>
 
-              <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={6}>
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight">
+              We Create
+              <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Digital Magic
+              </span>
+            </h1>
+
+            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              Transforming ambitious ideas into extraordinary digital
+              experiences that captivate, engage, and drive unprecedented
+              growth.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <motion.button
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)",
+                }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl font-semibold text-lg flex items-center gap-3 shadow-lg"
+              >
+                <FaPlay className="w-4 h-4" />
+                Start Your Journey
+                <FaArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-4 border-2 border-white/20 rounded-2xl font-semibold text-lg backdrop-blur-sm hover:bg-white/5 transition-all"
+              >
+                View Our Work
+              </motion.button>
+            </div>
+          </motion.div>
+
+          <motion.div
+            animate={{ y: [0, 20, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
+          >
+            <FiChevronDown className="w-8 h-8 text-white/60" />
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* Stats Section */}
+      <motion.section
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="py-20 relative"
+      >
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -10 }}
+                className="text-center group"
+              >
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 mb-4 text-blue-400 group-hover:scale-110 transition-transform">
+                  {stat.icon}
+                </div>
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                  {stat.value}
+                </div>
+                <div className="text-gray-400 font-medium">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* About Story Section */}
+      <motion.section
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        className="py-32 relative"
+      >
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="space-y-8"
+            >
+              <div>
+                <span className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-full text-sm font-medium text-blue-300 mb-6">
+                  Our Story
+                </span>
+                <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                  Born from
+                  <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    {" "}
+                    Passion
+                  </span>
+                </h2>
+                <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-8"></div>
+              </div>
+
+              <div className="space-y-6 text-lg text-gray-300 leading-relaxed">
+                <p>
+                  Founded in 2019 by a group of visionary developers and
+                  designers, FlowChain emerged from a simple belief: that
+                  exceptional digital experiences have the power to transform
+                  businesses and touch lives.
+                </p>
+                <p>
+                  What started as a small team working from a garage has evolved
+                  into a powerhouse of creative and technical talent, serving
+                  clients across the globe with cutting-edge solutions that push
+                  the boundaries of what's possible.
+                </p>
+                <p>
+                  Today, we're not just building websites and apps – we're
+                  crafting digital ecosystems that drive growth, inspire users,
+                  and create lasting impact in an ever-evolving digital
+                  landscape.
+                </p>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-xl text-blue-300 font-medium hover:bg-gradient-to-r hover:from-blue-500/30 hover:to-purple-500/30 transition-all"
+              >
+                Learn More <FaArrowRight className="w-4 h-4" />
+              </motion.button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="relative"
+            >
+              <div className="relative rounded-3xl overflow-hidden">
+                <div className="aspect-square bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-pink-600/20 backdrop-blur-sm border border-white/10 flex items-center justify-center">
+                  <div className="text-center space-y-6 p-8">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white mb-6">
+                      <FaRocket className="w-10 h-10" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">
+                      Our Mission
+                    </h3>
+                    <p className="text-gray-300 leading-relaxed">
+                      To empower businesses with innovative digital solutions
+                      that drive growth, enhance user experiences, and create
+                      meaningful connections in the digital world.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Floating elements */}
+                <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-gradient-to-br from-pink-500/30 to-red-500/30 blur-xl"></div>
+                <div className="absolute -bottom-4 -left-4 w-32 h-32 rounded-full bg-gradient-to-br from-blue-500/30 to-purple-500/30 blur-xl"></div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Values Section */}
+      <motion.section
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        className="py-32 relative"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 via-purple-900/10 to-pink-900/10"></div>
+
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <span className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-full text-sm font-medium text-blue-300 mb-6">
+              Our Values
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              What Drives
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                {" "}
+                Us
+              </span>
+            </h2>
+            <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {values.map((value, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -10, scale: 1.02 }}
+                className="p-8 rounded-2xl bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm border border-white/10 hover:border-blue-500/30 transition-all group"
+              >
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 text-blue-400 mb-6 group-hover:scale-110 transition-transform">
+                  {value.icon}
+                </div>
+                <h3 className="text-xl font-bold text-white mb-4">
+                  {value.title}
+                </h3>
+                <p className="text-gray-400 leading-relaxed">
+                  {value.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Testimonials Section */}
+      <motion.section
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        className="py-32 relative overflow-hidden"
+      >
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <span className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-full text-sm font-medium text-blue-300 mb-6">
+              Testimonials
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Client
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                {" "}
+                Love
+              </span>
+            </h2>
+            <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div>
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -10 }}
+                className="p-8 rounded-2xl bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm border border-white/10 hover:border-blue-500/30 transition-all group"
+              >
+                <div className="flex items-center mb-6">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <FaStar key={i} className="w-5 h-5 text-yellow-400" />
+                  ))}
+                </div>
+
+                <FaQuoteLeft className="text-blue-400 text-2xl mb-6 opacity-50" />
+
+                <p className="text-gray-300 leading-relaxed mb-8 text-lg">
+                  "{testimonial.quote}"
+                </p>
+
+                <div className="flex items-center">
+                  <img
+                    src={testimonial.image}
+                    alt={testimonial.name}
+                    className="w-12 h-12 rounded-full object-cover mr-4 border-2 border-blue-500/30"
+                  />
+                  <div>
+                    <p className="font-bold text-white">{testimonial.name}</p>
+                    <p className="text-sm text-gray-400">{testimonial.role}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* CTA Section */}
+      <motion.section
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        className="py-32 relative overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-pink-600/20"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_70%)]"></div>
+
+        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="space-y-8"
+          >
+            <h2 className="text-4xl md:text-6xl font-bold">
+              Ready to Create
+              <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Something Amazing?
+              </span>
+            </h2>
+
+            <p className="text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
+              Let's transform your vision into a digital masterpiece that
+              captivates your audience and drives exceptional results.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <motion.button
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)",
+                }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 shadow-lg"
+              >
+                Start Your Project
+                <FaArrowRight className="w-4 h-4" />
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-4 border-2 border-white/20 rounded-2xl font-semibold text-lg backdrop-blur-sm hover:bg-white/5 transition-all"
+              >
+                Schedule a Call
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Footer */}
+      <footer className="py-16 border-t border-white/10 relative">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div className="space-y-6">
+              <div className="flex items-center">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center mr-3">
+                  <FaCodeBranch className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  FlowChain
+                </span>
+              </div>
+              <p className="text-gray-400 leading-relaxed">
+                Creating extraordinary digital experiences that transform
+                businesses and inspire users worldwide.
+              </p>
+              <div className="flex space-x-4">
                 {[
-                  "brand.500",
-                  "brand.600",
-                  "brand.700",
-                  "brand.400",
-                  "brand.300",
-                  "brand.800",
-                ].map((color, index) => (
-                  <ColorBlock key={index} color={color} />
+                  { icon: <FaTwitter />, href: "#" },
+                  { icon: <FaLinkedin />, href: "#" },
+                  { icon: <FaGithub />, href: "#" },
+                  { icon: <FaDribbble />, href: "#" },
+                ].map((social, index) => (
+                  <motion.a
+                    key={index}
+                    href={social.href}
+                    whileHover={{ scale: 1.1, y: -2 }}
+                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:border-blue-500/30 transition-all"
+                  >
+                    {social.icon}
+                  </motion.a>
                 ))}
-              </SimpleGrid>
-            </VStack>
-          </Container>
-        </AnimatedSection>
+              </div>
+            </div>
 
-        {/* Testimonials */}
-        <AnimatedSection
-          py={20}
-          px={{ base: 4, md: 8 }}
-          bg="white"
-          animationKeyframes={slideInUp}
-        >
-          <Container maxW="6xl">
-            <VStack spacing={12}>
-              <VStack spacing={4} textAlign="center">
-                <Text
-                  fontSize="sm"
-                  fontWeight="bold"
-                  color="brand.500"
-                  letterSpacing="wide"
-                >
-                  TESTIMONIALS
-                </Text>
-                <Heading as="h2" size="xl" fontWeight="bold">
-                  What Our Clients Say
-                </Heading>
-                <Divider
-                  borderColor="brand.500"
-                  w="50px"
-                  borderWidth="2px"
-                  mx="auto"
-                />
-              </VStack>
+            {[
+              {
+                title: "Services",
+                links: [
+                  "Web Development",
+                  "Mobile Apps",
+                  "UI/UX Design",
+                  "Digital Strategy",
+                ],
+              },
+              {
+                title: "Company",
+                links: ["About Us", "Our Team", "Careers", "Contact"],
+              },
+              {
+                title: "Resources",
+                links: ["Blog", "Case Studies", "Newsletter", "Support"],
+              },
+            ].map((section, index) => (
+              <div key={index} className="space-y-6">
+                <h3 className="text-lg font-semibold text-white">
+                  {section.title}
+                </h3>
+                <ul className="space-y-3">
+                  {section.links.map((link, linkIndex) => (
+                    <li key={linkIndex}>
+                      <a
+                        href="#"
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        {link}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
 
-              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>
-                {[1, 2].map((item) => (
-                  <Box
-                    key={item}
-                    p={8}
-                    border="1px solid"
-                    borderColor="gray.200"
-                    position="relative"
-                    _hover={{
-                      boxShadow: "lg",
-                      transform: "translateY(-5px)",
-                      transition: "all 0.3s ease",
-                    }}
-                  >
-                    <Icon
-                      as={FaQuoteLeft}
-                      color="brand.500"
-                      fontSize="3xl"
-                      mb={4}
-                    />
-                    <Text fontSize="lg" color="gray.600" mb={6}>
-                      Working with FlowChain has been a game-changer for our
-                      business. Their innovative approach and attention to
-                      detail delivered results beyond our expectations.
-                    </Text>
-                    <Flex align="center">
-                      <Avatar
-                        name="Sarah Johnson"
-                        src="https://randomuser.me/api/portraits/women/44.jpg"
-                        mr={4}
-                      />
-                      <Box>
-                        <Text fontWeight="bold">Sarah Johnson</Text>
-                        <Text fontSize="sm" color="gray.500">
-                          CEO, TechSolutions Inc.
-                        </Text>
-                      </Box>
-                    </Flex>
-                  </Box>
-                ))}
-              </SimpleGrid>
-            </VStack>
-          </Container>
-        </AnimatedSection>
-
-        {/* Stats */}
-        <AnimatedSection
-          py={20}
-          px={{ base: 4, md: 8 }}
-          bg="brand.600"
-          color="white"
-          animationKeyframes={fadeIn}
-        >
-          <Container maxW="6xl">
-            <SimpleGrid
-              columns={{ base: 2, md: 4 }}
-              spacing={10}
-              textAlign="center"
-            >
-              {[
-                { value: "100+", label: "Projects Completed" },
-                { value: "50+", label: "Happy Clients" },
-                { value: "24/7", label: "Support" },
-                { value: "100%", label: "Satisfaction" },
-              ].map((stat, index) => (
-                <Box key={index}>
-                  <Heading size="2xl" mb={2}>
-                    {stat.value}
-                  </Heading>
-                  <Text fontSize="lg">{stat.label}</Text>
-                </Box>
-              ))}
-            </SimpleGrid>
-          </Container>
-        </AnimatedSection>
-
-        {/* Contact */}
-        <AnimatedSection
-          py={20}
-          px={{ base: 4, md: 8 }}
-          bg="white"
-          animationKeyframes={slideInUp}
-        >
-          <Container maxW="6xl">
-            <Grid
-              templateColumns={{ base: "1fr", md: "1fr 1fr" }}
-              gap={12}
-              alignItems="center"
-            >
-              <GridItem>
-                <VStack spacing={6} align="flex-start">
-                  <Text
-                    fontSize="sm"
-                    fontWeight="bold"
-                    color="brand.500"
-                    letterSpacing="wide"
-                  >
-                    CONTACT US
-                  </Text>
-                  <Heading as="h2" size="xl" fontWeight="bold">
-                    Get In Touch
-                  </Heading>
-                  <Divider borderColor="brand.500" w="50px" borderWidth="2px" />
-                  <Text fontSize="lg" color="gray.600">
-                    Have a project in mind or want to learn more about our
-                    services? We'd love to hear from you.
-                  </Text>
-                  <Text fontSize="lg" color="gray.600">
-                    Email: info@flowchain.com
-                    <br />
-                    Phone: (123) 456-7890
-                  </Text>
-                </VStack>
-              </GridItem>
-              <GridItem>
-                <VStack spacing={6} as="form">
-                  <Input
-                    placeholder="Your Name"
-                    size="lg"
-                    borderColor="gray.300"
-                    _focus={{ borderColor: "brand.500" }}
-                  />
-                  <Input
-                    placeholder="Your Email"
-                    size="lg"
-                    borderColor="gray.300"
-                    _focus={{ borderColor: "brand.500" }}
-                  />
-                  <Textarea
-                    placeholder="Your Message"
-                    size="lg"
-                    borderColor="gray.300"
-                    _focus={{ borderColor: "brand.500" }}
-                    rows={6}
-                  />
-                  <Button
-                    type="submit"
-                    colorScheme="brand"
-                    size="lg"
-                    w="full"
-                    rightIcon={<FaArrowRight />}
-                  >
-                    Send Message
-                  </Button>
-                </VStack>
-              </GridItem>
-            </Grid>
-          </Container>
-        </AnimatedSection>
-
-        {/* Footer */}
-        <Box
-          as="footer"
-          py={12}
-          px={{ base: 4, md: 8 }}
-          bg="gray.900"
-          color="white"
-        >
-          <Container maxW="6xl">
-            <Grid
-              templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }}
-              gap={8}
-            >
-              <GridItem>
-                <VStack align="flex-start" spacing={4}>
-                  <Flex align="center">
-                    <Icon
-                      as={FaCodeBranch}
-                      w={8}
-                      h={8}
-                      mr={2}
-                      color="brand.500"
-                    />
-                    <Heading size="md">FlowChain</Heading>
-                  </Flex>
-                  <Text color="gray.400">
-                    Innovating digital experiences for businesses worldwide.
-                  </Text>
-                </VStack>
-              </GridItem>
-              <GridItem>
-                <VStack align="flex-start" spacing={4}>
-                  <Heading size="sm">Quick Links</Heading>
-                  <VStack align="flex-start" spacing={2}>
-                    <ChakraLink href="/" _hover={{ color: "brand.500" }}>
-                      Home
-                    </ChakraLink>
-                    <ChakraLink href="/about" _hover={{ color: "brand.500" }}>
-                      About
-                    </ChakraLink>
-                    <ChakraLink
-                      href="/services"
-                      _hover={{ color: "brand.500" }}
-                    >
-                      Services
-                    </ChakraLink>
-                    <ChakraLink href="/contact" _hover={{ color: "brand.500" }}>
-                      Contact
-                    </ChakraLink>
-                  </VStack>
-                </VStack>
-              </GridItem>
-              <GridItem>
-                <VStack align="flex-start" spacing={4}>
-                  <Heading size="sm">Services</Heading>
-                  <VStack align="flex-start" spacing={2}>
-                    <ChakraLink href="#" _hover={{ color: "brand.500" }}>
-                      Web Development
-                    </ChakraLink>
-                    <ChakraLink href="#" _hover={{ color: "brand.500" }}>
-                      Mobile Apps
-                    </ChakraLink>
-                    <ChakraLink href="#" _hover={{ color: "brand.500" }}>
-                      UI/UX Design
-                    </ChakraLink>
-                    <ChakraLink href="#" _hover={{ color: "brand.500" }}>
-                      Digital Marketing
-                    </ChakraLink>
-                  </VStack>
-                </VStack>
-              </GridItem>
-              <GridItem>
-                <VStack align="flex-start" spacing={4}>
-                  <Heading size="sm">Connect</Heading>
-                  <Text color="gray.400">
-                    123 Business Ave
-                    <br />
-                    San Francisco, CA 94107
-                    <br />
-                    info@flowchain.com
-                    <br />
-                    (123) 456-7890
-                  </Text>
-                </VStack>
-              </GridItem>
-            </Grid>
-            <Divider borderColor="gray.700" my={8} />
-            <Text textAlign="center" color="gray.400">
+          <div className="border-t border-white/10 mt-12 pt-8 text-center text-gray-500">
+            <p>
               &copy; {new Date().getFullYear()} FlowChain. All rights reserved.
-            </Text>
-          </Container>
-        </Box>
-      </Box>
-    </ChakraProvider>
+              Crafted with ❤️
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 };
 

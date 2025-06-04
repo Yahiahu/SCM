@@ -61,7 +61,7 @@ const PlaneAnimation = () => {
             animation: `plane-animation 12s linear ${index * 4}s infinite`,
           }}
         >
-          <FaPlane className="w-8 h-8 text-white/80" />
+          <FaPlane className="w-8 h-8 text-blue-400/80" />
         </div>
       ))}
     </div>
@@ -126,26 +126,24 @@ const FeatureCard = ({
     <Card
       ref={ref}
       className={cn(
-        "p-6 flex flex-col items-center text-center gap-4 transition-all hover:-translate-y-1 hover:shadow-lg relative border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800",
+        "p-6 flex flex-col items-center text-center gap-4 transition-all hover:-translate-y-1 hover:shadow-lg relative border border-blue-200/50 bg-white/90 backdrop-blur-sm",
         isVisible ? animationClasses : "opacity-0",
-        "hover:before:absolute hover:before:inset-0 hover:before:rounded-lg hover:before:bg-gradient-to-br hover:before:from-blue-500/10 hover:before:to-purple-500/10"
+        "hover:before:absolute hover:before:inset-0 hover:before:rounded-lg hover:before:bg-blue-100/30"
       )}
       style={{
         animationDelay: isVisible ? `${animationDelay}s` : "0s",
       }}
     >
       {badgeText && (
-        <Badge className="absolute top-0 right-0 translate-x-1 -translate-y-1/2 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <Badge className="absolute top-0 right-0 translate-x-1 -translate-y-1/2 bg-blue-600 text-white">
           {badgeText}
         </Badge>
       )}
-      <div className="p-3 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
-        <Icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+      <div className="p-3 rounded-full bg-blue-100/80">
+        <Icon className="w-6 h-6 text-blue-700" />
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-        {title}
-      </h3>
-      <p className="text-sm text-gray-600 dark:text-gray-300">{description}</p>
+      <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+      <p className="text-sm text-gray-600">{description}</p>
     </Card>
   );
 };
@@ -164,35 +162,35 @@ const SupplyChainNetwork = () => {
     <div
       ref={ref}
       className={cn(
-        "py-16 relative bg-gradient-to-b from-blue-900 via-blue-100 to-white",
+        "py-16 relative bg-gradient-to-b from-blue-900/90 via-blue-700/80 to-blue-500/70",
         isVisible ? fadeIn : "opacity-0"
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
+        <h2 className="text-3xl font-bold text-center mb-12 text-white">
           End-to-End Supply Chain Visibility
         </h2>
 
         <div className="relative">
-          <div className="absolute inset-x-0 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-20" />
+          <div className="absolute inset-x-0 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-blue-300/70 to-transparent" />
 
           <div className="flex flex-col md:flex-row justify-between items-center relative">
             {nodes.map((node, index) => (
               <div
                 key={node.label}
                 className={cn(
-                  "flex flex-col items-center p-4 rounded-xl bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all z-10 mb-8 md:mb-0",
+                  "flex flex-col items-center p-4 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all z-10 mb-8 md:mb-0",
                   isVisible ? floatUp : "opacity-0",
-                  "border border-gray-200 dark:border-gray-700"
+                  "border border-blue-200/50"
                 )}
                 style={{
                   animationDelay: isVisible ? `${0.2 * index}s` : "0s",
                 }}
               >
-                <div className="p-3 mb-3 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
-                  <node.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <div className="p-3 mb-3 rounded-full bg-blue-100/80">
+                  <node.icon className="w-6 h-6 text-blue-700" />
                 </div>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="font-semibold text-blue-800">
                   {node.label}
                 </span>
               </div>
@@ -202,7 +200,7 @@ const SupplyChainNetwork = () => {
 
         <p
           className={cn(
-            "mt-12 text-lg text-center max-w-3xl mx-auto text-gray-600 dark:text-gray-300",
+            "mt-12 text-lg text-center max-w-3xl mx-auto text-blue-100",
             isVisible ? fadeIn : "opacity-0"
           )}
           style={{
@@ -236,23 +234,23 @@ const InventoryDashboardPreview = () => {
     <div
       ref={ref}
       className={cn(
-        "py-16 bg-gray-50 dark:bg-gray-900",
+        "py-16 relative bg-gradient-to-b from-blue-500/70 via-blue-300/70 to-blue-100/80",
         isVisible ? fadeIn : "opacity-0"
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8">
-          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white">
+          <h2 className="text-3xl font-bold text-center text-blue-800">
             Real-Time Inventory Management
           </h2>
 
-          <Card className="p-6 w-full max-w-4xl mx-auto relative overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
+          <Card className="p-6 w-full max-w-4xl mx-auto relative overflow-hidden border border-blue-200/50 bg-white/90 backdrop-blur-sm">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600" />
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-xl font-semibold text-blue-800">
                 Current Inventory
               </h3>
-              <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 rounded-full">
+              <Badge className="bg-blue-600 text-white px-3 py-1 rounded-full">
                 Live Updates
               </Badge>
             </div>
@@ -262,7 +260,7 @@ const InventoryDashboardPreview = () => {
                 <div
                   key={item.id}
                   className={cn(
-                    "p-4 bg-gray-50 dark:bg-gray-700/50 rounded-md border-l-4 border-blue-500 relative transition-all hover:translate-x-1 hover:shadow-md",
+                    "p-4 bg-blue-50/70 rounded-md border-l-4 border-blue-600 relative transition-all hover:translate-x-1 hover:shadow-md",
                     isVisible ? fadeIn : "opacity-0"
                   )}
                   style={{
@@ -271,10 +269,10 @@ const InventoryDashboardPreview = () => {
                 >
                   <div className="flex justify-between items-center">
                     <div className="flex flex-col items-start gap-1">
-                      <span className="font-bold text-gray-900 dark:text-white">
+                      <span className="font-bold text-blue-800">
                         {item.name}
                       </span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                      <span className="text-sm text-gray-600">
                         {item.id} • {item.location}
                       </span>
                     </div>
@@ -295,7 +293,7 @@ const InventoryDashboardPreview = () => {
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  className="mt-6 w-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="mt-6 w-full border border-blue-300 hover:bg-blue-50"
                   size="lg"
                 >
                   View Full Dashboard <FaArrowRight className="ml-2" />
@@ -303,11 +301,11 @@ const InventoryDashboardPreview = () => {
               </DialogTrigger>
               <DialogContent className="sm:max-w-xl">
                 <DialogHeader>
-                  <DialogTitle className="text-gray-900 dark:text-white">
+                  <DialogTitle className="text-blue-800">
                     Inventory Dashboard Preview
                   </DialogTitle>
                 </DialogHeader>
-                <div className="relative aspect-video rounded-md overflow-hidden border border-gray-200 dark:border-gray-700">
+                <div className="relative aspect-video rounded-md overflow-hidden border border-blue-200">
                   <img
                     src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
                     alt="Inventory Dashboard"
@@ -316,7 +314,7 @@ const InventoryDashboardPreview = () => {
                 </div>
                 <DialogFooter>
                   <Button variant="outline">Close</Button>
-                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  <Button className="bg-blue-600 hover:bg-blue-700">
                     Request Demo
                   </Button>
                 </DialogFooter>
@@ -342,14 +340,14 @@ const SupplyChainMetrics = () => {
     <div
       ref={ref}
       className={cn(
-        "py-16 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30",
+        "py-16 relative bg-gradient-to-b from-blue-100/80 via-blue-300/70 to-blue-700/80",
         isVisible ? fadeIn : "opacity-0"
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-8">
-          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white">
-            Proven Supply Chain Results
+        <div className="flex flex-col gap-8 text-center">
+          <h2 className="text-3xl font-bold text-white">
+            Supply Chain Performance Metrics
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 w-full">
@@ -357,20 +355,20 @@ const SupplyChainMetrics = () => {
               <Card
                 key={metric.label}
                 className={cn(
-                  "p-6 flex flex-col items-center gap-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800",
+                  "p-6 flex flex-col items-center gap-3 border border-blue-200/50 bg-white/90 backdrop-blur-sm",
                   isVisible ? floatUp : "opacity-0"
                 )}
                 style={{
                   animationDelay: isVisible ? `${0.2 * index}s` : "0s",
                 }}
               >
-                <div className="p-3 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
-                  <metric.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <div className="p-3 rounded-full bg-blue-100/80">
+                  <metric.icon className="w-6 h-6 text-blue-700" />
                 </div>
-                <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h3 className="text-3xl font-bold text-blue-700">
                   {metric.value}
                 </h3>
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <p className="text-sm font-medium text-gray-700">
                   {metric.label}
                 </p>
               </Card>
@@ -379,7 +377,7 @@ const SupplyChainMetrics = () => {
 
           <p
             className={cn(
-              "text-sm text-center max-w-2xl mx-auto text-gray-500 dark:text-gray-400",
+              "text-sm text-center max-w-2xl mx-auto text-blue-100",
               isVisible ? fadeIn : "opacity-0"
             )}
             style={{
@@ -416,21 +414,19 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900 text-white overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-blue-900 via-blue-500 to-blue-900 text-gray-800 overflow-x-hidden">
       {/* Fixed Header */}
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 p-4 flex justify-between items-center transition-all duration-300",
-          isScrolled
-            ? "bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-800"
-            : "bg-transparent"
+          "fixed top-0 left-0 right-0 z-50 p-4 flex justify-between items-center transition-all duration-300 bg-blue-900/90 backdrop-blur-sm border-b border-blue-700",
+          isScrolled ? "shadow-lg" : ""
         )}
       >
         <Link href="/" className="flex items-center hover:no-underline">
-          <div className="w-8 h-8 mr-2 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+          <div className="w-8 h-8 mr-2 rounded-full bg-blue-500 flex items-center justify-center">
             <FaTruck className="w-4 h-4 text-white" />
           </div>
-          <span className="text-lg font-semibold tracking-wide bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <span className="text-lg font-semibold tracking-wide text-white">
             Orontis
           </span>
         </Link>
@@ -439,26 +435,26 @@ export default function LandingPage() {
           <nav className="hidden md:flex gap-12">
             <button
               onClick={() => scrollToSection("features")}
-              className="text-sm font-medium text-white hover:text-blue-600 dark:text-white dark:hover:text-blue-400 underline underline-offset-4 transition-colors"
+              className="text-sm font-medium text-white hover:text-blue-300 underline underline-offset-4 transition-colors"
             >
               Features
             </button>
             <button
               onClick={() => scrollToSection("solutions")}
-              className="text-sm font-medium text-white hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 underline underline-offset-4 transition-colors"
+              className="text-sm font-medium text-white hover:text-blue-300 underline underline-offset-4 transition-colors"
             >
               Solutions
             </button>
             <button
               onClick={() => scrollToSection("contact")}
-              className="text-sm font-medium text-white hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 underline underline-offset-4 transition-colors"
+              className="text-sm font-medium text-white hover:text-blue-300 underline underline-offset-4 transition-colors"
             >
               Contact
             </button>
           </nav>
           <Button
             onClick={() => router.push("/createAccount")}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            className="bg-blue-500 hover:bg-blue-600 text-white"
           >
             Get Started
           </Button>
@@ -469,7 +465,7 @@ export default function LandingPage() {
       <section
         className={cn(
           "pt-32 pb-20 min-h-screen flex items-center justify-center text-center relative overflow-hidden",
-          "bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900 text-white"
+          "bg-gradient-to-b from-blue-900 via-blue-700 to-blue-500"
         )}
       >
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
@@ -479,12 +475,12 @@ export default function LandingPage() {
         <div className="absolute bottom-0 left-0 right-0 h-24 z-10 pointer-events-none">
           {/* Factory */}
           <div className="absolute bottom-0 left-0 w-20 h-20 flex items-end justify-center z-20">
-            <GiFactory className="w-16 h-16 text-white" />
+            <GiFactory className="w-24 h-24 text-blue-400" />
           </div>
 
           {/* Warehouse */}
           <div className="absolute bottom-0 right-0 w-20 h-20 flex items-end justify-center z-20">
-            <FaWarehouse className="w-16 h-16 text-white" />
+            <FaWarehouse className="w-16 h-16 text-blue-400" />
           </div>
 
           {/* Animated Trucks */}
@@ -496,7 +492,7 @@ export default function LandingPage() {
                 animation: `truck-drive 14s linear ${i * 2}s infinite`,
               }}
             >
-              <FaTruck className="w-8 h-8 text-white" />
+              <FaTruck className="w-8 h-8 text-blue-400" />
             </div>
           ))}
         </div>
@@ -510,16 +506,14 @@ export default function LandingPage() {
                 "opacity-0"
               )}
             >
-              <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                Transform Your Supply Chain
-              </span>
+              <span className="text-white">Transform Your Supply Chain</span>
               <br />
-              <span className="text-blue-200">With Intelligent Automation</span>
+              <span className="text-blue-300">With Intelligent Automation</span>
             </h1>
 
             <p
               className={cn(
-                "text-xl md:text-2xl max-w-3xl mx-auto text-blue-100",
+                "text-xl md:text-2xl max-w-3xl mx-auto text-blue-200",
                 floatUp,
                 "opacity-0"
               )}
@@ -535,7 +529,7 @@ export default function LandingPage() {
             >
               <Button
                 onClick={() => router.push("/product")}
-                className="bg-white text-blue-600 hover:bg-blue-50 group"
+                className="bg-white text-blue-700 hover:bg-blue-100 group border border-blue-300"
                 size="lg"
               >
                 Get Started
@@ -544,7 +538,7 @@ export default function LandingPage() {
 
               <Button
                 variant="outline"
-                className="border-white text-blue-600 hover:bg-white/10 hover:text-white"
+                className="border-blue-300 text-white hover:bg-blue-700/30 hover:text-white"
                 size="lg"
               >
                 Explore Features
@@ -552,7 +546,6 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-
       </section>
 
       {/* Supply Chain Network */}
@@ -564,69 +557,74 @@ export default function LandingPage() {
       <InventoryDashboardPreview />
 
       {/* Key Features Section */}
-      <section id="features" className="py-16 bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Supply Chain Solutions
-          </h2>
-          <p
-            className={cn(
-              "text-lg max-w-3xl mx-auto text-gray-600 dark:text-gray-300",
-              fadeIn,
-              "opacity-0"
-            )}
-            style={{ animationDelay: "0.2s" }}
-          >
-            Comprehensive tools designed specifically for modern supply chain
-            challenges.
-          </p>
+      <section id="features">
+        <div className="w-full py-16 text-center bg-gradient-to-b from-blue-500/70 via-blue-300/70 to-blue-100/80">
+          <div className="max-w-7xl mx-auto flex flex-col gap-8">
+            <h2 className="text-3xl font-bold text-blue-800">
+              Supply Chain Solutions
+            </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10 w-full">
-            <FeatureCard
-              icon={MdInventory}
-              title="Inventory Optimization"
-              description="Automated tracking and predictive restocking to maintain optimal inventory levels."
-              animationDelay={0.2}
-              animationType="slide-in-left"
-              badgeText="AI-Powered"
-            />
-            <FeatureCard
-              icon={FaWarehouse}
-              title="Warehouse Management"
-              description="Streamline operations with smart bin locations and picking routes."
-              animationDelay={0.3}
-              animationType="float-up"
-            />
-            <FeatureCard
-              icon={FaTruck}
-              title="Logistics Coordination"
-              description="Real-time tracking and route optimization for all shipments."
-              animationDelay={0.4}
-              animationType="slide-in-right"
-              badgeText="New"
-            />
-            <FeatureCard
-              icon={FaBarcode}
-              title="Asset Tracking"
-              description="End-to-end visibility from manufacturer to end customer."
-              animationDelay={0.5}
-              animationType="slide-in-left"
-            />
-            <FeatureCard
-              icon={FaExchangeAlt}
-              title="Supplier Integration"
-              description="Seamless connection with your supplier network for just-in-time delivery."
-              animationDelay={0.6}
-              animationType="float-up"
-            />
-            <FeatureCard
-              icon={MdTimeline}
-              title="Demand Forecasting"
-              description="Predict market trends and adjust production accordingly."
-              animationDelay={0.7}
-              animationType="slide-in-right"
-              badgeText="AI-Powered"
-            />
+            <p
+              className={cn(
+                "text-lg max-w-3xl mx-auto text-blue-700",
+                fadeIn,
+                "opacity-0"
+              )}
+              style={{ animationDelay: "0.2s" }}
+            >
+              Comprehensive tools designed specifically for modern supply chain
+              challenges.
+            </p>
+
+            <div className="px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10 w-full">
+                <FeatureCard
+                  icon={MdInventory}
+                  title="Inventory Optimization"
+                  description="Automated tracking and predictive restocking to maintain optimal inventory levels."
+                  animationDelay={0.2}
+                  animationType="slide-in-left"
+                  badgeText="AI-Powered"
+                />
+                <FeatureCard
+                  icon={FaWarehouse}
+                  title="Warehouse Management"
+                  description="Streamline operations with smart bin locations and picking routes."
+                  animationDelay={0.3}
+                  animationType="float-up"
+                />
+                <FeatureCard
+                  icon={FaTruck}
+                  title="Logistics Coordination"
+                  description="Real-time tracking and route optimization for all shipments."
+                  animationDelay={0.4}
+                  animationType="slide-in-right"
+                  badgeText="New"
+                />
+                <FeatureCard
+                  icon={FaBarcode}
+                  title="Asset Tracking"
+                  description="End-to-end visibility from manufacturer to end customer."
+                  animationDelay={0.5}
+                  animationType="slide-in-left"
+                />
+                <FeatureCard
+                  icon={FaExchangeAlt}
+                  title="Supplier Integration"
+                  description="Seamless connection with your supplier network for just-in-time delivery."
+                  animationDelay={0.6}
+                  animationType="float-up"
+                />
+                <FeatureCard
+                  icon={MdTimeline}
+                  title="Demand Forecasting"
+                  description="Predict market trends and adjust production accordingly."
+                  animationDelay={0.7}
+                  animationType="slide-in-right"
+                  badgeText="AI-Powered"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -635,22 +633,26 @@ export default function LandingPage() {
       <SupplyChainMetrics />
 
       {/* Problem/Solution Section */}
-      <section id="solutions" className="py-16 bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Supply Chain Pain Points We Solve
-          </h2>
+      <section id="solutions">
+        <div className="w-full py-16 text-center bg-gradient-to-b from-blue-100/80 via-white to-blue-300/70">
+          <div className="max-w-7xl mx-auto flex flex-col gap-8">
+            <div className="px-4 sm:px-6 lg:px-8">
+              <h2 className="text-3xl font-bold text-blue-800">
+                Supply Chain Pain Points We Solve
+              </h2>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl mx-auto">
             <Card
               className={cn(
-                "p-6 flex flex-col items-start gap-4 h-full text-left bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
+                "p-6 flex flex-col items-start gap-4 h-full text-left bg-white/90 backdrop-blur-sm border border-blue-200/50",
                 slideInLeft,
                 "opacity-0"
               )}
               style={{ animationDelay: "0.2s" }}
             >
-              <h3 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h3 className="text-xl font-semibold text-blue-800">
                 Common Challenges
               </h3>
               <ul className="flex flex-col gap-3">
@@ -662,10 +664,8 @@ export default function LandingPage() {
                   "Demand forecasting errors",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500" />
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {item}
-                    </span>
+                    <div className="w-2 h-2 rounded-full bg-blue-600" />
+                    <span className="text-gray-700">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -673,13 +673,13 @@ export default function LandingPage() {
 
             <Card
               className={cn(
-                "p-6 flex flex-col items-start gap-4 h-full text-left bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
+                "p-6 flex flex-col items-start gap-4 h-full text-left bg-white/90 backdrop-blur-sm border border-blue-200/50",
                 slideInRight,
                 "opacity-0"
               )}
               style={{ animationDelay: "0.4s" }}
             >
-              <h3 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h3 className="text-xl font-semibold text-blue-800">
                 Our Solutions
               </h3>
               <ul className="flex flex-col gap-3">
@@ -694,12 +694,10 @@ export default function LandingPage() {
                   { icon: FaChartLine, text: "AI-powered demand forecasting" },
                 ].map((item) => (
                   <li key={item.text} className="flex items-center gap-3">
-                    <div className="p-1 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
-                      <item.icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <div className="p-1 rounded-full bg-blue-100/80">
+                      <item.icon className="w-4 h-4 text-blue-600" />
                     </div>
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {item.text}
-                    </span>
+                    <span className="text-gray-700">{item.text}</span>
                   </li>
                 ))}
               </ul>
@@ -709,17 +707,16 @@ export default function LandingPage() {
       </section>
 
       {/* Call to Action */}
-      <section id="contact" className="py-16 bg-gray-50 dark:bg-gray-900">
+      <section
+        id="contact"
+        className="py-16 bg-gradient-to-b from-blue-300/70 via-blue-500/80 to-blue-800/90"
+      >
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-3xl font-bold text-white">
             Ready to Optimize Your Supply Chain?
           </h2>
           <p
-            className={cn(
-              "text-lg text-gray-600 dark:text-gray-300",
-              fadeIn,
-              "opacity-0"
-            )}
+            className={cn("text-lg text-blue-100", fadeIn, "opacity-0")}
             style={{ animationDelay: "0.2s" }}
           >
             Speak with our supply chain experts to see how we can transform your
@@ -728,7 +725,7 @@ export default function LandingPage() {
 
           <Card
             className={cn(
-              "w-full p-6 md:p-8 hover:shadow-xl transition-all border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800",
+              "w-full p-6 md:p-8 hover:shadow-xl transition-all border border-blue-200/50 bg-white/90 backdrop-blur-sm",
               scaleUp,
               "opacity-0"
             )}
@@ -736,63 +733,51 @@ export default function LandingPage() {
           >
             <form className="flex flex-col gap-5">
               <div className="space-y-2 text-left">
-                <Label
-                  htmlFor="name"
-                  className="text-gray-700 dark:text-gray-300"
-                >
+                <Label htmlFor="name" className="text-gray-700">
                   Your Name
                 </Label>
                 <Input
                   id="name"
                   placeholder="John Doe"
-                  className="border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                  className="border-blue-200 bg-white"
                 />
               </div>
               <div className="space-y-2 text-left">
-                <Label
-                  htmlFor="email"
-                  className="text-gray-700 dark:text-gray-300"
-                >
+                <Label htmlFor="email" className="text-gray-700">
                   Work Email
                 </Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="john.doe@company.com"
-                  className="border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                  className="border-blue-200 bg-white"
                 />
               </div>
               <div className="space-y-2 text-left">
-                <Label
-                  htmlFor="company"
-                  className="text-gray-700 dark:text-gray-300"
-                >
+                <Label htmlFor="company" className="text-gray-700">
                   Company Name
                 </Label>
                 <Input
                   id="company"
                   placeholder="Acme Logistics Inc."
-                  className="border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                  className="border-blue-200 bg-white"
                 />
               </div>
               <div className="space-y-2 text-left">
-                <Label
-                  htmlFor="message"
-                  className="text-gray-700 dark:text-gray-300"
-                >
+                <Label htmlFor="message" className="text-gray-700">
                   How can we help you?
                 </Label>
                 <Textarea
                   id="message"
                   placeholder="Tell us about your supply chain challenges..."
                   rows={4}
-                  className="border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                  className="border-blue-200 bg-white"
                 />
               </div>
               <Button
                 type="submit"
                 size="lg"
-                className="w-full group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="w-full group bg-blue-600 hover:bg-blue-700"
               >
                 Get in Touch
                 <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
@@ -803,15 +788,15 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 bg-gray-100 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+      <footer className="py-12 bg-blue-900/90 border-t border-blue-700 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="flex items-center mb-6 md:mb-0">
-                <div className="w-8 h-8 mr-2 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+                <div className="w-8 h-8 mr-2 rounded-full bg-blue-500 flex items-center justify-center">
                   <FaTruck className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="text-lg font-semibold text-white">
                   Orontis
                 </span>
               </div>
@@ -819,29 +804,29 @@ export default function LandingPage() {
               <div className="flex gap-6">
                 <button
                   onClick={() => scrollToSection("features")}
-                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  className="text-sm font-medium text-white hover:text-blue-300 transition-colors"
                 >
                   Features
                 </button>
                 <button
                   onClick={() => scrollToSection("solutions")}
-                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  className="text-sm font-medium text-white hover:text-blue-300 transition-colors"
                 >
                   Solutions
                 </button>
                 <button
                   onClick={() => scrollToSection("contact")}
-                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  className="text-sm font-medium text-white hover:text-blue-300 transition-colors"
                 >
                   Contact
                 </button>
               </div>
             </div>
 
-            <div className="border-t border-gray-300 dark:border-gray-700 w-full" />
+            <div className="border-t border-blue-700 w-full" />
 
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-blue-300">
                 &copy; {new Date().getFullYear()} Orontis Supply Chain
                 Solutions. All rights reserved.
               </p>
@@ -852,7 +837,7 @@ export default function LandingPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-gray-500 hover:text-blue-600 dark:hover:text-blue-400"
+                      className="text-blue-300 hover:text-white"
                     >
                       <FaCloud className="w-5 h-5" />
                     </Button>
@@ -864,7 +849,7 @@ export default function LandingPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-gray-500 hover:text-blue-600 dark:hover:text-blue-400"
+                      className="text-blue-300 hover:text-white"
                     >
                       <FaTruck className="w-5 h-5" />
                     </Button>
@@ -876,7 +861,7 @@ export default function LandingPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-gray-500 hover:text-blue-600 dark:hover:text-blue-400"
+                      className="text-blue-300 hover:text-white"
                     >
                       <FaWarehouse className="w-5 h-5" />
                     </Button>
@@ -946,13 +931,13 @@ export default function LandingPage() {
         }
         @keyframes pulse-glow {
           0% {
-            box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
           }
           70% {
-            box-shadow: 0 0 0 15px rgba(99, 102, 241, 0);
+            box-shadow: 0 0 0 15px rgba(37, 99, 235, 0);
           }
           100% {
-            box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
           }
         }
         @keyframes truck-movement {
@@ -966,7 +951,7 @@ export default function LandingPage() {
         @keyframes plane-animation {
           0% {
             transform: translateX(-0px) translateY(20px) rotate(0deg);
-            opacity: 0.3;
+            opacity: 0;
           }
           10% {
             transform: translateX(10vw) translateY(-100px) rotate(-20deg);
@@ -977,24 +962,24 @@ export default function LandingPage() {
             opacity: 0.8;
           }
           40% {
-            transform: translateX(45vw) translateY(-210px) rotate(-5deg);
+            transform: translateX(40vw) translateY(-210px) rotate(-5deg);
             opacity: 1;
           }
           55% {
-            transform: translateX(65vw) translateY(-210px) rotate(5deg);
+            transform: translateX(55vw) translateY(-210px) rotate(0deg);
             opacity: 1;
           }
           70% {
-            transform: translateX(85vw) translateY(-160px) rotate(15deg);
+            transform: translateX(70vw) translateY(-160px) rotate(20deg);
             opacity: 0.8;
           }
           85% {
-            transform: translateX(95vw) translateY(-80px) rotate(25deg);
-            opacity: 0.6;
+            transform: translateX(85vw) translateY(-80px) rotate(30deg);
+            opacity: 0.3;
           }
           100% {
             transform: translateX(100vw) translateY(30px) rotate(15deg);
-            opacity: 0.3;
+            opacity: 0;
           }
         }
 
@@ -1019,7 +1004,7 @@ export default function LandingPage() {
         @keyframes truck-drive {
           0% {
             transform: translateX(-10%);
-            opacity: 1;
+            opacity: 0;
           }
           50% {
             transform: translateX(50vw);

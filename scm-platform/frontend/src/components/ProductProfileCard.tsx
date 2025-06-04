@@ -1,18 +1,16 @@
-import { AddIcon, Box, Button, Center, Heading, Icon, Stack } from "@chakra-ui/icons";
-import { useRouter } from "next/router";
-import { FaBoxes, FaRulerCombined } from "react-icons/fa"; // Example icons
-import { useColorModeValue } from "@chakra-ui/react";
-import { Image } from "@chakra-ui/react";
-import { Text } from "@chakra-ui/react";
+"use client";
 
-// Define an interface for your Product data
+import { useRouter } from "next/navigation";
+import { FaBoxes, FaRulerCombined } from "react-icons/fa";
+import { motion } from "framer-motion";
+
 interface Product {
   id: number;
   name: string;
   category: string;
   imageUrl: string;
-  stock: number;
   description: string;
+  stock: number;
 }
 
 interface ProductProfileCardProps {
@@ -20,82 +18,84 @@ interface ProductProfileCardProps {
 }
 
 function ProductProfileCard({ product }: ProductProfileCardProps) {
-  const router = useRouter(); // If you want the button to navigate
+  const router = useRouter();
+  const fallbackImage =
+    "https://images.unsplash.com/photo-1579621970795-87f5a3a1_1a1?auto=format&fit=crop&w=300&q=60";
 
   return (
-    <Center py={6}>
-      <Box
-        maxW={"300px"} // Slightly wider maybe?
-        w={"full"}
-        bg={useColorModeValue("white", "gray.800")}
-        boxShadow={"2xl"}
-        rounded={"md"}
-        overflow={"hidden"}
-        cursor="pointer" // Make the whole card feel clickable
-        transition="transform 0.2s ease-in-out"
-        _hover={{
-          transform: "translateY(-5px)",
-          boxShadow: "lg",
-        }}
-        onClick={() => router.push(`/product/${product.id}`)} // Navigate on click
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex justify-center py-6"
+    >
+      <div
+        className="relative w-full max-w-xs bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-lg group"
+        onClick={() => router.push(`/product/${product.id}`)}
       >
-        <Image
-          h={"150px"} // Increased image height
-          w={"full"}
-          src={
-            product.imageUrl ||
-            "https://images.unsplash.com/photo-1579621970795-87f5a3a1_1a1?auto=format&fit=crop&w=300&q=60" // Fallback image
-          }
-          objectFit={"cover"}
-          alt={`Image of ${product.name}`}
-        />
-        {/* Removed Avatar for product view */}
-        <Box p={6}>
-          <Stack spacing={1} align={"center"} mb={5}>
-            <Heading fontSize={"xl"} fontWeight={500}>
+        {/* Product Image with gradient overlay */}
+        <div className="relative h-48 w-full overflow-hidden">
+          <img
+            src={product.imageUrl || fallbackImage}
+            alt={`Image of ${product.name}`}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        </div>
+
+        {/* Product Content */}
+        <div className="p-6">
+          {/* Title and Category */}
+          <div className="text-center mb-5 space-y-1">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white line-clamp-1">
               {product.name}
-            </Heading>
-            <Text color={"gray.500"} fontSize="sm">
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {product.category}
-            </Text>
-          </Stack>
+            </p>
+          </div>
 
-          <Stack direction={"row"} justify={"center"} spacing={6} mb={6}>
-            <Stack spacing={0} align={"center"}>
-              <Text fontWeight={600}>{product.stock}</Text>
-              <Text fontSize={"sm"} color={"gray.500"}>
+          {/* Stats */}
+          <div className="flex justify-center gap-6 mb-6">
+            <div className="text-center">
+              <p className="font-semibold text-gray-900 dark:text-white">
+                {product.stock}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 In Stock
-              </Text>
-            </Stack>
-            <Stack spacing={0} align={"center"}>
-              {/* Example: Add another stat or icon */}
-              <Icon as={FaBoxes} w={5} h={5} color="gray.600" />
-              <Text fontSize={"sm"} color={"gray.500"}>
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="flex justify-center">
+                <FaBoxes className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Components
-              </Text>
-            </Stack>
-          </Stack>
+              </p>
+            </div>
+          </div>
 
-          <Button
-            w={"full"}
-            mt={4} // Adjusted margin
-            bg={useColorModeValue("cyan.400", "cyan.600")} // Changed color
-            color={"white"}
-            rounded={"md"}
-            _hover={{
-              transform: "translateY(-2px)",
-              boxShadow: "lg",
-              bg: useColorModeValue("cyan.500", "cyan.700"),
-            }}
+          {/* View Button */}
+          <button
+            className="w-full mt-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-opacity-50"
             onClick={(e) => {
-              e.stopPropagation(); // Prevent card click if button is clicked
+              e.stopPropagation();
               router.push(`/product/${product.id}`);
             }}
           >
             View Details
-          </Button>
-        </Box>
-      </Box>
-    </Center>
+          </button>
+        </div>
+
+        {/* Floating Tag (example) */}
+        {product.stock > 0 && (
+          <div className="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+            In Stock
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 }
+
+export default ProductProfileCard;

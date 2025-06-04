@@ -1,88 +1,111 @@
-"use client";
-
-import {
-  Box,
-  Flex,
-  Stack,
-  Heading,
-  Text,
-  Container,
-  Input,
-  Button,
-  SimpleGrid,
-  IconProps,
-  Icon,
-  InputGroup,
-  InputRightElement,
-  extendTheme,
-  ChakraProvider,
-  useToast,
-} from "@chakra-ui/react";
-import { ViewIcon, ViewOffIcon, StarIcon } from "@chakra-ui/icons";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Link as ChakraLink } from "@chakra-ui/react";
-import NextLink from "next/link";
+import { motion } from "framer-motion";
+import {
+  FaEye,
+  FaEyeSlash,
+  FaStar,
+  FaUser,
+  FaEnvelope,
+  FaPhone,
+  FaLock,
+  FaArrowRight,
+  FaWarehouse,
+  FaTruck,
+} from "react-icons/fa";
 
-const theme = extendTheme({
-  colors: {
-    red: { 400: "#FC8181" },
-    pink: { 400: "#F687B3" },
-    orange: { 400: "#ED8936" },
-    yellow: { 400: "#ECC94B" },
-  },
-});
+const BlurredBackground = () => (
+  <div className="absolute inset-0 overflow-hidden">
+    <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 blur-3xl"></div>
+    <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-gradient-to-br from-pink-500/20 to-red-500/20 blur-3xl"></div>
+    <div className="absolute -bottom-40 -left-20 w-96 h-96 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 blur-3xl"></div>
+    <div className="absolute -bottom-20 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 blur-3xl"></div>
+  </div>
+);
 
-const Blur = (props: IconProps) => (
-  <Icon
-    width={"30vw"}
-    zIndex={0}
-    height="560px"
-    viewBox="0 0 528 560"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    {...props}
+const TestimonialCard = () => (
+  <motion.div
+    initial={{ opacity: 0, x: -50 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ duration: 0.8, delay: 0.5 }}
+    className="max-w-md"
   >
-    <circle cx="71" cy="61" r="111" fill="#F56565" />
-    <circle cx="244" cy="106" r="139" fill="#ED64A6" />
-    <circle cy="291" r="139" fill="#ED64A6" />
-    <circle cx="80.5" cy="189.5" r="101.5" fill="#ED8936" />
-    <circle cx="196.5" cy="317.5" r="101.5" fill="#ECC94B" />
-    <circle cx="70.5" cy="458.5" r="101.5" fill="#48BB78" />
-    <circle cx="426.5" cy="-0.5" r="101.5" fill="#4299E1" />
-  </Icon>
+    <div className="p-6 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 shadow-2xl">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-1">
+          {[...Array(5)].map((_, i) => (
+            <FaStar key={i} className="w-4 h-4 text-yellow-400" />
+          ))}
+        </div>
+      </div>
+      <p className="text-white font-semibold mb-2">LinkedIn User</p>
+      <p className="text-gray-300 leading-relaxed">
+        "This is the best thing I've ever used for managing inventory and supply
+        chains! Game-changing platform."
+      </p>
+    </div>
+  </motion.div>
 );
 
-const TestimonialBox = () => (
-  <Flex justify="left">
-    <Box
-      bg="white"
-      p={4}
-      borderRadius="md"
-      boxShadow="lg"
-      w="70%"
-      maxW="m"
-      border="1px solid"
-      borderColor="gray.200"
-      position="relative"
-    >
-      <Flex position="absolute" top={2} right={5} gap={0.5}>
-        {[...Array(5)].map((_, i) => (
-          <StarIcon key={i} color="yellow.400" boxSize={3} />
-        ))}
-      </Flex>
-      <Text fontWeight="bold" mb={1}>
-        LinkedIn User
-      </Text>
-      <Text fontSize="sm" color="gray.600">
-        “This is the best thing I've ever used for managing inventory and supply
-        chains!”
-      </Text>
-    </Box>
-  </Flex>
+const InputField = ({
+  icon: Icon,
+  type = "text",
+  name,
+  placeholder,
+  value,
+  onChange,
+  showPassword,
+  togglePassword,
+  isPassword = false,
+}) => (
+  <div className="relative group">
+    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors">
+      <Icon className="w-5 h-5" />
+    </div>
+    <input
+      type={isPassword ? (showPassword ? "text" : "password") : type}
+      name={name}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 backdrop-blur-sm transition-all"
+    />
+    {isPassword && (
+      <button
+        type="button"
+        onClick={togglePassword}
+        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+      >
+        {showPassword ? (
+          <FaEyeSlash className="w-5 h-5" />
+        ) : (
+          <FaEye className="w-5 h-5" />
+        )}
+      </button>
+    )}
+  </div>
 );
 
-function CreateAccount() {
+const Toast = ({ message, type, onClose }) => (
+  <motion.div
+    initial={{ opacity: 0, y: -50, scale: 0.9 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    exit={{ opacity: 0, y: -50, scale: 0.9 }}
+    className={`fixed top-6 right-6 z-50 p-4 rounded-xl shadow-2xl backdrop-blur-xl border max-w-sm ${
+      type === "success"
+        ? "bg-green-500/20 border-green-500/30 text-green-200"
+        : "bg-red-500/20 border-red-500/30 text-red-200"
+    }`}
+  >
+    <div className="flex items-center justify-between">
+      <p className="font-medium">{message}</p>
+      <button onClick={onClose} className="ml-4 text-gray-400 hover:text-white">
+        ×
+      </button>
+    </div>
+  </motion.div>
+);
+
+export default function CreateAccount() {
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     username: "",
@@ -92,25 +115,26 @@ function CreateAccount() {
     confirmPassword: "",
     organization_id: 1,
   });
+  const [toast, setToast] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const toast = useToast();
-  const router = useRouter();
+  const showToast = (message, type) => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     if (form.password !== form.confirmPassword) {
-      toast({
-        title: "Passwords do not match",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      showToast("Passwords do not match", "error");
+      setIsLoading(false);
       return;
     }
 
@@ -136,155 +160,207 @@ function CreateAccount() {
         throw new Error(errorText || "Unknown error");
       }
 
-      toast({
-        title: "Account created!",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      showToast("Account created successfully!", "success");
 
-      router.push("/login");
-    } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.message,
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-      });
+      // Simulate navigation delay
+      setTimeout(() => {
+        // router.push("/login");
+        console.log("Redirecting to login...");
+      }, 1500);
+    } catch (err) {
+      showToast(err.message || "Failed to create account", "error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <Box position="relative">
-      <Container
-        as={SimpleGrid}
-        maxW="7xl"
-        columns={{ base: 1, md: 2 }}
-        spacing={10}
-        py={20}
-      >
-        <Stack spacing={10}>
-          <Heading
-            fontSize={{ base: "3xl", md: "5xl", lg: "6xl" }}
-            lineHeight={1.1}
-          >
-            Inventory{" "}
-            <Text
-              as="span"
-              bgGradient="linear(to-r, red.400, pink.400)"
-              bgClip="text"
-            >
-              &
-            </Text>{" "}
-            Supply Chain Managment
-          </Heading>
-          <TestimonialBox />
-        </Stack>
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      <BlurredBackground />
 
-        <Stack bg="gray.50" rounded="xl" p={8} spacing={6} maxW="lg">
-          <Heading color="gray.800" fontSize={{ base: "2xl", md: "4xl" }}>
-            Create Account{" "}
-            <Text
-              as="span"
-              bgGradient="linear(to-r, red.400, pink.400)"
-              bgClip="text"
-            >
-              !
-            </Text>
-          </Heading>
-          <ChakraLink
-            as={NextLink}
-            href="/login"
-            color="blue.500"
-            fontWeight="semibold"
-            fontSize={{ base: "sm", sm: "md" }}
-            _hover={{ textDecoration: "underline" }}
-          >
-            Login
-          </ChakraLink>
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
 
-          <Box as="form" onSubmit={handleSubmit}>
-            <Stack spacing={4}>
-              <Input
-                name="username"
-                placeholder="Username"
-                value={form.username}
-                onChange={handleChange}
-                {...commonInput}
-              />
-              <Input
-                name="email"
-                placeholder="Email"
-                value={form.email}
-                onChange={handleChange}
-                {...commonInput}
-              />
-              <Input
-                name="phone"
-                placeholder="Phone"
-                value={form.phone}
-                onChange={handleChange}
-                {...commonInput}
-              />
-              <InputGroup>
-                <Input
+      <div className="relative z-10 container mx-auto px-6 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
+          {/* Left Side - Brand & Testimonial */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-12"
+          >
+            <div className="space-y-8">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="flex items-center gap-4 mb-8"
+              >
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600">
+                  <FaWarehouse className="w-8 h-8 text-white" />
+                </div>
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600">
+                  <FaTruck className="w-8 h-8 text-white" />
+                </div>
+              </motion.div>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-5xl lg:text-7xl font-bold leading-tight"
+              >
+                Inventory{" "}
+                <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  &
+                </span>{" "}
+                <span className="block">Supply Chain</span>
+                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Management
+                </span>
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-xl text-gray-300 leading-relaxed max-w-lg"
+              >
+                Transform your business operations with our cutting-edge
+                inventory and supply chain management platform.
+              </motion.p>
+            </div>
+
+            <TestimonialCard />
+          </motion.div>
+
+          {/* Right Side - Sign Up Form */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="max-w-lg mx-auto lg:mx-0"
+          >
+            <div className="p-8 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 shadow-2xl">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+                  Create Account{" "}
+                  <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    !
+                  </span>
+                </h2>
+                <p className="text-gray-300 mb-4">
+                  Join thousands of businesses already transforming their
+                  operations
+                </p>
+                <a
+                  href="/login"
+                  className="text-blue-400 font-semibold hover:text-blue-300 transition-colors"
+                >
+                  Already have an account? Login →
+                </a>
+              </div>
+
+              <div className="space-y-6">
+                <InputField
+                  icon={FaUser}
+                  name="username"
+                  placeholder="Username"
+                  value={form.username}
+                  onChange={handleChange}
+                />
+
+                <InputField
+                  icon={FaEnvelope}
+                  type="email"
+                  name="email"
+                  placeholder="Email Address"
+                  value={form.email}
+                  onChange={handleChange}
+                />
+
+                <InputField
+                  icon={FaPhone}
+                  type="tel"
+                  name="phone"
+                  placeholder="Phone Number"
+                  value={form.phone}
+                  onChange={handleChange}
+                />
+
+                <InputField
+                  icon={FaLock}
                   name="password"
                   placeholder="Password"
-                  type={showPassword ? "text" : "password"}
                   value={form.password}
                   onChange={handleChange}
-                  {...commonInput}
+                  isPassword={true}
+                  showPassword={showPassword}
+                  togglePassword={() => setShowPassword(!showPassword)}
                 />
-                <InputRightElement width="3rem">
-                  <Button
-                    h="1.5rem"
-                    size="sm"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <ViewOffIcon /> : <ViewIcon />}
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
-              <InputGroup>
-                <Input
+
+                <InputField
+                  icon={FaLock}
                   name="confirmPassword"
-                  placeholder="Retype Password"
-                  type={showPassword ? "text" : "password"}
+                  placeholder="Confirm Password"
                   value={form.confirmPassword}
                   onChange={handleChange}
-                  {...commonInput}
+                  isPassword={true}
+                  showPassword={showPassword}
                 />
-              </InputGroup>
-              <Button type="submit" mt={4} colorScheme="pink" fontWeight="bold">
-                Create Account
-              </Button>
-            </Stack>
-          </Box>
-        </Stack>
-      </Container>
-      <Blur
-        position="absolute"
-        bottom={-10}
-        left={-10}
-        style={{ filter: "blur(70px)", transform: "scaleY(-1)" }}
-      />
-    </Box>
-  );
-}
 
-const commonInput = {
-  bg: "gray.100",
-  border: 0,
-  color: "gray.500",
-  _placeholder: { color: "gray.500" },
-  _hover: { bg: "gray.200" },
-};
+                <motion.button
+                  type="submit"
+                  disabled={isLoading}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`w-full py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center gap-3 transition-all ${
+                    isLoading
+                      ? "bg-gray-600 cursor-not-allowed"
+                      : "bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg hover:shadow-blue-500/25"
+                  }`}
+                >
+                  {isLoading ? (
+                    <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      Create Account
+                      <FaArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </motion.button>
+              </div>
 
-export default function WrappedCreateAccount() {
-  return (
-    <ChakraProvider theme={theme}>
-      <CreateAccount />
-    </ChakraProvider>
+              <div className="mt-6 text-center text-sm text-gray-400">
+                By creating an account, you agree to our{" "}
+                <a
+                  href="#"
+                  className="text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Terms of Service
+                </a>{" "}
+                and{" "}
+                <a
+                  href="#"
+                  className="text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Privacy Policy
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+    </div>
   );
 }
