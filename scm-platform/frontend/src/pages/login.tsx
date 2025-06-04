@@ -14,10 +14,10 @@ import {
 
 const BlurredBackground = () => (
   <div className="absolute inset-0 overflow-hidden">
-    <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 blur-3xl"></div>
-    <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-gradient-to-br from-pink-500/20 to-red-500/20 blur-3xl"></div>
-    <div className="absolute -bottom-40 -left-20 w-96 h-96 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 blur-3xl"></div>
-    <div className="absolute -bottom-20 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 blur-3xl"></div>
+    <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
+    <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-300/25 to-sky-300/25 blur-3xl"></div>
+    <div className="absolute -bottom-40 -left-20 w-96 h-96 rounded-full bg-gradient-to-br from-blue-300/30 to-sky-300/30 blur-3xl"></div>
+    <div className="absolute -bottom-20 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300/25 to-cyan-300/25 blur-3xl"></div>
   </div>
 );
 
@@ -28,16 +28,16 @@ const TestimonialCard = () => (
     transition={{ duration: 0.8, delay: 0.5 }}
     className="max-w-md"
   >
-    <div className="p-6 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 shadow-2xl">
+    <div className="p-6 rounded-2xl bg-white/90 backdrop-blur-xl border border-sky-200/50 shadow-2xl">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-1">
           {[...Array(5)].map((_, i) => (
-            <FaStar key={i} className="w-4 h-4 text-yellow-400" />
+            <FaStar key={i} className="w-4 h-4 text-amber-400" />
           ))}
         </div>
       </div>
-      <p className="text-white font-semibold mb-2">LinkedIn User</p>
-      <p className="text-gray-300 leading-relaxed">
+      <p className="text-gray-800 font-semibold mb-2">LinkedIn User</p>
+      <p className="text-gray-600 leading-relaxed">
         "This is the best thing I've ever used for managing inventory and supply
         chains! Game-changing platform."
       </p>
@@ -45,19 +45,31 @@ const TestimonialCard = () => (
   </motion.div>
 );
 
-const InputField = ({
+interface InputFieldProps {
+  icon: React.ElementType;
+  type?: string;
+  name: string;
+  placeholder?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  showPassword?: boolean;
+  togglePassword?: () => void;
+  isPassword?: boolean;
+}
+
+const InputField: React.FC<InputFieldProps> = ({
   icon: Icon,
   type = "text",
   name,
-  placeholder,
+  placeholder = "",
   value,
   onChange,
-  showPassword,
+  showPassword = false,
   togglePassword,
   isPassword = false,
 }) => (
   <div className="relative group">
-    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors">
+    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-sky-500 transition-colors">
       <Icon className="w-5 h-5" />
     </div>
     <input
@@ -66,13 +78,13 @@ const InputField = ({
       placeholder={placeholder}
       value={value}
       onChange={onChange}
-      className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 backdrop-blur-sm transition-all"
+      className="w-full pl-12 pr-12 py-4 bg-white/80 border border-sky-200/70 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50 focus:border-sky-400/70 backdrop-blur-sm transition-all"
     />
     {isPassword && (
       <button
         type="button"
         onClick={togglePassword}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-800 transition-colors"
       >
         {showPassword ? (
           <FaEyeSlash className="w-5 h-5" />
@@ -84,20 +96,29 @@ const InputField = ({
   </div>
 );
 
-const Toast = ({ message, type, onClose }) => (
+interface ToastProps {
+  message: string;
+  type: "success" | "error";
+  onClose: () => void;
+}
+
+const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => (
   <motion.div
     initial={{ opacity: 0, y: -50, scale: 0.9 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
     exit={{ opacity: 0, y: -50, scale: 0.9 }}
     className={`fixed top-6 right-6 z-50 p-4 rounded-xl shadow-2xl backdrop-blur-xl border max-w-sm ${
       type === "success"
-        ? "bg-green-500/20 border-green-500/30 text-green-200"
-        : "bg-red-500/20 border-red-500/30 text-red-200"
+        ? "bg-emerald-50/95 border-emerald-200/50 text-emerald-700"
+        : "bg-red-50/95 border-red-200/50 text-red-700"
     }`}
   >
     <div className="flex items-center justify-between">
       <p className="font-medium">{message}</p>
-      <button onClick={onClose} className="ml-4 text-gray-400 hover:text-white">
+      <button
+        onClick={onClose}
+        className="ml-4 text-gray-500 hover:text-gray-800"
+      >
         ×
       </button>
     </div>
@@ -110,67 +131,67 @@ export default function Login() {
     username: "",
     password: "",
   });
-  const [toast, setToast] = useState(null);
+  type ToastType = "success" | "error";
+
+  interface ToastState {
+    message: string;
+    type: ToastType;
+  }
+
+  const [toast, setToast] = useState<ToastState | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
 
-  const showToast = (message, type) => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
+const showToast = (message: string, type: ToastType) => {
+  setToast({ message, type });
+  setTimeout(() => setToast(null), 4000);
+};
 
-  const handleChange = (e) => {
+
+  const handleChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       const res = await fetch("http://localhost:5001/api/users");
-
       if (!res.ok) {
         throw new Error("Failed to fetch users");
       }
-
       const users = await res.json();
       const match = users.find(
-        (u) => u.username === form.username && u.password_hash === form.password
+        (u: { username: string; password_hash: string; }) => u.username === form.username && u.password_hash === form.password
       );
-
       if (!match) {
         throw new Error("Invalid username or password");
       }
-
-      // Store user data (you might want to use a proper auth system)
-      // localStorage.setItem("user", JSON.stringify(match));
-
       showToast("Login successful!", "success");
-
-      // Simulate navigation delay
       setTimeout(() => {
-        // router.push("/product");
         console.log("Redirecting to dashboard...");
       }, 1500);
-    } catch (err) {
-      showToast(err.message || "Login failed", "error");
-    } finally {
+     } catch (err) {
+  const message =
+    err instanceof Error ? err.message : "Login failed";
+  showToast(message, "error");
+}
+ finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleSignIn = () => {
-    // Simulate Google sign-in
     showToast("Google sign-in would be implemented here", "success");
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
       <BlurredBackground />
 
       {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(140,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
 
       <div className="relative z-10 container mx-auto px-6 py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
@@ -188,10 +209,10 @@ export default function Login() {
                 transition={{ delay: 0.2 }}
                 className="flex items-center gap-4 mb-8"
               >
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600">
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-500 shadow-lg">
                   <FaWarehouse className="w-8 h-8 text-white" />
                 </div>
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600">
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-400 to-sky-500 shadow-lg">
                   <FaTruck className="w-8 h-8 text-white" />
                 </div>
               </motion.div>
@@ -200,14 +221,14 @@ export default function Login() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-5xl lg:text-7xl font-bold leading-tight"
+                className="text-5xl lg:text-7xl font-bold leading-tight text-gray-800"
               >
                 Inventory{" "}
-                <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-sky-500 via-blue-500 to-sky-600 bg-clip-text text-transparent">
                   &
                 </span>{" "}
                 <span className="block">Supply Chain</span>
-                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-500 to-sky-500 bg-clip-text text-transparent">
                   Management
                 </span>
               </motion.h1>
@@ -216,13 +237,12 @@ export default function Login() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-xl text-gray-300 leading-relaxed max-w-lg"
+                className="text-xl text-gray-600 leading-relaxed max-w-lg"
               >
                 Transform your business operations with our cutting-edge
                 inventory and supply chain management platform.
               </motion.p>
             </div>
-
             <TestimonialCard />
           </motion.div>
 
@@ -233,15 +253,15 @@ export default function Login() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="max-w-lg mx-auto lg:mx-0"
           >
-            <div className="p-8 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 shadow-2xl">
+            <div className="p-8 rounded-3xl bg-white/80 backdrop-blur-xl border border-sky-200/50 shadow-2xl">
               <div className="text-center mb-8">
-                <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+                <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-gray-800">
                   Welcome Back{" "}
-                  <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-sky-500 to-blue-500 bg-clip-text text-transparent">
                     !
                   </span>
                 </h2>
-                <p className="text-gray-300 mb-6">
+                <p className="text-gray-600 mb-6">
                   Sign in to access your inventory management dashboard
                 </p>
 
@@ -251,7 +271,7 @@ export default function Login() {
                   onClick={handleGoogleSignIn}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full py-3 px-6 mb-6 rounded-xl font-semibold bg-white text-gray-800 hover:bg-gray-100 transition-all flex items-center justify-center gap-3 border border-gray-300"
+                  className="w-full py-3 px-6 mb-6 rounded-xl font-semibold bg-white text-gray-700 hover:bg-gray-50 transition-all flex items-center justify-center gap-3 border border-gray-300 shadow-sm"
                 >
                   <FaGoogle className="w-5 h-5 text-red-500" />
                   Sign in with Google
@@ -259,16 +279,16 @@ export default function Login() {
 
                 <div className="relative mb-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/20"></div>
+                    <div className="w-full border-t border-sky-200"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-black text-gray-400">or</span>
+                    <span className="px-4 bg-white text-gray-500">or</span>
                   </div>
                 </div>
 
                 <a
                   href="/createAccount"
-                  className="text-blue-400 font-semibold hover:text-blue-300 transition-colors"
+                  className="text-sky-500 font-semibold hover:text-sky-600 transition-colors"
                 >
                   Don't have an account? Create one →
                 </a>
@@ -295,34 +315,35 @@ export default function Login() {
                 />
 
                 <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center text-gray-300">
+                  <label className="flex items-center text-gray-600">
                     <input
                       type="checkbox"
-                      className="mr-2 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500/50"
+                      className="mr-2 rounded border-sky-300 bg-white text-sky-500 focus:ring-sky-400/50"
                     />
                     Remember me
                   </label>
                   <a
                     href="#"
-                    className="text-blue-400 hover:text-blue-300 transition-colors"
+                    className="text-sky-500 hover:text-sky-600 transition-colors"
                   >
                     Forgot password?
                   </a>
                 </div>
 
                 <motion.button
-                  type="submit"
+                  type="button"
+                  onClick={handleSubmit}
                   disabled={isLoading}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`w-full py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center gap-3 transition-all ${
+                  className={`w-full py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center gap-3 transition-all text-white ${
                     isLoading
-                      ? "bg-gray-600 cursor-not-allowed"
-                      : "bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg hover:shadow-blue-500/25"
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-sky-500 to-blue-500 hover:shadow-lg hover:shadow-sky-400/25"
                   }`}
                 >
                   {isLoading ? (
-                    <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   ) : (
                     <>
                       Sign In
@@ -332,7 +353,7 @@ export default function Login() {
                 </motion.button>
               </div>
 
-              <div className="mt-6 text-center text-sm text-gray-400">
+              <div className="mt-6 text-center text-sm text-gray-500">
                 Secure login protected by industry-standard encryption
               </div>
             </div>
