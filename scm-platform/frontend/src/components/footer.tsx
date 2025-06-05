@@ -7,7 +7,7 @@ import { Flex, TextField, IconButton } from "@radix-ui/themes";
 
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-b from-gray-50 to-gray-100 text-blue-600">
+    <footer className="bg-gradient-to-b from-sky-50 to-blue-50 text-sky-600">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Social Links */}
@@ -50,19 +50,19 @@ export default function Footer() {
             <FooterHeading>Stay up to date</FooterHeading>
             <Flex gap="2">
               <TextField.Root
-                  placeholder="Your email address"
-                  className="bg-white/80 backdrop-blur-sm focus:bg-white focus:ring-2 focus:ring-blue-500"
-                />
-              <IconButton className="bg-blue-600 hover:bg-blue-700 text-white transition-colors">
+                placeholder="Your email address"
+                className="bg-white/80 backdrop-blur-sm focus:bg-white focus:ring-2 focus:ring-sky-500 text-sky-700"
+              />
+              <IconButton className="bg-sky-600 hover:bg-sky-700 text-white transition-colors">
                 <BiMailSend className="w-5 h-5" />
               </IconButton>
             </Flex>
           </div>
         </div>
 
-        <Separator.Root className="my-8 h-px bg-gray-200 w-full" />
+        <Separator.Root className="my-8 h-px bg-sky-200 w-full" />
 
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-sm text-sky-500">
           © {new Date().getFullYear()} Orontis. All rights reserved.
         </div>
       </div>
@@ -83,7 +83,7 @@ const SocialButton = ({
     <a
       href={href}
       aria-label={label}
-      className="p-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:bg-blue-50 text-blue-600 hover:text-blue-700"
+      className="p-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:bg-sky-100 text-sky-600 hover:text-sky-700"
     >
       {children}
     </a>
@@ -91,7 +91,7 @@ const SocialButton = ({
 };
 
 const FooterHeading = ({ children }: { children: React.ReactNode }) => {
-  return <h4 className="text-lg font-medium text-blue-700">{children}</h4>;
+  return <h4 className="text-lg font-medium text-sky-700">{children}</h4>;
 };
 
 const FooterLink = ({
@@ -104,7 +104,7 @@ const FooterLink = ({
   return (
     <a
       href={href}
-      className="block text-blue-600 hover:text-blue-800 transition-colors duration-200"
+      className="block text-sky-600 hover:text-sky-800 transition-colors duration-200"
     >
       {children}
     </a>

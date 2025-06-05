@@ -1,35 +1,6 @@
 "use client";
 
-import {
-  Box,
-  Flex,
-  Heading,
-  Avatar,
-  Text,
-  VStack,
-  HStack,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  FormControl,
-  FormLabel,
-  Input,
-  Button,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  useToast,
-  Badge,
-  Divider,
-  Icon,
-  Select,
-} from "@chakra-ui/react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   FiUser,
   FiMail,
@@ -41,47 +12,88 @@ import {
   FiShield,
   FiTruck,
   FiHome,
+  FiBell,
+  FiCheck,
 } from "react-icons/fi";
-import Navbar from "../components/navbar";
-import Footer from "../components/footer";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { ChakraProvider, extendTheme } from "@chakra-ui/react";
+import { motion, AnimatePresence } from "framer-motion";
+import * as Dialog from "@radix-ui/react-dialog";
+import * as Select from "@radix-ui/react-select";
+import * as Tooltip from "@radix-ui/react-tooltip";
+import * as Avatar from "@radix-ui/react-avatar"; // Radix Avatar
+import { useRouter } from "next/router";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
-// Custom theme with blue color scheme (same as shipping page)
-const theme = extendTheme({
-  colors: {
-    brand: {
-      50: "#e0f7fa",
-      100: "#b3e5fc",
-      200: "#81d4fa",
-      300: "#4fc3f7",
-      400: "#29b6f6",
-      500: "#03a9f4",
-      600: "#039be5",
-      700: "#0288d1",
-      800: "#0277bd",
-      900: "#01579b",
-    },
-  },
-  components: {
-    Button: {
-      baseStyle: {
-        fontWeight: "semibold",
-        borderRadius: "md",
-      },
-      variants: {
-        solid: {
-          bg: "brand.500",
-          color: "white",
-          _hover: {
-            bg: "brand.600",
-          },
-        },
-      },
-    },
-  },
-});
+
+// Toast Component (re-used from previous redesigns)
+interface ToastProps {
+  message: string;
+  type: "success" | "error";
+  show: boolean;
+  onClose: () => void;
+}
+
+const Toast: React.FC<ToastProps> = ({ message, type, show, onClose }) => {
+  useEffect(() => {
+    if (show) {
+      const timer = setTimeout(onClose, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [show, onClose]);
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0, y: -50, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -50, scale: 0.9 }}
+          className="fixed top-24 right-6 z-50 max-w-sm"
+        >
+          <div
+            className={`
+            backdrop-blur-xl border rounded-2xl shadow-xl p-4 flex items-center gap-3
+            ${
+              type === "success"
+                ? "bg-emerald-50/90 border-emerald-200 text-emerald-800"
+                : "bg-red-50/90 border-red-200 text-red-800"
+            }
+          `}
+          >
+            <div
+              className={`p-2 rounded-full ${
+                type === "success" ? "bg-emerald-100" : "bg-red-100"
+              }`}
+            >
+              {type === "success" ? (
+                <FiCheck className="w-5 h-5 text-emerald-600" />
+              ) : (
+                <FiX className="w-5 h-5 text-red-600" />
+              )}
+            </div>
+            <span className="font-medium flex-1">{message}</span>
+            <button
+              onClick={onClose}
+              className="p-1 text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              ×
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// Re-using the BlurredBackground component for consistent design
+const BlurredBackground = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
+    <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-300/25 to-sky-300/25 blur-3xl"></div>
+    <div className="absolute -bottom-40 -left-20 w-96 h-96 rounded-full bg-gradient-to-br from-blue-300/30 to-sky-300/30 blur-3xl"></div>
+    <div className="absolute -bottom-20 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300/25 to-cyan-300/25 blur-3xl"></div>
+  </div>
+);
 
 interface UserData {
   id: number;
@@ -96,9 +108,38 @@ interface UserData {
   };
 }
 
+// Custom hook for toast (replicates Chakra's useToast)
+const useCustomToast = () => {
+  const [toastState, setToastState] = useState({
+    show: false,
+    message: "",
+    type: "success" as "success" | "error",
+  });
+
+  const showToast = (options: {
+    title: string;
+    description: string;
+    status: "success" | "error" | "info" | "warning";
+    duration?: number;
+    isClosable?: boolean;
+  }) => {
+    setToastState({
+      show: true,
+      message: options.description,
+      type: options.status === "success" ? "success" : "error", // Simplified for now
+    });
+  };
+
+  const hideToast = () => {
+    setToastState((prev) => ({ ...prev, show: false }));
+  };
+
+  return { showToast, toastState, hideToast };
+};
+
 export default function MyAccountPage() {
-  const router = useRouter();
-  const toast = useToast();
+  const router = useRouter(); // Keeping Next.js router
+  const { showToast, toastState, hideToast } = useCustomToast(); // Using custom toast
   const [user, setUser] = useState<UserData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -106,7 +147,7 @@ export default function MyAccountPage() {
     phone: "",
   });
   const [isLoading, setIsLoading] = useState(true);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isModalOpen, setIsModalOpen] = useState(false); // For Radix Dialog
 
   // Mock user data fetch
   useEffect(() => {
@@ -135,7 +176,7 @@ export default function MyAccountPage() {
           phone: mockUser.phone || "",
         });
       } catch (error) {
-        toast({
+        showToast({
           title: "Error",
           description: "Failed to load user data",
           status: "error",
@@ -148,7 +189,7 @@ export default function MyAccountPage() {
     };
 
     fetchUserData();
-  }, [toast]);
+  }, []); // Removed `toast` from dependencies since it's a custom hook now
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
@@ -170,7 +211,7 @@ export default function MyAccountPage() {
         email: formData.email,
         phone: formData.phone,
       });
-      toast({
+      showToast({
         title: "Profile updated",
         description: "Your changes have been saved",
         status: "success",
@@ -191,313 +232,492 @@ export default function MyAccountPage() {
     setIsEditing(false);
   };
 
-  const getRoleBadgeColor = (role: string) => {
+  const getRoleBadgeClasses = (role: string) => {
+    let colorClass = "bg-gray-200 text-gray-800"; // Default
     switch (role.toLowerCase()) {
       case "admin":
-        return "red";
+        colorClass = "bg-red-100 text-red-700";
+        break;
       case "supply chain manager":
-        return "blue";
+        colorClass = "bg-blue-100 text-blue-700";
+        break;
       case "logistics coordinator":
-        return "green";
+        colorClass = "bg-green-100 text-green-700";
+        break;
       case "warehouse operator":
-        return "orange";
+        colorClass = "bg-orange-100 text-orange-700";
+        break;
       default:
-        return "gray";
+        break;
     }
+    return `px-2 py-1 rounded-full text-xs font-semibold ${colorClass}`;
   };
 
   return (
-    <ChakraProvider theme={theme}>
-      <Box minHeight="100vh" display="flex" flexDirection="column">
-        <Navbar isLoggedIn={true} />
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
+      <BlurredBackground />
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.1)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
 
-        <Box flex="1" pt={20} px={6} bg="gray.50">
-          <Flex direction="column" gap={6} maxW="1200px" mx="auto">
-            {/* Header */}
-            <Flex justify="space-between" align="center">
-              <Heading size="xl" color="gray.800">
-                My Account
-              </Heading>
-              <Button
-                leftIcon={<FiEdit2 />}
-                colorScheme="brand"
-                onClick={handleEditToggle}
-              >
-                {isEditing ? "Cancel Editing" : "Edit Profile"}
-              </Button>
-            </Flex>
+      <Navbar isLoggedIn={true} />
 
-            {/* Main Content */}
-            <Flex direction={{ base: "column", lg: "row" }} gap={6}>
-              {/* Left Column - Profile Info */}
-              <Box flex={1}>
-                <Card boxShadow="sm">
-                  <CardHeader>
-                    <Heading size="md">Profile Information</Heading>
-                  </CardHeader>
-                  <CardBody>
-                    {isLoading ? (
-                      <VStack spacing={4} align="stretch">
-                        {[...Array(5)].map((_, i) => (
-                          <Box key={i}>
-                            <Box h="20px" w="100px" bg="gray.200" mb={2} />
-                            <Box h="40px" bg="gray.100" borderRadius="md" />
-                          </Box>
-                        ))}
-                      </VStack>
-                    ) : user ? (
-                      <VStack spacing={4} align="stretch">
-                        <Flex align="center" gap={4}>
-                          <Avatar
-                            size="xl"
-                            name={user.username}
-                            bg="brand.500"
-                            color="white"
-                            icon={<FiUser />}
-                          />
-                          <Box>
-                            <Heading size="md">{user.username}</Heading>
-                            <Badge
-                              colorScheme={getRoleBadgeColor(user.role)}
-                              mt={1}
-                              px={2}
-                              py={1}
-                              borderRadius="full"
-                            >
-                              {user.role}
-                            </Badge>
-                          </Box>
-                        </Flex>
+      <main className="flex-1 pt-20 px-4 relative z-10">
+        <div className="flex flex-col gap-8 max-w-7xl mx-auto py-8">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <h1 className="text-4xl font-bold text-gray-800">My Account</h1>
+            <button
+              onClick={handleEditToggle}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-sky-500 text-white shadow-lg hover:bg-sky-600 transition-colors duration-200"
+            >
+              <FiEdit2 className="w-5 h-5" />
+              {isEditing ? "Cancel Editing" : "Edit Profile"}
+            </button>
+          </div>
 
-                        <Divider my={2} />
+          {/* Main Content */}
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Left Column - Profile Info */}
+            <div className="bg-white/60 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-lg">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+                Profile Information
+              </h2>
+              {isLoading ? (
+                <div className="space-y-6">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                      <div className="h-10 bg-gray-100 rounded-lg w-full"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : user ? (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <Avatar.Root className="w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center text-white text-3xl font-bold">
+                      <Avatar.Fallback delayMs={600}>
+                        <FiUser className="w-10 h-10" />
+                      </Avatar.Fallback>
+                    </Avatar.Root>
+                    <div>
+                      <h3 className="text-xl font-semibold text-sky-800">
+                        {user.username}
+                      </h3>
+                      <span className={getRoleBadgeClasses(user.role)}>
+                        {user.role}
+                      </span>
+                    </div>
+                  </div>
 
-                        <FormControl>
-                          <FormLabel>Email</FormLabel>
-                          {isEditing ? (
-                            <Input
-                              name="email"
-                              value={formData.email}
-                              onChange={handleInputChange}
-                            
-                            />
-                          ) : (
-                            <HStack>
-                              <Icon as={FiMail} color="gray.500" />
-                              <Text>{user.email}</Text>
-                            </HStack>
-                          )}
-                        </FormControl>
+                  <div className="border-t border-gray-100 my-4"></div>
 
-                        <FormControl>
-                          <FormLabel>Phone</FormLabel>
-                          {isEditing ? (
-                            <Input
-                              name="phone"
-                              value={formData.phone}
-                              onChange={handleInputChange}
-                            />
-                          ) : (
-                            <HStack>
-                              <Icon as={FiPhone} color="gray.500" />
-                              <Text>{user.phone || "Not provided"}</Text>
-                            </HStack>
-                          )}
-                        </FormControl>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email
+                      </label>
+                      {isEditing ? (
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2 text-lg text-gray-700">
+                          <FiMail className="text-gray-500 w-5 h-5" />
+                          <span>{user.email}</span>
+                        </div>
+                      )}
+                    </div>
 
-                        {isEditing && (
-                          <HStack justify="flex-end" mt={4}>
-                            <Button
-                              variant="outline"
-                              leftIcon={<FiX />}
-                              onClick={handleCancelEdit}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              colorScheme="brand"
-                              leftIcon={<FiSave />}
-                              onClick={handleSaveChanges}
-                            >
-                              Save Changes
-                            </Button>
-                          </HStack>
-                        )}
-                      </VStack>
-                    ) : (
-                      <Text>No user data available</Text>
-                    )}
-                  </CardBody>
-                </Card>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Phone
+                      </label>
+                      {isEditing ? (
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2 text-lg text-gray-700">
+                          <FiPhone className="text-gray-500 w-5 h-5" />
+                          <span>{user.phone || "Not provided"}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                {/* Organization Card */}
-                {user && (
-                  <Card boxShadow="sm" mt={6}>
-                    <CardHeader>
-                      <Heading size="md">Organization</Heading>
-                    </CardHeader>
-                    <CardBody>
-                      <VStack spacing={4} align="stretch">
-                        <HStack>
-                          <Icon as={FiHome} color="brand.500" boxSize={5} />
-                          <Text fontWeight="medium">
-                            {user.organization.name}
-                          </Text>
-                        </HStack>
-                        <HStack>
-                          <Icon as={FiTruck} color="brand.500" boxSize={5} />
-                          <Text>{user.organization.type}</Text>
-                        </HStack>
-                        <Button
-                          variant="outline"
-                          colorScheme="brand"
-                          mt={2}
-                          onClick={() =>
-                            router.push(`/organization/${user.organization.id}`)
-                          }
-                        >
-                          View Organization Details
-                        </Button>
-                      </VStack>
-                    </CardBody>
-                  </Card>
-                )}
-              </Box>
-
-              {/* Right Column - Security & Preferences */}
-              <Box flex={1}>
-                <Card boxShadow="sm">
-                  <CardHeader>
-                    <Heading size="md">Security</Heading>
-                  </CardHeader>
-                  <CardBody>
-                    <VStack spacing={4} align="stretch">
-                      <HStack justify="space-between">
-                        <HStack>
-                          <Icon as={FiLock} color="brand.500" />
-                          <Text>Password</Text>
-                        </HStack>
-                        <Button
-                          variant="outline"
-                          colorScheme="brand"
-                          onClick={onOpen}
-                        >
-                          Change Password
-                        </Button>
-                      </HStack>
-
-                      <HStack justify="space-between">
-                        <HStack>
-                          <Icon as={FiShield} color="brand.500" />
-                          <Text>Two-Factor Authentication</Text>
-                        </HStack>
-                        <Badge colorScheme="orange">Not Enabled</Badge>
-                      </HStack>
-                    </VStack>
-                  </CardBody>
-                </Card>
-
-                {/* Preferences Card */}
-                <Card boxShadow="sm" mt={6}>
-                  <CardHeader>
-                    <Heading size="md">Preferences</Heading>
-                  </CardHeader>
-                  <CardBody>
-                    <VStack spacing={4} align="stretch">
-                      <FormControl>
-                        <FormLabel>Default Dashboard View</FormLabel>
-                        <Select>
-                          <option value="shipping">Shipping Dashboard</option>
-                          <option value="inventory">Inventory Overview</option>
-                          <option value="analytics">
-                            Supply Chain Analytics
-                          </option>
-                        </Select>
-                      </FormControl>
-
-                      <FormControl>
-                        <FormLabel>Notification Preferences</FormLabel>
-                        <Select>
-                          <option value="all">All Notifications</option>
-                          <option value="important">
-                            Only Important Updates
-                          </option>
-                          <option value="none">No Notifications</option>
-                        </Select>
-                      </FormControl>
-
-                      <Button
-                        colorScheme="brand"
-                        mt={4}
-                        onClick={() =>
-                          toast({
-                            title: "Preferences Saved",
-                            status: "success",
-                            duration: 3000,
-                            isClosable: true,
-                          })
-                        }
+                  {isEditing && (
+                    <div className="flex justify-end gap-3 mt-6">
+                      <button
+                        onClick={handleCancelEdit}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
                       >
-                        Save Preferences
-                      </Button>
-                    </VStack>
-                  </CardBody>
-                </Card>
+                        <FiX className="w-5 h-5" />
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveChanges}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold bg-sky-500 text-white shadow hover:bg-sky-600 transition-colors duration-200"
+                      >
+                        <FiSave className="w-5 h-5" />
+                        Save Changes
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-600">No user data available</p>
+              )}
+            </div>
 
-                {/* Account Actions Card */}
-                <Card boxShadow="sm" mt={6}>
-                  <CardHeader>
-                    <Heading size="md">Account Actions</Heading>
-                  </CardHeader>
-                  <CardBody>
-                    <VStack spacing={4} align="stretch">
-                      <Button variant="outline" colorScheme="red">
-                        Deactivate Account
-                      </Button>
-                      <Text fontSize="sm" color="gray.500">
-                        Deactivating your account will remove your access but
-                        preserve your data for 30 days.
-                      </Text>
-                    </VStack>
-                  </CardBody>
-                </Card>
-              </Box>
-            </Flex>
-          </Flex>
-        </Box>
+            {/* Organization Card */}
+            {user && (
+              <div className="bg-white/60 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-lg">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+                  Organization
+                </h2>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <FiHome className="text-blue-500 w-6 h-6" />
+                    <span className="text-lg font-medium text-gray-800">
+                      {user.organization.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <FiTruck className="text-blue-500 w-6 h-6" />
+                    <span className="text-lg text-gray-700">
+                      {user.organization.type}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() =>
+                      router.push(`/organization/${user.organization.id}`)
+                    }
+                    className="mt-4 inline-flex items-center justify-center px-5 py-2 rounded-xl border border-blue-300 text-blue-700 font-semibold hover:bg-blue-50 transition-colors duration-200"
+                  >
+                    View Organization Details
+                  </button>
+                </div>
+              </div>
+            )}
 
-        <Footer />
+            {/* Right Column - Security & Preferences */}
+            <div className="lg:col-span-2 grid md:grid-cols-2 gap-8">
+              {/* Security Card */}
+              <div className="bg-white/60 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-lg">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+                  Security
+                </h2>
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <FiLock className="text-blue-500 w-6 h-6" />
+                      <span className="text-lg text-gray-700">Password</span>
+                    </div>
+                    <button
+                      onClick={() => setIsModalOpen(true)}
+                      className="px-4 py-2 rounded-xl border border-blue-300 text-blue-700 font-semibold hover:bg-blue-50 transition-colors duration-200"
+                    >
+                      Change Password
+                    </button>
+                  </div>
 
-        {/* Change Password Modal */}
-        <Modal isOpen={isOpen} onClose={onClose}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Change Password</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <VStack spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>Current Password</FormLabel>
-                  <Input type="password" placeholder="Enter current password" />
-                </FormControl>
-                <FormControl isRequired>
-                  <FormLabel>New Password</FormLabel>
-                  <Input type="password" placeholder="Enter new password" />
-                </FormControl>
-                <FormControl isRequired>
-                  <FormLabel>Confirm New Password</FormLabel>
-                  <Input type="password" placeholder="Confirm new password" />
-                </FormControl>
-              </VStack>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="ghost" mr={3} onClick={onClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="brand">Update Password</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      </Box>
-    </ChakraProvider>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <FiShield className="text-blue-500 w-6 h-6" />
+                      <span className="text-lg text-gray-700">
+                        Two-Factor Authentication
+                      </span>
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                      Not Enabled
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preferences Card */}
+              <div className="bg-white/60 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-lg">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+                  Preferences
+                </h2>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Default Dashboard View
+                    </label>
+                    <Select.Root defaultValue="shipping">
+                      <Select.Trigger className="flex justify-between items-center w-full px-4 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-blue-500 focus:border-blue-500 data-[placeholder]:text-gray-500">
+                        <Select.Value aria-label="Default Dashboard View" />
+                        <Select.Icon className="text-gray-700">
+                          <FiChevronDown />
+                        </Select.Icon>
+                      </Select.Trigger>
+                      <Select.Portal>
+                        <Select.Content className="z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                          <Select.Viewport className="p-1">
+                            <Select.Item
+                              value="shipping"
+                              className="relative flex items-center px-4 py-2 rounded-md text-gray-800 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none data-[state=checked]:text-blue-600 data-[state=checked]:font-semibold cursor-pointer"
+                            >
+                              <Select.ItemText>
+                                Shipping Dashboard
+                              </Select.ItemText>
+                              <Select.ItemIndicator className="absolute left-1.5 inline-flex items-center justify-center">
+                                <FiCheck className="w-4 h-4" />
+                              </Select.ItemIndicator>
+                            </Select.Item>
+                            <Select.Item
+                              value="inventory"
+                              className="relative flex items-center px-4 py-2 rounded-md text-gray-800 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none data-[state=checked]:text-blue-600 data-[state=checked]:font-semibold cursor-pointer"
+                            >
+                              <Select.ItemText>
+                                Inventory Overview
+                              </Select.ItemText>
+                              <Select.ItemIndicator className="absolute left-1.5 inline-flex items-center justify-center">
+                                <FiCheck className="w-4 h-4" />
+                              </Select.ItemIndicator>
+                            </Select.Item>
+                            <Select.Item
+                              value="analytics"
+                              className="relative flex items-center px-4 py-2 rounded-md text-gray-800 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none data-[state=checked]:text-blue-600 data-[state=checked]:font-semibold cursor-pointer"
+                            >
+                              <Select.ItemText>
+                                Supply Chain Analytics
+                              </Select.ItemText>
+                              <Select.ItemIndicator className="absolute left-1.5 inline-flex items-center justify-center">
+                                <FiCheck className="w-4 h-4" />
+                              </Select.ItemIndicator>
+                            </Select.Item>
+                          </Select.Viewport>
+                        </Select.Content>
+                      </Select.Portal>
+                    </Select.Root>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Notification Preferences
+                    </label>
+                    <Select.Root defaultValue="all">
+                      <Select.Trigger className="flex justify-between items-center w-full px-4 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-blue-500 focus:border-blue-500 data-[placeholder]:text-gray-500">
+                        <Select.Value aria-label="Notification Preferences" />
+                        <Select.Icon className="text-gray-700">
+                          <FiChevronDown />
+                        </Select.Icon>
+                      </Select.Trigger>
+                      <Select.Portal>
+                        <Select.Content className="z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                          <Select.Viewport className="p-1">
+                            <Select.Item
+                              value="all"
+                              className="relative flex items-center px-4 py-2 rounded-md text-gray-800 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none data-[state=checked]:text-blue-600 data-[state=checked]:font-semibold cursor-pointer"
+                            >
+                              <Select.ItemText>
+                                All Notifications
+                              </Select.ItemText>
+                              <Select.ItemIndicator className="absolute left-1.5 inline-flex items-center justify-center">
+                                <FiCheck className="w-4 h-4" />
+                              </Select.ItemIndicator>
+                            </Select.Item>
+                            <Select.Item
+                              value="important"
+                              className="relative flex items-center px-4 py-2 rounded-md text-gray-800 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none data-[state=checked]:text-blue-600 data-[state=checked]:font-semibold cursor-pointer"
+                            >
+                              <Select.ItemText>
+                                Only Important Updates
+                              </Select.ItemText>
+                              <Select.ItemIndicator className="absolute left-1.5 inline-flex items-center justify-center">
+                                <FiCheck className="w-4 h-4" />
+                              </Select.ItemIndicator>
+                            </Select.Item>
+                            <Select.Item
+                              value="none"
+                              className="relative flex items-center px-4 py-2 rounded-md text-gray-800 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none data-[state=checked]:text-blue-600 data-[state=checked]:font-semibold cursor-pointer"
+                            >
+                              <Select.ItemText>
+                                No Notifications
+                              </Select.ItemText>
+                              <Select.ItemIndicator className="absolute left-1.5 inline-flex items-center justify-center">
+                                <FiCheck className="w-4 h-4" />
+                              </Select.ItemIndicator>
+                            </Select.Item>
+                          </Select.Viewport>
+                        </Select.Content>
+                      </Select.Portal>
+                    </Select.Root>
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      showToast({
+                        title: "Preferences Saved",
+                        description: "Your preferences have been saved.",
+                        status: "success",
+                        duration: 3000,
+                        isClosable: true,
+                      })
+                    }
+                    className="mt-4 w-full py-3 rounded-xl font-semibold bg-sky-500 text-white shadow-lg hover:bg-sky-600 transition-colors duration-200"
+                  >
+                    Save Preferences
+                  </button>
+                </div>
+              </div>
+
+              {/* Account Actions Card */}
+              <div className="bg-white/60 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-lg">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+                  Account Actions
+                </h2>
+                <div className="space-y-4">
+                  <button className="w-full py-3 rounded-xl border border-red-300 text-red-700 font-semibold hover:bg-red-50 transition-colors duration-200">
+                    Deactivate Account
+                  </button>
+                  <p className="text-sm text-gray-500">
+                    Deactivating your account will remove your access but
+                    preserve your data for 30 days.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+
+      {/* Change Password Modal (Radix Dialog) */}
+      <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="bg-black/30 data-[state=open]:animate-overlayShow fixed inset-0 z-50" />
+          <Dialog.Content className="data-[state=open]:animate-contentShow fixed top-[50%] left-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-2xl bg-white p-8 shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none z-50">
+            <Dialog.Title className="text-xl font-semibold text-gray-800 mb-6">
+              Change Password
+            </Dialog.Title>
+            <div className="space-y-5">
+              <div>
+                <label
+                  htmlFor="current-password"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Current Password
+                </label>
+                <input
+                  id="current-password"
+                  type="password"
+                  placeholder="Enter current password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="new-password"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  New Password
+                </label>
+                <input
+                  id="new-password"
+                  type="password"
+                  placeholder="Enter new password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="confirm-new-password"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Confirm New Password
+                </label>
+                <input
+                  id="confirm-new-password"
+                  type="password"
+                  placeholder="Confirm new password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+            <div className="mt-8 flex justify-end gap-3">
+              <Dialog.Close asChild>
+                <button className="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                  Cancel
+                </button>
+              </Dialog.Close>
+              <button
+                className="px-4 py-2 rounded-xl font-semibold bg-sky-500 text-white shadow hover:bg-sky-600 transition-colors duration-200"
+                onClick={() => {
+                  showToast({
+                    title: "Password Updated",
+                    description: "Your password has been changed successfully.",
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                  });
+                  setIsModalOpen(false);
+                }}
+              >
+                Update Password
+              </button>
+            </div>
+            <Dialog.Close asChild>
+              <button
+                className="text-gray-500 hover:bg-gray-100 absolute top-4 right-4 inline-flex h-8 w-8 appearance-none items-center justify-center rounded-full focus:shadow-[0_0_0_2px] focus:outline-none"
+                aria-label="Close"
+              >
+                <FiX />
+              </button>
+            </Dialog.Close>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Toast */}
+      <Toast {...toastState} onClose={hideToast} />
+    </div>
   );
 }
+
+// Helper component for Select.Item with icon (Radix)
+interface SelectItemProps
+  extends React.ComponentPropsWithoutRef<typeof Select.Item> {
+  children: React.ReactNode;
+}
+
+const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
+  ({ children, ...props }, forwardedRef) => {
+    return (
+      <Select.Item {...props} ref={forwardedRef}>
+        <Select.ItemText>{children}</Select.ItemText>
+        <Select.ItemIndicator>
+          <FiCheck />
+        </Select.ItemIndicator>
+      </Select.Item>
+    );
+  }
+);
+SelectItem.displayName = "SelectItem";
+
+// Just for the Chevron Down icon for Radix Select
+const FiChevronDown = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <polyline points="6 9 12 15 18 9"></polyline>
+  </svg>
+);

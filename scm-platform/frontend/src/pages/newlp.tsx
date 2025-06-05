@@ -20,6 +20,8 @@ import {
 } from "react-icons/fa";
 import { MdInventory, MdTimeline } from "react-icons/md";
 import { GiFactory, GiDeliveryDrone } from "react-icons/gi";
+import Footer from "../components/footer";
+import Navbar from "../components/navbar";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -61,7 +63,7 @@ const PlaneAnimation = () => {
             animation: `plane-animation 12s linear ${index * 4}s infinite`,
           }}
         >
-          <FaPlane className="w-8 h-8 text-blue-400/80" />
+          <FaPlane className="w-8 h-8 text-white" />
         </div>
       ))}
     </div>
@@ -162,7 +164,7 @@ const SupplyChainNetwork = () => {
     <div
       ref={ref}
       className={cn(
-        "py-16 relative bg-gradient-to-b from-blue-900/90 via-blue-700/80 to-blue-500/70",
+        "py-16 relative bg-gradient-to-t from-blue-500 via-blue-700/80 to-blue-500",
         isVisible ? fadeIn : "opacity-0"
       )}
     >
@@ -234,7 +236,7 @@ const InventoryDashboardPreview = () => {
     <div
       ref={ref}
       className={cn(
-        "py-16 relative bg-gradient-to-b from-blue-500/70 via-blue-300/70 to-blue-100/80",
+        "py-16 relative bg-gradient-to-b from-blue-500 via-blue-300/70 to-blue-100",
         isVisible ? fadeIn : "opacity-0"
       )}
     >
@@ -340,7 +342,7 @@ const SupplyChainMetrics = () => {
     <div
       ref={ref}
       className={cn(
-        "py-16 relative bg-gradient-to-b from-blue-100/80 via-blue-300/70 to-blue-700/80",
+        "py-16 relative bg-gradient-to-t from-blue-300 via-blue-500 to-blue-500",
         isVisible ? fadeIn : "opacity-0"
       )}
     >
@@ -414,60 +416,19 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-900 via-blue-500 to-blue-900 text-gray-800 overflow-x-hidden">
+    <div className="min-h-screen bg-sky-50 text-gray-800 overflow-x-hidden">
       {/* Fixed Header */}
-      <header
-        className={cn(
-          "fixed top-0 left-0 right-0 z-50 p-4 flex justify-between items-center transition-all duration-300 bg-blue-900/90 backdrop-blur-sm border-b border-blue-700",
-          isScrolled ? "shadow-lg" : ""
-        )}
-      >
-        <Link href="/" className="flex items-center hover:no-underline">
-          <div className="w-8 h-8 mr-2 rounded-full bg-blue-500 flex items-center justify-center">
-            <FaTruck className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-lg font-semibold tracking-wide text-white">
-            Orontis
-          </span>
-        </Link>
-
-        <div className="flex items-center gap-6">
-          <nav className="hidden md:flex gap-12">
-            <button
-              onClick={() => scrollToSection("features")}
-              className="text-sm font-medium text-white hover:text-blue-300 underline underline-offset-4 transition-colors"
-            >
-              Features
-            </button>
-            <button
-              onClick={() => scrollToSection("solutions")}
-              className="text-sm font-medium text-white hover:text-blue-300 underline underline-offset-4 transition-colors"
-            >
-              Solutions
-            </button>
-            <button
-              onClick={() => scrollToSection("contact")}
-              className="text-sm font-medium text-white hover:text-blue-300 underline underline-offset-4 transition-colors"
-            >
-              Contact
-            </button>
-          </nav>
-          <Button
-            onClick={() => router.push("/createAccount")}
-            className="bg-blue-500 hover:bg-blue-600 text-white"
-          >
-            Get Started
-          </Button>
-        </div>
-      </header>
+      <Navbar isLoggedIn={true} />
 
       {/* Hero Section */}
       <section
         className={cn(
           "pt-32 pb-20 min-h-screen flex items-center justify-center text-center relative overflow-hidden",
-          "bg-gradient-to-b from-blue-900 via-blue-700 to-blue-500"
+          "bg-gradient-to-b from-sky-50 via-blue-200 to-blue-500"
         )}
       >
+        <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(140,165,233,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.1)_1px,transparent_1px)] bg-[size:50px_50px]" />
+
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
         <PlaneAnimation />
 
@@ -475,12 +436,12 @@ export default function LandingPage() {
         <div className="absolute bottom-0 left-0 right-0 h-24 z-10 pointer-events-none">
           {/* Factory */}
           <div className="absolute bottom-0 left-0 w-20 h-20 flex items-end justify-center z-20">
-            <GiFactory className="w-24 h-24 text-blue-400" />
+            <GiFactory className="w-24 h-24 text-blue-200" />
           </div>
 
           {/* Warehouse */}
           <div className="absolute bottom-0 right-0 w-20 h-20 flex items-end justify-center z-20">
-            <FaWarehouse className="w-16 h-16 text-blue-400" />
+            <FaWarehouse className="w-16 h-16 text-blue-200" />
           </div>
 
           {/* Animated Trucks */}
@@ -492,7 +453,7 @@ export default function LandingPage() {
                 animation: `truck-drive 14s linear ${i * 2}s infinite`,
               }}
             >
-              <FaTruck className="w-8 h-8 text-blue-400" />
+              <FaTruck className="w-8 h-8 text-white" />
             </div>
           ))}
         </div>
@@ -506,14 +467,14 @@ export default function LandingPage() {
                 "opacity-0"
               )}
             >
-              <span className="text-white">Transform Your Supply Chain</span>
+              <span className="text-blue-500">Transform Your Supply Chain</span>
               <br />
-              <span className="text-blue-300">With Intelligent Automation</span>
+              <span className="text-blue-400">With Intelligent Automation</span>
             </h1>
 
             <p
               className={cn(
-                "text-xl md:text-2xl max-w-3xl mx-auto text-blue-200",
+                "text-xl md:text-2xl max-w-3xl mx-auto text-white",
                 floatUp,
                 "opacity-0"
               )}
@@ -538,7 +499,7 @@ export default function LandingPage() {
 
               <Button
                 variant="outline"
-                className="border-blue-300 text-white hover:bg-blue-700/30 hover:text-white"
+                className="border-blue-300 text-blue-700 hover:bg-blue-700/30 hover:text-white"
                 size="lg"
               >
                 Explore Features
@@ -558,7 +519,7 @@ export default function LandingPage() {
 
       {/* Key Features Section */}
       <section id="features">
-        <div className="w-full py-16 text-center bg-gradient-to-b from-blue-500/70 via-blue-300/70 to-blue-100/80">
+        <div className="w-full py-16 text-center bg-gradient-to-b from-blue-100 via-blue-300 to-blue-500">
           <div className="max-w-7xl mx-auto flex flex-col gap-8">
             <h2 className="text-3xl font-bold text-blue-800">
               Supply Chain Solutions
@@ -634,7 +595,7 @@ export default function LandingPage() {
 
       {/* Problem/Solution Section */}
       <section id="solutions">
-        <div className="w-full py-16 text-center bg-gradient-to-b from-blue-100/80 via-white to-blue-300/70">
+        <div className="w-full py-16 text-center bg-gradient-to-b from-blue-300 via-blue-100 to-white">
           <div className="max-w-7xl mx-auto flex flex-col gap-8">
             <div className="px-4 sm:px-6 lg:px-8">
               <h2 className="text-3xl font-bold text-blue-800">
@@ -709,14 +670,14 @@ export default function LandingPage() {
       {/* Call to Action */}
       <section
         id="contact"
-        className="py-16 bg-gradient-to-b from-blue-300/70 via-blue-500/80 to-blue-800/90"
+        className="py-16 bg-gradient-to-b from-white via-blue to-sky-50"
       >
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8 text-center">
-          <h2 className="text-3xl font-bold text-white">
+          <h2 className="text-3xl font-bold text-blue-500">
             Ready to Optimize Your Supply Chain?
           </h2>
           <p
-            className={cn("text-lg text-blue-100", fadeIn, "opacity-0")}
+            className={cn("text-lg text-blue-500", fadeIn, "opacity-0")}
             style={{ animationDelay: "0.2s" }}
           >
             Speak with our supply chain experts to see how we can transform your
@@ -787,92 +748,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 bg-blue-900/90 border-t border-blue-700 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-8">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="flex items-center mb-6 md:mb-0">
-                <div className="w-8 h-8 mr-2 rounded-full bg-blue-500 flex items-center justify-center">
-                  <FaTruck className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-lg font-semibold text-white">
-                  Orontis
-                </span>
-              </div>
-
-              <div className="flex gap-6">
-                <button
-                  onClick={() => scrollToSection("features")}
-                  className="text-sm font-medium text-white hover:text-blue-300 transition-colors"
-                >
-                  Features
-                </button>
-                <button
-                  onClick={() => scrollToSection("solutions")}
-                  className="text-sm font-medium text-white hover:text-blue-300 transition-colors"
-                >
-                  Solutions
-                </button>
-                <button
-                  onClick={() => scrollToSection("contact")}
-                  className="text-sm font-medium text-white hover:text-blue-300 transition-colors"
-                >
-                  Contact
-                </button>
-              </div>
-            </div>
-
-            <div className="border-t border-blue-700 w-full" />
-
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-sm text-blue-300">
-                &copy; {new Date().getFullYear()} Orontis Supply Chain
-                Solutions. All rights reserved.
-              </p>
-
-              <div className="flex gap-4">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-blue-300 hover:text-white"
-                    >
-                      <FaCloud className="w-5 h-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>LinkedIn</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-blue-300 hover:text-white"
-                    >
-                      <FaTruck className="w-5 h-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Twitter</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-blue-300 hover:text-white"
-                    >
-                      <FaWarehouse className="w-5 h-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>GitHub</TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       {/* Animations */}
       <style jsx global>{`
@@ -950,7 +826,7 @@ export default function LandingPage() {
         }
         @keyframes plane-animation {
           0% {
-            transform: translateX(-0px) translateY(20px) rotate(0deg);
+            transform: translateX(0vw) translateY(20px) rotate(0deg);
             opacity: 0;
           }
           10% {
@@ -965,20 +841,20 @@ export default function LandingPage() {
             transform: translateX(40vw) translateY(-210px) rotate(-5deg);
             opacity: 1;
           }
-          55% {
-            transform: translateX(55vw) translateY(-210px) rotate(0deg);
+          60% {
+            transform: translateX(60vw) translateY(-210px) rotate(5deg);
             opacity: 1;
           }
-          70% {
-            transform: translateX(70vw) translateY(-160px) rotate(20deg);
+          80% {
+            transform: translateX(80vw) translateY(-170px) rotate(30deg);
             opacity: 0.8;
           }
-          85% {
-            transform: translateX(85vw) translateY(-80px) rotate(30deg);
-            opacity: 0.3;
+          90% {
+            transform: translateX(90vw) translateY(-100px) rotate(20deg);
+            opacity: 0.6;
           }
           100% {
-            transform: translateX(100vw) translateY(30px) rotate(15deg);
+            transform: translateX(100vw) translateY(20px) rotate(10deg);
             opacity: 0;
           }
         }

@@ -43,34 +43,30 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ visible, setVisible }: SidebarProps) {
-  const sidebarWidth = "w-52"; // 208px
-  const hoverBg = "hover:bg-blue-500/10"; // 10% opacity
-  const activeBg = "bg-blue-500/20"; // 20% opacity
+  const sidebarWidth = "w-52";
+  const hoverBg = "hover:bg-sky-100";
+  const activeBg = "bg-sky-200";
 
   return (
     <>
-      {/* Hover zone */}
       <div
         className="fixed top-0 left-0 h-screen w-3 z-50"
         onMouseEnter={() => setVisible(true)}
       />
 
-      {/* Sidebar */}
       <div
-        className={`fixed top-0 h-screen ${sidebarWidth} z-40 bg-white border-r border-gray-200 transition-all duration-300 ease-in-out shadow-lg ${
+        className={`fixed top-0 h-screen ${sidebarWidth} z-40 bg-white border-r border-sky-200 transition-all duration-300 ease-in-out shadow-lg ${
           visible ? "left-0" : "-left-52"
         }`}
         onMouseLeave={() => setVisible(false)}
       >
         <div className="flex flex-col h-full">
-          {/* Logo/Brand */}
           <div className="flex items-center justify-center px-4 py-6">
-            <span className="text-xl font-bold text-blue-600">Orontis</span>
+            <span className="text-xl font-bold bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">
+              Orontis
+            </span>
           </div>
 
-          <Separator.Root className="h-px bg-gray-200 w-full" />
-
-          {/* Navigation Items */}
           <nav className="flex-1 overflow-y-auto py-4">
             <ul className="space-y-1 px-2">
               {LinkItems.map((link) => (
@@ -110,10 +106,10 @@ const NavItem = ({
     <li>
       <Link href={path} passHref>
         <div
-          className={`flex items-center px-4 py-3 mx-2 rounded-md cursor-pointer transition-colors duration-200 ${hoverBg} text-gray-700
-            hover:text-blue-600 [&.active]:${activeBg} [&.active]:text-blue-600 [&.active]:font-medium`}
+          className={`flex items-center px-4 py-3 mx-2 rounded-md cursor-pointer transition-colors duration-200 ${hoverBg} text-sky-700
+            hover:text-sky-600 [&.active]:${activeBg} [&.active]:text-sky-700 [&.active]:font-medium`}
         >
-          <Icon className="w-5 h-5 text-blue-600" />
+          <Icon className="w-5 h-5 text-sky-600" />
           <span className="ml-4 text-sm">{label}</span>
         </div>
       </Link>

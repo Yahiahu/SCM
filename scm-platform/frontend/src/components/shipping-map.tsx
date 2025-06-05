@@ -158,35 +158,8 @@ export default function ShippingMap({ shipments = [] }: { shipments?: any[] }) {
       </LoadScript>
 
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-700 p-3 rounded-lg shadow-md z-10">
-        <h4 className="font-medium mb-2">Shipment Status</h4>
-        <div className="space-y-1">
-          <div className="flex items-center">
-            <img
-              src="http://maps.google.com/mapfiles/ms/icons/green-dot.png"
-              className="w-4 h-4 mr-2"
-              alt="Delivered"
-            />
-            <span className="text-sm">Delivered</span>
-          </div>
-          <div className="flex items-center">
-            <img
-              src="http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
-              className="w-4 h-4 mr-2"
-              alt="In Transit"
-            />
-            <span className="text-sm">In Transit</span>
-          </div>
-          <div className="flex items-center">
-            <img
-              src="http://maps.google.com/mapfiles/ms/icons/yellow-dot.png"
-              className="w-4 h-4 mr-2"
-              alt="Pending"
-            />
-            <span className="text-sm">Pending</span>
-          </div>
-        </div>
+
       </div>
-    </div>
+
   );
 }

@@ -1,134 +1,29 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import {
-  Box,
-  ChakraProvider,
-  extendTheme,
-  Flex,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Heading,
-  VStack,
-  Image,
-  Text,
-  Badge,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Progress,
-  HStack,
-  Icon,
-  Button,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  FormControl,
-  FormLabel,
-  Input,
-  Select,
-  useToast,
-  Skeleton,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  IconButton,
-  Spacer,
-  SimpleGrid,
-  Divider,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
-  StatArrow,
-} from "@chakra-ui/react";
-import {
-  FiTruck,
-  FiPackage,
-  FiHome,
-  FiGlobe,
   FiPlus,
-  FiEdit2,
-  FiTrash2,
-  FiMoreVertical,
-  FiAlertTriangle,
-  FiCheckCircle,
-  FiClock,
-  FiSearch,
-  FiFilter,
-  FiDownload,
-  FiPrinter,
-  FiTrendingUp,
   FiAlertCircle,
-  FiBox,
+  FiCheckCircle,
+  FiTruck,
+  FiShoppingCart,
+  FiOctagon,
+  FiAlertTriangle,
+  FiActivity, // Make sure FiActivity is imported if used
 } from "react-icons/fi";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
-import React, { useState, useEffect } from "react";
 
-// Custom theme with blue color scheme
-const theme = extendTheme({
-  colors: {
-    brand: {
-      50: "#e0f7fa",
-      100: "#b3e5fc",
-      200: "#81d4fa",
-      300: "#4fc3f7",
-      400: "#29b6f6",
-      500: "#03a9f4",
-      600: "#039be5",
-      700: "#0288d1",
-      800: "#0277bd",
-      900: "#01579b",
-    },
-  },
-  components: {
-    Button: {
-      baseStyle: {
-        fontWeight: "semibold",
-        borderRadius: "md",
-      },
-      variants: {
-        solid: {
-          bg: "brand.500",
-          color: "white",
-          _hover: {
-            bg: "brand.600",
-          },
-        },
-      },
-    },
-    Table: {
-      variants: {
-        striped: {
-          th: {
-            color: "gray.600",
-          },
-          tbody: {
-            tr: {
-              "&:nth-of-type(odd)": {
-                td: {
-                  background: "brand.50",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-});
+// Import your components (assuming they are already Tailwind/Radix friendly)
+import { AddItemModal } from "../components/inventory/AddItemModal";
+import { LogisticsStats } from "../components/inventory/LogisticsStats";
+import { PurchaseOrdersTable } from "../components/inventory/PurchaseOrderTable";
+import { ShipmentsTable } from "../components/inventory/ShipmentTable";
+import { WarehouseTable } from "../components/inventory/WarehouseTable";
+import { RecentActivity } from "../components/inventory/RecentActivity";
+import { ReorderAlerts } from "../components/inventory/ReorderAlerts";
 
+// Interfaces (These remain the same as they are data types)
 interface PurchaseOrder {
   id: number;
   status: "Draft" | "Ordered" | "Received";
@@ -164,6 +59,8 @@ interface ShippingInfo {
     description: string;
   };
   qty: number;
+  deliveryDate?: string; // Added for RecentActivity logic
+  statusDate?: string; // Added for RecentActivity logic
 }
 
 interface WarehouseInventory {
@@ -179,61 +76,160 @@ interface WarehouseInventory {
     name: string;
     location: string;
   };
+  lastUpdated?: string; // Added for RecentActivity logic
 }
+
+// Re-using the BlurredBackground component for consistent design
+const BlurredBackground = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    {" "}
+    {/* Added pointer-events-none */}
+    <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
+    <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-300/25 to-sky-300/25 blur-3xl"></div>
+    <div className="absolute -bottom-40 -left-20 w-96 h-96 rounded-full bg-gradient-to-br from-blue-300/30 to-sky-300/30 blur-3xl"></div>
+    <div className="absolute -bottom-20 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300/25 to-cyan-300/25 blur-3xl"></div>
+  </div>
+);
+
+// Custom Toast Component (remains unchanged as it's already Tailwind friendly)
+const Toast = ({
+  message,
+  type,
+  show,
+  onClose,
+}: {
+  message: string;
+  type: "success" | "error";
+  show: boolean;
+  onClose: () => void;
+}) => {
+  useEffect(() => {
+    if (show) {
+      const timer = setTimeout(onClose, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [show, onClose]);
+
+  if (!show) return null;
+
+  return (
+    <div
+      className={`fixed top-24 right-6 z-50 p-4 rounded-xl shadow-2xl border backdrop-blur-xl animate-in slide-in-from-right-full duration-300 ${
+        type === "success"
+          ? "bg-emerald-50/95 border-emerald-200/50 text-emerald-800"
+          : "bg-red-50/95 border-red-200/50 text-red-800"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        {type === "success" ? (
+          <FiCheckCircle className="w-5 h-5 text-emerald-600" />
+        ) : (
+          <FiAlertCircle className="w-5 h-5 text-red-600" />
+        )}
+        <span className="font-medium">{message}</span>
+        <button
+          onClick={onClose}
+          className="ml-2 text-gray-500 hover:text-gray-700 transition-colors duration-200"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Helper functions (assuming these are already pure JS/TS)
+// Note: If getStatusColor and getStatusIcon were in a separate utils file,
+// ensure they are imported directly. I've included them here for completeness
+// as they were part of your provided code for LogisticsPage.
+export const getStatusColor = (status: string) => {
+  switch (status) {
+    case "Received":
+    case "Delivered":
+    case "In Stock": // Added for WarehouseTable status
+      return "emerald";
+    case "Ordered":
+    case "In Transit":
+    case "Low Stock": // Added for WarehouseTable status
+      return "amber";
+    case "Draft":
+    case "Delayed":
+    case "Out of Stock": // Added for WarehouseTable status
+      return "red";
+    default:
+      return "sky";
+  }
+};
+
+export const getStatusIcon = (status: string) => {
+  // Common icon props for consistency
+  const iconProps = { className: "w-4 h-4" };
+
+  switch (status) {
+    case "Received":
+    case "Delivered":
+    case "In Stock":
+      return <FiCheckCircle {...iconProps} />;
+    case "Ordered":
+    case "In Transit":
+    case "Low Stock":
+      return <FiAlertCircle {...iconProps} />;
+    case "Draft":
+    case "Delayed":
+    case "Out of Stock":
+      return <FiAlertTriangle {...iconProps} />; // Changed from FiClock to FiAlertTriangle for 'Delayed' and 'Out of Stock' based on common alert patterns
+    default:
+      return null;
+  }
+};
 
 export default function LogisticsPage() {
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [shipments, setShipments] = useState<ShippingInfo[]>([]);
   const [inventory, setInventory] = useState<WarehouseInventory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const toast = useToast();
-
-  // Form state
-  const [formData, setFormData] = useState({
-    type: "order",
-    componentId: "",
-    quantity: "",
-    supplierId: "",
-    status: "Draft",
-    carrier: "",
-    trackingNumber: "",
-    origin: "",
-    destination: "",
-    warehouseId: "",
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success" as "success" | "error",
   });
+
+  const showToast = (message: string, type: "success" | "error") => {
+    setToast({ show: true, message, type });
+  };
+
+  const hideToast = () => {
+    setToast((prev) => ({ ...prev, show: false }));
+  };
 
   // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch purchase orders
-        const poResponse = await fetch("/api/purchaseorder");
+        const [poResponse, shippingResponse, inventoryResponse] =
+          await Promise.all([
+            fetch("/api/purchaseorder"),
+            fetch("/api/shippinginfo"),
+            fetch("/api/warehouseinventory"),
+          ]);
+
         if (!poResponse.ok) throw new Error("Failed to load purchase orders");
-        const poData = await poResponse.json();
+        const poData: PurchaseOrder[] = await poResponse.json();
 
-        // Fetch shipping info
-        const shippingResponse = await fetch("/api/shippinginfo");
         if (!shippingResponse.ok) throw new Error("Failed to load shipments");
-        const shippingData = await shippingResponse.json();
+        const shippingData: ShippingInfo[] = await shippingResponse.json();
 
-        // Fetch warehouse inventory
-        const inventoryResponse = await fetch("/api/warehouseinventory");
         if (!inventoryResponse.ok) throw new Error("Failed to load inventory");
-        const inventoryData = await inventoryResponse.json();
+        const inventoryData: WarehouseInventory[] =
+          await inventoryResponse.json();
 
         setPurchaseOrders(poData);
         setShipments(shippingData);
         setInventory(inventoryData);
       } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load logistics data",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+        showToast("Failed to load logistics data", "error");
       } finally {
         setIsLoading(false);
       }
@@ -242,22 +238,13 @@ export default function LogisticsPage() {
     fetchData();
   }, []);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Handler for adding new items
+  const handleAddItem = async (formData: any) => {
     try {
       if (formData.type === "order") {
         const response = await fetch("/api/purchase_order", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             supplierId: parseInt(formData.supplierId),
             status: formData.status,
@@ -277,11 +264,9 @@ export default function LogisticsPage() {
       } else if (formData.type === "shipment") {
         const response = await fetch("/api/shipping_info", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            poId: 1, // You'll need to get this from context or form
+            poId: 1, // Assuming a default PO ID for new shipments
             componentId: parseInt(formData.componentId),
             qty: parseInt(formData.quantity),
             origin: formData.origin,
@@ -291,7 +276,7 @@ export default function LogisticsPage() {
             status: "Processing",
             estimated_arrival: new Date(
               Date.now() + 7 * 24 * 60 * 60 * 1000
-            ).toISOString(),
+            ).toISOString(), // 7 days from now
           }),
         });
         if (!response.ok) throw new Error("Failed to create shipment");
@@ -300,622 +285,198 @@ export default function LogisticsPage() {
         setShipments((prev) => [...prev, newShipment]);
       }
 
-      toast({
-        title: "Success",
-        description: "Item added successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-
-      setFormData({
-        type: "order",
-        componentId: "",
-        quantity: "",
-        supplierId: "",
-        status: "Draft",
-        carrier: "",
-        trackingNumber: "",
-        origin: "",
-        destination: "",
-        warehouseId: "",
-      });
-      onClose();
+      showToast("Item added successfully", "success");
+      setIsModalOpen(false);
+      // Re-fetch data after successful add to ensure all tables are updated
+      const [poResponse, shippingResponse, inventoryResponse] =
+        await Promise.all([
+          fetch("/api/purchaseorder"),
+          fetch("/api/shippinginfo"),
+          fetch("/api/warehouseinventory"),
+        ]);
+      setPurchaseOrders(await poResponse.json());
+      setShipments(await shippingResponse.json());
+      setInventory(await inventoryResponse.json());
     } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to add item",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      showToast(
+        error instanceof Error ? error.message : "Failed to add item",
+        "error"
+      );
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Received":
-      case "Delivered":
-        return "green";
-      case "Ordered":
-      case "In Transit":
-        return "orange";
-      case "Draft":
-      case "Delayed":
-        return "red";
-      default:
-        return "gray";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "Received":
-      case "Delivered":
-        return <Icon as={FiCheckCircle} />;
-      case "Ordered":
-      case "In Transit":
-        return <Icon as={FiAlertTriangle} />;
-      case "Draft":
-      case "Delayed":
-        return <Icon as={FiClock} />;
-      default:
-        return null;
-    }
-  };
-
-  // Calculate inventory metrics
-  const inventoryValue = inventory.reduce((sum, item) => {
-    // Mock unit prices - in a real app, you'd fetch actual component costs
-    const unitPrices: Record<string, number> = {
-      "CMP-001-RES": 0.05,
-      "CMP-002-CAP": 0.15,
-      "CMP-003-BOLT": 0.25,
-      "CMP-004-CASE": 5.2,
-      "CMP-005-CPU": 15.75,
-    };
-    return sum + item.current_qty * (unitPrices[item.component.num] || 10);
-  }, 0);
-
+  // Calculate inventory metrics (these are already handled in LogisticsStats now)
   const itemsNeedingReorder = inventory.filter(
-    (item) => item.current_qty < 10 // Simple threshold for demo
+    (item) => item.current_qty < 10
   ).length;
 
   return (
-    <ChakraProvider theme={theme}>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
+      {/* Blurred Background from ComponentsPage */}
+      <BlurredBackground />
+      {/* Grid pattern overlay from ComponentsPage */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.3)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+
       <Navbar isLoggedIn={true} />
 
-      <Box pt={20} px={6} bg="gray.50" minH="calc(100vh - 128px)">
-        {/* Header and Stats */}
-        <Flex justify="space-between" align="center" mb={6}>
-          <Heading size="xl" color="gray.800">
-            Logistics Dashboard
-          </Heading>
+      <main className="flex-1 pt-20 px-4 relative z-10">
+        <div className="max-w-7xl mx-auto py-2">
+          {/* Enhanced Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl flex items-center justify-center shadow-xl shadow-sky-500/25">
+                  <FiActivity className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-sky-700 via-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                    Logistics Dashboard
+                  </h1>
+                  <p className="text-sky-600 font-medium">
+                    Manage your supply chain operations
+                  </p>
+                </div>
+              </div>
 
-          <Button colorScheme="brand" leftIcon={<FiPlus />} onClick={onOpen}>
-            Add Item
-          </Button>
-        </Flex>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-sky-500 to-blue-500 rounded-xl hover:from-sky-600 hover:to-blue-600 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-sky-400/50 focus:ring-offset-2 group overflow-hidden shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/35"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+                <FiPlus className="relative w-4 h-4 mr-2 group-hover:scale-110 group-hover:rotate-90 transition-all duration-300" />
+                <span className="relative">Add Item</span>
+              </button>
+            </div>
 
-        {/* Quick Stats */}
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4} mb={6}>
-          <Card>
-            <CardBody>
-              <Stat>
-                <StatLabel>Total Inventory Value</StatLabel>
-                <StatNumber>${inventoryValue.toLocaleString()}</StatNumber>
-                <StatHelpText>
-                  <StatArrow type="increase" />
-                  12% from last month
-                </StatHelpText>
-              </Stat>
-            </CardBody>
-          </Card>
+            {/* Quick Overview Cards (These are similar to your LogisticsStats component,
+                but I've kept them here as they were explicitly in the provided code) */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              {[
+                {
+                  icon: FiShoppingCart,
+                  title: "Purchase Orders",
+                  value: purchaseOrders.length,
+                  change: "+12%",
+                  color: "sky",
+                },
+                {
+                  icon: FiTruck,
+                  title: "Active Shipments",
+                  value: shipments.length,
+                  change: "+8%",
+                  color: "blue",
+                },
+                {
+                  icon: FiOctagon,
+                  title: "Inventory Items",
+                  value: inventory.length,
+                  change: "+5%",
+                  color: "cyan",
+                },
+                {
+                  icon: FiAlertTriangle,
+                  title: "Reorder Alerts",
+                  value: itemsNeedingReorder,
+                  change: "-3%",
+                  color: "amber",
+                },
+              ].map((card, index) => (
+                <div key={index} className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-sky-400/10 to-blue-400/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="relative bg-white/60 backdrop-blur-xl border border-sky-200/50 rounded-2xl p-6 shadow-lg shadow-sky-500/5 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 group-hover:scale-[1.02]">
+                    <div className="flex items-center justify-between mb-4">
+                      <div
+                        className={`w-12 h-12 bg-gradient-to-br from-${card.color}-100 to-${card.color}-200 rounded-xl flex items-center justify-center border border-${card.color}-200/50`}
+                      >
+                        <card.icon
+                          className={`w-6 h-6 text-${card.color}-600`}
+                        />
+                      </div>
+                      <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                        {card.change}
+                      </span>
+                    </div>
+                    <h3
+                      className={`text-2xl font-bold text-${card.color}-900 mb-1`}
+                    >
+                      {card.value}
+                    </h3>
+                    <p className="text-sky-600 text-sm font-medium">
+                      {card.title}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-          <Card>
-            <CardBody>
-              <Stat>
-                <StatLabel>Pending Orders</StatLabel>
-                <StatNumber>
-                  {
-                    purchaseOrders.filter((po) => po.status === "Ordered")
-                      .length
-                  }
-                </StatNumber>
-                <StatHelpText>
-                  <StatArrow type="decrease" />
-                  5% from last month
-                </StatHelpText>
-              </Stat>
-            </CardBody>
-          </Card>
+          {/* Stats Component (Your custom component) */}
+          <div className="mb-8">
+            <LogisticsStats
+              purchaseOrders={purchaseOrders}
+              shipments={shipments}
+              inventory={inventory}
+            />
+          </div>
 
-          <Card>
-            <CardBody>
-              <Stat>
-                <StatLabel>Items Needing Reorder</StatLabel>
-                <StatNumber
-                  color={itemsNeedingReorder > 0 ? "orange.500" : "green.500"}
-                >
-                  {itemsNeedingReorder}
-                </StatNumber>
-                <StatHelpText>
-                  {itemsNeedingReorder > 0 ? (
-                    <HStack color="orange.500">
-                      <Icon as={FiAlertCircle} />
-                      <Text>Action needed</Text>
-                    </HStack>
-                  ) : (
-                    <HStack color="green.500">
-                      <Icon as={FiCheckCircle} />
-                      <Text>All stocked</Text>
-                    </HStack>
-                  )}
-                </StatHelpText>
-              </Stat>
-            </CardBody>
-          </Card>
+          {/* Main Tables Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="lg:col-span-1">
+              <PurchaseOrdersTable
+                purchaseOrders={purchaseOrders}
+                isLoading={isLoading}
+              />
+            </div>
 
-          <Card>
-            <CardBody>
-              <Stat>
-                <StatLabel>In Transit Shipments</StatLabel>
-                <StatNumber>
-                  {shipments.filter((s) => s.status === "In Transit").length}
-                </StatNumber>
-                <StatHelpText>
-                  <StatArrow type="increase" />3 new shipments today
-                </StatHelpText>
-              </Stat>
-            </CardBody>
-          </Card>
-        </SimpleGrid>
+            <div className="lg:col-span-1">
+              <ShipmentsTable shipments={shipments} isLoading={isLoading} />
+            </div>
 
-        {/* Three Tables Layout */}
-        <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={6} mb={6}>
-          {/* Purchase Orders Table */}
-          <Card boxShadow="sm">
-            <CardHeader bg="brand.50" borderTopRadius="md">
-              <HStack>
-                <Icon as={FiPackage} color="black" />
-                <Heading size="md" color="black">
-                  Purchase Orders
-                </Heading>
-              </HStack>
-            </CardHeader>
-            <CardBody p={0}>
-              {isLoading ? (
-                <Box p={6}>
-                  {[...Array(3)].map((_, i) => (
-                    <Skeleton key={i} height="40px" mb={2} />
-                  ))}
-                </Box>
-              ) : (
-                <Table variant="striped" size="sm">
-                  <Thead>
-                    <Tr>
-                      <Th>PO #</Th>
-                      <Th>Supplier</Th>
-                      <Th>Status</Th>
-                      <Th>Expected</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {purchaseOrders.slice(0, 5).map((po) => (
-                      <Tr key={po.id}>
-                        <Td fontWeight="medium">{po.id}</Td>
-                        <Td>{po.supplier?.name || "N/A"}</Td>
-                        <Td>
-                          <Badge
-                            colorScheme={getStatusColor(po.status)}
-                            display="flex"
-                            alignItems="center"
-                            gap={1}
-                            px={2}
-                            py={1}
-                            borderRadius="full"
-                          >
-                            {getStatusIcon(po.status)}
-                            {po.status}
-                          </Badge>
-                        </Td>
-                        <Td>{po.date_expected || "N/A"}</Td>
-                      </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
-              )}
-            </CardBody>
-            <CardFooter>
-              <Button variant="link" colorScheme="brand">
-                View all orders
-              </Button>
-            </CardFooter>
-          </Card>
+            <div className="lg:col-span-1">
+              <WarehouseTable inventory={inventory} isLoading={isLoading} />
+            </div>
+          </div>
 
-          {/* Shipments Table */}
-          <Card boxShadow="sm">
-            <CardHeader bg="brand.50" borderTopRadius="md">
-              <HStack>
-                <Icon as={FiTruck} color="black" />
-                <Heading size="md" color="black">
-                  Shipments
-                </Heading>
-              </HStack>
-            </CardHeader>
-            <CardBody p={0}>
-              {isLoading ? (
-                <Box p={6}>
-                  {[...Array(3)].map((_, i) => (
-                    <Skeleton key={i} height="40px" mb={2} />
-                  ))}
-                </Box>
-              ) : (
-                <Table variant="striped" size="sm">
-                  <Thead>
-                    <Tr>
-                      <Th>Component</Th>
-                      <Th>Destination</Th>
-                      <Th>Status</Th>
-                      <Th>ETA</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {shipments.slice(0, 5).map((shipment) => (
-                      <Tr key={shipment.id}>
-                        <Td>{shipment.component?.num || "N/A"}</Td>
-                        <Td>{shipment.destination}</Td>
-                        <Td>
-                          <Badge
-                            colorScheme={getStatusColor(shipment.status)}
-                            display="flex"
-                            alignItems="center"
-                            gap={1}
-                            px={2}
-                            py={1}
-                            borderRadius="full"
-                          >
-                            {getStatusIcon(shipment.status)}
-                            {shipment.status}
-                          </Badge>
-                        </Td>
-                        <Td>{shipment.estimated_arrival}</Td>
-                      </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
-              )}
-            </CardBody>
-            <CardFooter>
-              <Button variant="link" colorScheme="brand">
-                Track all shipments
-              </Button>
-            </CardFooter>
-          </Card>
+          {/* Bottom Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-6">
+              <ReorderAlerts inventory={inventory} />
+            </div>
 
-          {/* Warehouse Table */}
-          <Card boxShadow="sm">
-            <CardHeader bg="brand.50" borderTopRadius="md">
-              <HStack>
-                <Icon as={FiHome} color="black" />
-                <Heading size="md" color="black">
-                  Warehouse
-                </Heading>
-              </HStack>
-            </CardHeader>
-            <CardBody p={0}>
-              {isLoading ? (
-                <Box p={6}>
-                  {[...Array(3)].map((_, i) => (
-                    <Skeleton key={i} height="40px" mb={2} />
-                  ))}
-                </Box>
-              ) : (
-                <Table variant="striped" size="sm">
-                  <Thead>
-                    <Tr>
-                      <Th>Component</Th>
-                      <Th>Warehouse</Th>
-                      <Th isNumeric>Qty</Th>
-                      <Th>Status</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {inventory.slice(0, 5).map((item) => (
-                      <Tr key={item.id}>
-                        <Td>{item.component?.num || "N/A"}</Td>
-                        <Td>{item.warehouse?.name || "N/A"}</Td>
-                        <Td isNumeric>{item.current_qty}</Td>
-                        <Td>
-                          <Badge
-                            colorScheme={
-                              item.current_qty > 20
-                                ? "green"
-                                : item.current_qty > 0
-                                ? "orange"
-                                : "red"
-                            }
-                            display="flex"
-                            alignItems="center"
-                            gap={1}
-                            px={2}
-                            py={1}
-                            borderRadius="full"
-                          >
-                            {getStatusIcon(
-                              item.current_qty > 20
-                                ? "In Stock"
-                                : item.current_qty > 0
-                                ? "Low Stock"
-                                : "Out of Stock"
-                            )}
-                            {item.current_qty > 20
-                              ? "In Stock"
-                              : item.current_qty > 0
-                              ? "Low Stock"
-                              : "Out of Stock"}
-                          </Badge>
-                        </Td>
-                      </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
-              )}
-            </CardBody>
-            <CardFooter>
-              <Button variant="link" colorScheme="brand">
-                View full inventory
-              </Button>
-            </CardFooter>
-          </Card>
-        </SimpleGrid>
-
-        {/* Additional Inventory Features */}
-        <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
-          {/* Reorder Alerts */}
-          <Card boxShadow="sm">
-            <CardHeader bg="blue.50">
-              <HStack>
-                <Icon as={FiAlertTriangle} color="blue.500" />
-                <Heading size="md">Reorder Alerts</Heading>
-              </HStack>
-            </CardHeader>
-            <CardBody>
-              {inventory.filter((item) => item.current_qty < 10).length > 0 ? (
-                <Table size="sm">
-                  <Thead>
-                    <Tr>
-                      <Th>Component</Th>
-                      <Th isNumeric>Current</Th>
-                      <Th>Warehouse</Th>
-                      <Th>Action</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {inventory
-                      .filter((item) => item.current_qty < 10)
-                      .map((item) => (
-                        <Tr key={item.id}>
-                          <Td>{item.component?.num || "N/A"}</Td>
-                          <Td
-                            isNumeric
-                            color={
-                              item.current_qty === 0 ? "red.500" : "orange.500"
-                            }
-                          >
-                            {item.current_qty}
-                          </Td>
-                          <Td>{item.warehouse?.name || "N/A"}</Td>
-                          <Td>
-                            <Button size="xs" colorScheme="orange">
-                              Create PO
-                            </Button>
-                          </Td>
-                        </Tr>
-                      ))}
-                  </Tbody>
-                </Table>
-              ) : (
-                <Text color="green.500" textAlign="center" py={4}>
-                  <Icon as={FiCheckCircle} mr={2} />
-                  No reorder alerts at this time
-                </Text>
-              )}
-            </CardBody>
-          </Card>
-
-          {/* Recent Activity */}
-          <Card boxShadow="sm">
-            <CardHeader bg="blue.50">
-              <HStack>
-                <Icon as={FiTrendingUp} color="blue.500" />
-                <Heading size="md">Recent Activity</Heading>
-              </HStack>
-            </CardHeader>
-            <CardBody>
-              <VStack align="stretch" spacing={4}>
-                <Box>
-                  <Text fontWeight="bold">Today</Text>
-                  <Text fontSize="sm">
-                    •{" "}
-                    {
-                      purchaseOrders.filter(
-                        (po) =>
-                          new Date(po.date_created).toDateString() ===
-                          new Date().toDateString()
-                      ).length
-                    }{" "}
-                    new orders created
-                  </Text>
-                  <Text fontSize="sm">
-                    • {shipments.filter((s) => s.status === "Delivered").length}{" "}
-                    shipments delivered
-                  </Text>
-                </Box>
-                <Box>
-                  <Text fontWeight="bold">Yesterday</Text>
-                  <Text fontSize="sm">
-                    •{" "}
-                    {
-                      inventory.filter(
-                        (i) =>
-                          new Date().getDate() - new Date(i.id).getDate() === 1
-                      ).length
-                    }{" "}
-                    inventory updates
-                  </Text>
-                  <Text fontSize="sm">
-                    • {shipments.filter((s) => s.status === "Delayed").length}{" "}
-                    delayed shipments
-                  </Text>
-                </Box>
-              </VStack>
-            </CardBody>
-          </Card>
-        </SimpleGrid>
-      </Box>
+            <div className="space-y-6">
+              <RecentActivity
+                purchaseOrders={purchaseOrders}
+                shipments={shipments}
+                inventory={inventory}
+              />
+            </div>
+          </div>
+        </div>
+      </main>
 
       <Footer />
 
-      {/* Add Item Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Add New Logistics Item</ModalHeader>
-          <ModalCloseButton />
-          <form onSubmit={handleSubmit}>
-            <ModalBody>
-              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>Item Type</FormLabel>
-                  <Select
-                    name="type"
-                    value={formData.type}
-                    onChange={handleInputChange}
-                  >
-                    <option value="order">Purchase Order</option>
-                    <option value="shipment">Shipment</option>
-                  </Select>
-                </FormControl>
+      {/* Enhanced Add Item Modal */}
+      {isModalOpen && (
+        <AddItemModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleAddItem}
+          // The formData and onInputChange props seem to be for a controlled form.
+          // If AddItemModal manages its own internal state, these might not be needed.
+          // I've kept them as 'any' for now, but ideally, you'd define proper types.
+          formData={undefined as any}
+          onInputChange={(() => {}) as any}
+        />
+      )}
 
-                <FormControl isRequired>
-                  <FormLabel>Component</FormLabel>
-                  <Select
-                    name="componentId"
-                    value={formData.componentId}
-                    onChange={handleInputChange}
-                    placeholder="Select component"
-                  >
-                    {/* In a real app, you'd fetch components from your API */}
-                    <option value="1">CMP-001-RES (Resistor)</option>
-                    <option value="2">CMP-002-CAP (Capacitor)</option>
-                    <option value="3">CMP-003-BOLT (Bolt)</option>
-                    <option value="4">CMP-004-CASE (Case)</option>
-                    <option value="5">CMP-005-CPU (CPU)</option>
-                  </Select>
-                </FormControl>
-
-                <FormControl isRequired>
-                  <FormLabel>Quantity</FormLabel>
-                  <Input
-                    name="quantity"
-                    type="number"
-                    value={formData.quantity}
-                    onChange={handleInputChange}
-                    placeholder="Enter quantity"
-                  />
-                </FormControl>
-
-                {formData.type === "order" && (
-                  <>
-                    <FormControl isRequired>
-                      <FormLabel>Supplier</FormLabel>
-                      <Select
-                        name="supplierId"
-                        value={formData.supplierId}
-                        onChange={handleInputChange}
-                        placeholder="Select supplier"
-                      >
-                        <option value="1">Alpha Components</option>
-                        <option value="2">Beta Electronics</option>
-                        <option value="3">Gamma Mechanical</option>
-                        <option value="4">Delta Materials</option>
-                      </Select>
-                    </FormControl>
-                    <FormControl isRequired>
-                      <FormLabel>Status</FormLabel>
-                      <Select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleInputChange}
-                      >
-                        <option value="Draft">Draft</option>
-                        <option value="Ordered">Ordered</option>
-                      </Select>
-                    </FormControl>
-                  </>
-                )}
-
-                {formData.type === "shipment" && (
-                  <>
-                    <FormControl isRequired>
-                      <FormLabel>Origin</FormLabel>
-                      <Input
-                        name="origin"
-                        value={formData.origin}
-                        onChange={handleInputChange}
-                        placeholder="Origin location"
-                      />
-                    </FormControl>
-                    <FormControl isRequired>
-                      <FormLabel>Destination</FormLabel>
-                      <Input
-                        name="destination"
-                        value={formData.destination}
-                        onChange={handleInputChange}
-                        placeholder="Destination"
-                      />
-                    </FormControl>
-                    <FormControl isRequired>
-                      <FormLabel>Carrier</FormLabel>
-                      <Select
-                        name="carrier"
-                        value={formData.carrier}
-                        onChange={handleInputChange}
-                        placeholder="Select carrier"
-                      >
-                        <option value="FedEx">FedEx</option>
-                        <option value="UPS">UPS</option>
-                        <option value="DHL">DHL</option>
-                        <option value="USPS">USPS</option>
-                      </Select>
-                    </FormControl>
-                    <FormControl>
-                      <FormLabel>Tracking Number</FormLabel>
-                      <Input
-                        name="trackingNumber"
-                        value={formData.trackingNumber}
-                        onChange={handleInputChange}
-                        placeholder="Tracking number"
-                      />
-                    </FormControl>
-                  </>
-                )}
-              </SimpleGrid>
-            </ModalBody>
-
-            <ModalFooter>
-              <Button variant="ghost" mr={3} onClick={onClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="brand" type="submit">
-                Add Item
-              </Button>
-            </ModalFooter>
-          </form>
-        </ModalContent>
-      </Modal>
-    </ChakraProvider>
+      {/* Custom Toast */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        show={toast.show}
+        onClose={hideToast}
+      />
+    </div>
   );
 }
