@@ -47,6 +47,16 @@ import {
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 
+// Reuse background effect
+const BlurredBackground = () => (
+  <div className="absolute inset-0 overflow-hidden z-0">
+    <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
+    <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-300/25 to-sky-300/25 blur-3xl"></div>
+    <div className="absolute -bottom-40 -left-20 w-96 h-96 rounded-full bg-gradient-to-br from-blue-300/30 to-sky-300/30 blur-3xl"></div>
+    <div className="absolute -bottom-20 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300/25 to-cyan-300/25 blur-3xl"></div>
+  </div>
+);
+
 interface Invoice {
   id: number;
   invoiceNumber: string;
@@ -390,21 +400,25 @@ const FinanceAndInvoicingPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header */}
-      <Navbar isLoggedIn={true}/>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 relative overflow-hidden">
+      <BlurredBackground />
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
 
-      <div className="px-6 py-6">
+      <Navbar isLoggedIn={true} />
+
+      <div className="px-6 py-6 relative z-10 flex-grow">
         {/* Key Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50 hover:shadow-lg transition-all hover:scale-105">
+          {/* Cash Balance Card */}
+          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50 hover:shadow-lg transition-all hover:scale-[1.02]">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl">
                 <DollarSign className="h-6 w-6 text-white" />
               </div>
               <div className="flex items-center text-emerald-600 text-sm font-medium">
                 <ArrowUp className="h-4 w-4 mr-1" />
-                +12.5%
+                <span>+12.5% MoM</span>
               </div>
             </div>
             <div>
@@ -417,14 +431,15 @@ const FinanceAndInvoicingPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50 hover:shadow-lg transition-all hover:scale-105">
+          {/* YTD Revenue Card */}
+          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50 hover:shadow-lg transition-all hover:scale-[1.02]">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl">
                 <TrendingUp className="h-6 w-6 text-white" />
               </div>
               <div className="flex items-center text-emerald-600 text-sm font-medium">
                 <ArrowUp className="h-4 w-4 mr-1" />
-                +8.2%
+                <span>+8.2% YoY</span>
               </div>
             </div>
             <div>
@@ -437,14 +452,17 @@ const FinanceAndInvoicingPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50 hover:shadow-lg transition-all hover:scale-105">
+          {/* Outstanding Invoices Card */}
+          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50 hover:shadow-lg transition-all hover:scale-[1.02]">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl">
                 <ReceiptText className="h-6 w-6 text-white" />
               </div>
               <div className="flex items-center text-red-600 text-sm font-medium">
                 <AlertCircle className="h-4 w-4 mr-1" />
-                {financialSummary?.overdueInvoicesCount || 0} Overdue
+                <span>
+                  {financialSummary?.overdueInvoicesCount || 0} Overdue
+                </span>
               </div>
             </div>
             <div>
@@ -457,21 +475,22 @@ const FinanceAndInvoicingPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50 hover:shadow-lg transition-all hover:scale-105">
+          {/* Payment Cycle Card */}
+          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50 hover:shadow-lg transition-all hover:scale-[1.02]">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl">
                 <Clock className="h-6 w-6 text-white" />
               </div>
-              <div className="flex items-center text-slate-500 text-sm font-medium">
-                <Activity className="h-4 w-4 mr-1" />
-                Avg Days
+              <div className="flex items-center text-blue-600 text-sm font-medium">
+                <TrendingDown className="h-4 w-4 mr-1" />
+                <span>-3 days</span>
               </div>
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-800 mb-1">
                 {financialSummary?.averagePaymentDays || 0}
               </p>
-              <p className="text-slate-500 text-sm">Payment Cycle</p>
+              <p className="text-slate-500 text-sm">Avg Payment Days</p>
             </div>
           </div>
         </div>
@@ -489,7 +508,7 @@ const FinanceAndInvoicingPage: React.FC = () => {
                 onClick={() => setActiveTab(id as any)}
                 className={`inline-flex items-center px-6 py-3 rounded-xl font-medium transition-all ${
                   activeTab === id
-                    ? "bg-white text-blue-600 shadow-md"
+                    ? "bg-white/70 backdrop-blur-sm text-blue-600 shadow-md"
                     : "text-slate-600 hover:text-slate-800"
                 }`}
               >
@@ -509,9 +528,10 @@ const FinanceAndInvoicingPage: React.FC = () => {
                 <h3 className="text-lg font-semibold text-slate-800">
                   Cash Flow Trend
                 </h3>
-                <button className="p-2 text-slate-400 hover:text-slate-600 rounded-lg">
-                  <RefreshCw className="h-4 w-4" />
-                </button>
+                <div className="flex items-center text-sm text-blue-600 font-medium">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span>+15% QoQ</span>
+                </div>
               </div>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
@@ -591,9 +611,15 @@ const FinanceAndInvoicingPage: React.FC = () => {
 
             {/* Invoice Status Distribution */}
             <div className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50">
-              <h3 className="text-lg font-semibold text-slate-800 mb-6">
-                Invoice Status
-              </h3>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-slate-800">
+                  Invoice Status
+                </h3>
+                <div className="flex items-center text-sm text-blue-600 font-medium">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span>+8% YoY</span>
+                </div>
+              </div>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsPieChart>
@@ -638,7 +664,7 @@ const FinanceAndInvoicingPage: React.FC = () => {
         {activeTab === "invoices" && (
           <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-sm border border-white/50 overflow-hidden">
             {/* Invoice Header */}
-            <div className="p-6 border-b border-slate-200">
+            <div className="p-6 border-b border-slate-200/50">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-slate-800">
                   Invoice Management
@@ -651,13 +677,13 @@ const FinanceAndInvoicingPage: React.FC = () => {
                       placeholder="Search invoices..."
                       value={invoiceSearchTerm}
                       onChange={(e) => setInvoiceSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+                      className="pl-10 pr-4 py-2 bg-white/70 backdrop-blur-sm border border-slate-200/50 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
                     />
                   </div>
                   <select
                     value={invoiceStatusFilter}
                     onChange={(e) => setInvoiceStatusFilter(e.target.value)}
-                    className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="border border-slate-200/50 rounded-xl px-3 py-2 text-sm bg-white/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="All">All Status</option>
                     <option value="Draft">Draft</option>
@@ -697,7 +723,7 @@ const FinanceAndInvoicingPage: React.FC = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100/50">
                     {filteredInvoices.map((invoice) => (
                       <tr
                         key={invoice.id}
@@ -745,13 +771,13 @@ const FinanceAndInvoicingPage: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center space-x-2">
-                            <button className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded">
+                            <button className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50/50 rounded">
                               <Eye className="h-4 w-4" />
                             </button>
-                            <button className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded">
+                            <button className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-50/50 rounded">
                               <Edit className="h-4 w-4" />
                             </button>
-                            <button className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded">
+                            <button className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-50/50 rounded">
                               <MoreHorizontal className="h-4 w-4" />
                             </button>
                           </div>
@@ -772,7 +798,7 @@ const FinanceAndInvoicingPage: React.FC = () => {
         {activeTab === "payments" && (
           <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-sm border border-white/50 overflow-hidden">
             {/* Payment Header */}
-            <div className="p-6 border-b border-slate-200">
+            <div className="p-6 border-b border-slate-200/50">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-slate-800">
                   Payment Tracking
@@ -785,13 +811,13 @@ const FinanceAndInvoicingPage: React.FC = () => {
                       placeholder="Search payments..."
                       value={paymentSearchTerm}
                       onChange={(e) => setPaymentSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+                      className="pl-10 pr-4 py-2 bg-white/70 backdrop-blur-sm border border-slate-200/50 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
                     />
                   </div>
                   <select
                     value={paymentTypeFilter}
                     onChange={(e) => setPaymentTypeFilter(e.target.value)}
-                    className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="border border-slate-200/50 rounded-xl px-3 py-2 text-sm bg-white/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="All">All Types</option>
                     <option value="Incoming">Incoming</option>
@@ -833,7 +859,7 @@ const FinanceAndInvoicingPage: React.FC = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100/50">
                     {filteredPayments.map((payment) => (
                       <tr
                         key={payment.id}
@@ -896,8 +922,9 @@ const FinanceAndInvoicingPage: React.FC = () => {
             </div>
           </div>
         )}
-        <Footer/>
       </div>
+
+      <Footer />
     </div>
   );
 };

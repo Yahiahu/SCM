@@ -1,7 +1,10 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import Sidebar from "@/components/sidebar";
 import {
   Package,
   Filter,
@@ -16,9 +19,9 @@ import {
   MoreVertical,
   Eye,
   Edit,
-  Truck, // For ShippingInfo
-  RefreshCcw, // For Return Orders
-  Tag, // For return reasons
+  Truck,
+  RefreshCcw,
+  Tag,
 } from "lucide-react";
 
 import {
@@ -38,13 +41,11 @@ import {
   PieChart,
 } from "recharts";
 
-// Assuming these interfaces exist or can be defined based on your backend schema
 interface ReturnOrder {
   id: number;
   purchaseOrderId: number;
   reason: string;
   createdAt: string;
-  // Add more fields as needed, e.g., status, items
 }
 
 interface ShippingInfo {
@@ -58,22 +59,19 @@ interface ShippingInfo {
   tracking_number: string;
   estimated_arrival: string;
   status: string;
-  // Add componentName if needed for display
-}
-
-interface PurchaseOrder {
-  id: number;
-  supplierId: number;
-  createdById: number;
-  status: string;
-  date_created: string;
-  date_expected: string;
-  date_received?: string;
-  supplierName?: string;
-  total?: number;
 }
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AF19FF"];
+
+// Reuse background effect
+const BlurredBackground = () => (
+  <div className="absolute inset-0 overflow-hidden z-0">
+    <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
+    <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-300/25 to-sky-300/25 blur-3xl"></div>
+    <div className="absolute -bottom-40 -left-20 w-96 h-96 rounded-full bg-gradient-to-br from-blue-300/30 to-sky-300/30 blur-3xl"></div>
+    <div className="absolute -bottom-20 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300/25 to-cyan-300/25 blur-3xl"></div>
+  </div>
+);
 
 const Fulfillment: React.FC = () => {
   const router = useRouter();
@@ -81,7 +79,7 @@ const Fulfillment: React.FC = () => {
   const [shippingInfos, setShippingInfos] = useState<ShippingInfo[]>([]);
   const [activeTab, setActiveTab] = useState<"shipments" | "returns">(
     "shipments"
-  ); // New state for tabs
+  );
   const [shipmentStatusFilter, setShipmentStatusFilter] =
     useState<string>("All");
   const [returnReasonFilter, setReturnReasonFilter] = useState<string>("All");
@@ -98,49 +96,78 @@ const Fulfillment: React.FC = () => {
   );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
-  // --- Data Fetching Functions ---
-  const fetchReturnOrders = async () => {
-    try {
-      const response = await fetch("/api/returnorders"); // Your backend endpoint
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setReturnOrders(data);
-    } catch (err: any) {
-      setError(`Failed to fetch return orders: ${err.message}`);
-      console.error("Error fetching return orders:", err);
-    }
-  };
-
-  const fetchShippingInfos = async () => {
-    try {
-      const response = await fetch("/api/shippinginfo"); // Your backend endpoint
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      // To get component names for shipping info, you might need another fetch or join data.
-      // For now, let's assume `componentName` might be added later or handled on backend.
-      setShippingInfos(data);
-    } catch (err: any) {
-      setError(`Failed to fetch shipping information: ${err.message}`);
-      console.error("Error fetching shipping information:", err);
-    }
-  };
-
+  // Mock data for demonstration
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      setError(null);
-      await Promise.all([fetchReturnOrders(), fetchShippingInfos()]);
+    const mockShippingInfos: ShippingInfo[] = [
+      {
+        id: 1,
+        poId: 1001,
+        componentId: 201,
+        qty: 50,
+        origin: "Shenzhen, China",
+        destination: "Chicago, USA",
+        carrier: "DHL",
+        tracking_number: "DHL12345ABC",
+        estimated_arrival: "2025-06-15",
+        status: "In Transit",
+      },
+      {
+        id: 2,
+        poId: 1002,
+        componentId: 202,
+        qty: 100,
+        origin: "Tokyo, Japan",
+        destination: "Los Angeles, USA",
+        carrier: "FedEx",
+        tracking_number: "FDX98765XYZ",
+        estimated_arrival: "2025-06-10",
+        status: "Delivered",
+      },
+      {
+        id: 3,
+        poId: 1003,
+        componentId: 203,
+        qty: 75,
+        origin: "Seoul, South Korea",
+        destination: "New York, USA",
+        carrier: "UPS",
+        tracking_number: "UPS112233DEF",
+        estimated_arrival: "2025-06-20",
+        status: "Processing",
+      },
+    ];
+
+    const mockReturnOrders: ReturnOrder[] = [
+      {
+        id: 1,
+        purchaseOrderId: 1001,
+        reason: "Defective capacitors",
+        createdAt: "2025-06-01",
+      },
+      {
+        id: 2,
+        purchaseOrderId: 1002,
+        reason: "Incorrect quantity received",
+        createdAt: "2025-05-28",
+      },
+      {
+        id: 3,
+        purchaseOrderId: 1003,
+        reason: "Damaged during transit",
+        createdAt: "2025-06-05",
+      },
+    ];
+
+    setTimeout(() => {
+      setShippingInfos(mockShippingInfos);
+      setReturnOrders(mockReturnOrders);
       setLoading(false);
-    };
-    loadData();
+    }, 1000);
   }, []);
 
-  // --- Helper Functions ---
+  // Helper functions
   const getShipmentStatusDisplay = (status: string) => {
     switch (status) {
       case "In Transit":
@@ -196,7 +223,7 @@ const Fulfillment: React.FC = () => {
     }
   };
 
-  // --- Sorting Handlers ---
+  // Sorting handlers
   const handleSortShipment = (field: keyof ShippingInfo) => {
     const newSortOrder =
       sortFieldShipment === field && sortOrderShipment === "asc"
@@ -206,7 +233,7 @@ const Fulfillment: React.FC = () => {
     setSortOrderShipment(newSortOrder);
 
     const sortedData = [...shippingInfos].sort((a, b) => {
-      const aValue = a[field] as any; // Cast to any for comparison
+      const aValue = a[field] as any;
       const bValue = b[field] as any;
 
       if (typeof aValue === "string" && typeof bValue === "string") {
@@ -239,7 +266,7 @@ const Fulfillment: React.FC = () => {
     setReturnOrders(sortedData);
   };
 
-  // --- Filtering and Searching ---
+  // Filtering and searching
   const filteredShippingInfos = shippingInfos.filter((info) => {
     const matchesStatus =
       shipmentStatusFilter === "All" || info.status === shipmentStatusFilter;
@@ -261,7 +288,7 @@ const Fulfillment: React.FC = () => {
     return matchesReason && matchesSearch;
   });
 
-  // --- Statistics ---
+  // Statistics
   const shipmentStats = {
     total: shippingInfos.length,
     inTransit: shippingInfos.filter((s) => s.status === "In Transit").length,
@@ -283,7 +310,7 @@ const Fulfillment: React.FC = () => {
     ).length,
   };
 
-  // --- Chart Data ---
+  // Chart data
   const shipmentStatusData = [
     { name: "In Transit", value: shipmentStats.inTransit },
     { name: "Delivered", value: shipmentStats.delivered },
@@ -297,7 +324,7 @@ const Fulfillment: React.FC = () => {
     { name: "Changed Req.", value: returnStats.changedRequirements },
   ];
 
-  // --- Handlers for navigating to detail pages (if applicable) ---
+  // Navigation handlers
   const handleShippingInfoClick = (id: number) => {
     router.push(`/fulfillment/shipments/${id}`);
   };
@@ -308,10 +335,12 @@ const Fulfillment: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
+        <BlurredBackground />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
         <Navbar isLoggedIn={true} />
-        <div className="flex justify-center items-center h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600"></div>
+        <div className="flex justify-center items-center h-96 z-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </div>
     );
@@ -319,9 +348,11 @@ const Fulfillment: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
+        <BlurredBackground />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
         <Navbar isLoggedIn={true} />
-        <div className="flex justify-center items-center h-96">
+        <div className="flex justify-center items-center h-96 z-10">
           <div className="text-red-500 text-center">
             <AlertCircle className="h-12 w-12 mx-auto mb-4" />
             <p>{error}</p>
@@ -332,548 +363,567 @@ const Fulfillment: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
+      <BlurredBackground />
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
+
       <Navbar isLoggedIn={true} />
+      <Sidebar visible={sidebarVisible} setVisible={setSidebarVisible} />
 
-      {/* Main Content */}
-      <div className="p-8 pt-20">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Fulfillment</h1>
-              <p className="text-gray-600 mt-1">
-                Manage and track all shipments and returns
-              </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-                <Download className="h-4 w-4 mr-2" />
-                Export Data
-              </button>
-              <button className="inline-flex items-center px-4 py-2 bg-sky-600 text-white rounded-lg text-sm font-medium hover:bg-sky-700 transition-colors">
-                <Plus className="h-4 w-4 mr-2" />
-                New Shipment/Return
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
+      <main
+        className={`transition-all duration-300 pt-20 relative z-10 ${
+          sidebarVisible ? "ml-[180px]" : "ml-0"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Header Section */}
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200 mb-8">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Total Shipments
-                </p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">
-                  {shipmentStats.total}
-                </p>
-              </div>
-              <div className="p-3 rounded-lg bg-sky-50">
-                <Package className="h-6 w-6 text-sky-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">In Transit</p>
-                <p className="text-2xl font-semibold text-blue-600 mt-1">
-                  {shipmentStats.inTransit}
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Fulfillment
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Manage and track all shipments and returns
                 </p>
               </div>
-              <div className="p-3 rounded-lg bg-blue-50">
-                <Truck className="h-6 w-6 text-blue-600" />
+              <div className="flex items-center space-x-3">
+                <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Data
+                </button>
+                <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Shipment/Return
+                </button>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Delivered</p>
-                <p className="text-2xl font-semibold text-green-600 mt-1">
-                  {shipmentStats.delivered}
-                </p>
-              </div>
-              <div className="p-3 rounded-lg bg-green-50">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Total Returns
-                </p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">
-                  {returnStats.total}
-                </p>
-              </div>
-              <div className="p-3 rounded-lg bg-sky-50">
-                <RefreshCcw className="h-6 w-6 text-sky-600" />
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total Shipments
+                  </p>
+                  <p className="text-2xl font-semibold text-gray-900 mt-1">
+                    {shipmentStats.total}
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg bg-blue-50">
+                  <Package className="h-6 w-6 text-blue-600" />
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Quick Actions
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                <Plus className="h-4 w-4 mr-2" />
-                Create New Shipment
-              </button>
-              <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                <RefreshCcw className="h-4 w-4 mr-2" />
-                Initiate Return
-              </button>
-              <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                <Download className="h-4 w-4 mr-2" />
-                Download Reports
-              </button>
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    In Transit
+                  </p>
+                  <p className="text-2xl font-semibold text-blue-600 mt-1">
+                    {shipmentStats.inTransit}
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg bg-blue-50">
+                  <Truck className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Tabs for Shipments and Returns */}
-        <div className="flex border-b border-gray-200 mb-6">
-          <button
-            className={`py-2 px-4 text-sm font-medium ${
-              activeTab === "shipments"
-                ? "border-b-2 border-sky-600 text-sky-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveTab("shipments")}
-          >
-            Shipments
-          </button>
-          <button
-            className={`py-2 px-4 text-sm font-medium ${
-              activeTab === "returns"
-                ? "border-b-2 border-sky-600 text-sky-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveTab("returns")}
-          >
-            Return Orders
-          </button>
-        </div>
-
-        {/* Search and Filters for active tab */}
-        <div className="flex items-center space-x-4 mb-6">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder={`Search ${
-                activeTab === "shipments" ? "shipments" : "returns"
-              }...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Filter className="h-4 w-4 text-gray-400" />
-            {activeTab === "shipments" ? (
-              <select
-                value={shipmentStatusFilter}
-                onChange={(e) => setShipmentStatusFilter(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-              >
-                <option value="All">All Status</option>
-                <option value="Processing">Processing</option>
-                <option value="In Transit">In Transit</option>
-                <option value="Delivered">Delivered</option>
-              </select>
-            ) : (
-              <select
-                value={returnReasonFilter}
-                onChange={(e) => setReturnReasonFilter(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-              >
-                <option value="All">All Reasons</option>
-                <option value="Defective capacitors">Defective</option>
-                <option value="Incorrect quantity received">
-                  Incorrect Quantity
-                </option>
-                <option value="Damaged during transit">Damaged</option>
-                <option value="Changed order requirements">
-                  Changed Requirements
-                </option>
-                {/* Add more return reasons as needed */}
-              </select>
-            )}
-          </div>
-        </div>
-
-        {/* Table for active tab */}
-        {activeTab === "shipments" ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSortShipment("id")}
-                        className="flex items-center space-x-1 hover:text-gray-700"
-                      >
-                        <span>Shipment ID</span>
-                        {sortFieldShipment === "id" && (
-                          <span>{sortOrderShipment === "asc" ? "↑" : "↓"}</span>
-                        )}
-                      </button>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSortShipment("tracking_number")}
-                        className="flex items-center space-x-1 hover:text-gray-700"
-                      >
-                        <span>Tracking #</span>
-                        {sortFieldShipment === "tracking_number" && (
-                          <span>{sortOrderShipment === "asc" ? "↑" : "↓"}</span>
-                        )}
-                      </button>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Carrier
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Origin
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Destination
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Expected Arrival
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredShippingInfos.map((info) => {
-                    const statusDisplay = getShipmentStatusDisplay(info.status);
-                    return (
-                      <tr
-                        key={info.id}
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
-                        onClick={() => handleShippingInfoClick(info.id)}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            #{info.id}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {info.tracking_number}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">
-                            {info.carrier}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">
-                            {info.origin}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">
-                            {info.destination}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${statusDisplay.color}`}
-                          >
-                            {statusDisplay.icon}
-                            <span>{info.status}</span>
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(
-                            info.estimated_arrival
-                          ).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleShippingInfoClick(info.id);
-                              }}
-                              className="text-sky-600 hover:text-sky-800 transition-colors"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-gray-400 hover:text-red-600 transition-colors"
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Delivered</p>
+                  <p className="text-2xl font-semibold text-green-600 mt-1">
+                    {shipmentStats.delivered}
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg bg-green-50">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSortReturn("id")}
-                        className="flex items-center space-x-1 hover:text-gray-700"
-                      >
-                        <span>Return ID</span>
-                        {sortFieldReturn === "id" && (
-                          <span>{sortOrderReturn === "asc" ? "↑" : "↓"}</span>
-                        )}
-                      </button>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSortReturn("purchaseOrderId")}
-                        className="flex items-center space-x-1 hover:text-gray-700"
-                      >
-                        <span>PO ID</span>
-                        {sortFieldReturn === "purchaseOrderId" && (
-                          <span>{sortOrderReturn === "asc" ? "↑" : "↓"}</span>
-                        )}
-                      </button>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Reason
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSortReturn("createdAt")}
-                        className="flex items-center space-x-1 hover:text-gray-700"
-                      >
-                        <span>Created At</span>
-                        {sortFieldReturn === "createdAt" && (
-                          <span>{sortOrderReturn === "asc" ? "↑" : "↓"}</span>
-                        )}
-                      </button>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredReturnOrders.map((order) => {
-                    const reasonDisplay = getReturnReasonDisplay(order.reason);
-                    return (
-                      <tr
-                        key={order.id}
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
-                        onClick={() => handleReturnOrderClick(order.id)}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            #{order.id}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            #{order.purchaseOrderId}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${reasonDisplay.color}`}
-                          >
-                            {reasonDisplay.icon}
-                            <span>{order.reason}</span>
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleReturnOrderClick(order.id);
-                              }}
-                              className="text-sky-600 hover:text-sky-800 transition-colors"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-gray-400 hover:text-red-600 transition-colors"
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
 
-        {/* Summary Footer */}
-        <div className="mb-6 flex items-center justify-between text-sm text-gray-600">
-          <div>
-            {activeTab === "shipments"
-              ? `Showing ${filteredShippingInfos.length} of ${shippingInfos.length} shipments`
-              : `Showing ${filteredReturnOrders.length} of ${returnOrders.length} return orders`}
-          </div>
-        </div>
-
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Shipment Status Pie Chart */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Shipment Status Distribution
-            </h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={shipmentStatusData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) =>
-                      `${name}: ${(percent * 100).toFixed(0)}%`
-                    }
-                  >
-                    {shipmentStatusData.map((entry, index) => (
-                      <Cell
-                        key={`cell-shipment-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total Returns
+                  </p>
+                  <p className="text-2xl font-semibold text-gray-900 mt-1">
+                    {returnStats.total}
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg bg-blue-50">
+                  <RefreshCcw className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Return Reason Bar Chart */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Return Reasons Breakdown
-            </h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={returnReasonData}
-                  margin={{
-                    top: 5,
-                    right: 30,
-                    left: 20,
-                    bottom: 5,
-                  }}
+          {/* Quick Actions */}
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Quick Actions
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create New Shipment
+                </button>
+                <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                  <RefreshCcw className="h-4 w-4 mr-2" />
+                  Initiate Return
+                </button>
+                <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Reports
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs for Shipments and Returns */}
+          <div className="flex border-b border-gray-200 mb-6">
+            <button
+              className={`py-2 px-4 text-sm font-medium ${
+                activeTab === "shipments"
+                  ? "border-b-2 border-blue-600 text-blue-600"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => setActiveTab("shipments")}
+            >
+              Shipments
+            </button>
+            <button
+              className={`py-2 px-4 text-sm font-medium ${
+                activeTab === "returns"
+                  ? "border-b-2 border-blue-600 text-blue-600"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => setActiveTab("returns")}
+            >
+              Return Orders
+            </button>
+          </div>
+
+          {/* Search and Filters for active tab */}
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200 flex items-center space-x-4 mb-6">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder={`Search ${
+                  activeTab === "shipments" ? "shipments" : "returns"
+                }...`}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-gray-400" />
+              {activeTab === "shipments" ? (
+                <select
+                  value={shipmentStatusFilter}
+                  onChange={(e) => setShipmentStatusFilter(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip
-                    formatter={(value) => [value, "Number of Returns"]}
-                  />
-                  <Legend />
-                  <Bar dataKey="value" name="Returns" fill="#a855f7" />{" "}
-                  {/* Sky-50 inspired color */}
-                </BarChart>
-              </ResponsiveContainer>
+                  <option value="All">All Status</option>
+                  <option value="Processing">Processing</option>
+                  <option value="In Transit">In Transit</option>
+                  <option value="Delivered">Delivered</option>
+                </select>
+              ) : (
+                <select
+                  value={returnReasonFilter}
+                  onChange={(e) => setReturnReasonFilter(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="All">All Reasons</option>
+                  <option value="Defective capacitors">Defective</option>
+                  <option value="Incorrect quantity received">
+                    Incorrect Quantity
+                  </option>
+                  <option value="Damaged during transit">Damaged</option>
+                  <option value="Changed order requirements">
+                    Changed Requirements
+                  </option>
+                </select>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* Recent Activity */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Recent Fulfillment Activity
-          </h3>
-          <div className="space-y-3">
-            {/* Example recent activities - replace with actual data */}
-            <div className="flex items-start p-3 bg-sky-50 rounded-lg">
-              <div className="bg-sky-100 p-2 rounded-full mr-3">
-                <Truck className="h-4 w-4 text-sky-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  Shipment #DHL12345ABC status updated to 'Delivered'
-                </p>
-                <p className="text-xs text-gray-500 mt-1">1 hour ago</p>
+          {/* Table for active tab */}
+          {activeTab === "shipments" ? (
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-gray-200 overflow-hidden mb-8">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <button
+                          onClick={() => handleSortShipment("id")}
+                          className="flex items-center space-x-1 hover:text-gray-700"
+                        >
+                          <span>Shipment ID</span>
+                          {sortFieldShipment === "id" && (
+                            <span>
+                              {sortOrderShipment === "asc" ? "↑" : "↓"}
+                            </span>
+                          )}
+                        </button>
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <button
+                          onClick={() => handleSortShipment("tracking_number")}
+                          className="flex items-center space-x-1 hover:text-gray-700"
+                        >
+                          <span>Tracking #</span>
+                          {sortFieldShipment === "tracking_number" && (
+                            <span>
+                              {sortOrderShipment === "asc" ? "↑" : "↓"}
+                            </span>
+                          )}
+                        </button>
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Carrier
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Origin
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Destination
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Expected Arrival
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredShippingInfos.map((info) => {
+                      const statusDisplay = getShipmentStatusDisplay(
+                        info.status
+                      );
+                      return (
+                        <tr
+                          key={info.id}
+                          className="hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={() => handleShippingInfoClick(info.id)}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              #{info.id}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {info.tracking_number}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-500">
+                              {info.carrier}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-500">
+                              {info.origin}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-500">
+                              {info.destination}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${statusDisplay.color}`}
+                            >
+                              {statusDisplay.icon}
+                              <span>{info.status}</span>
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(
+                              info.estimated_arrival
+                            ).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleShippingInfoClick(info.id);
+                                }}
+                                className="text-blue-600 hover:text-blue-800 transition-colors"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-gray-400 hover:text-red-600 transition-colors"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
-            <div className="flex items-start p-3 bg-sky-50 rounded-lg">
-              <div className="bg-sky-100 p-2 rounded-full mr-3">
-                <RefreshCcw className="h-4 w-4 text-sky-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  New return order #2 created for defective items
-                </p>
-                <p className="text-xs text-gray-500 mt-1">3 hours ago</p>
+          ) : (
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-gray-200 overflow-hidden mb-8">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <button
+                          onClick={() => handleSortReturn("id")}
+                          className="flex items-center space-x-1 hover:text-gray-700"
+                        >
+                          <span>Return ID</span>
+                          {sortFieldReturn === "id" && (
+                            <span>{sortOrderReturn === "asc" ? "↑" : "↓"}</span>
+                          )}
+                        </button>
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <button
+                          onClick={() => handleSortReturn("purchaseOrderId")}
+                          className="flex items-center space-x-1 hover:text-gray-700"
+                        >
+                          <span>PO ID</span>
+                          {sortFieldReturn === "purchaseOrderId" && (
+                            <span>{sortOrderReturn === "asc" ? "↑" : "↓"}</span>
+                          )}
+                        </button>
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Reason
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <button
+                          onClick={() => handleSortReturn("createdAt")}
+                          className="flex items-center space-x-1 hover:text-gray-700"
+                        >
+                          <span>Created At</span>
+                          {sortFieldReturn === "createdAt" && (
+                            <span>{sortOrderReturn === "asc" ? "↑" : "↓"}</span>
+                          )}
+                        </button>
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredReturnOrders.map((order) => {
+                      const reasonDisplay = getReturnReasonDisplay(
+                        order.reason
+                      );
+                      return (
+                        <tr
+                          key={order.id}
+                          className="hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={() => handleReturnOrderClick(order.id)}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              #{order.id}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              #{order.purchaseOrderId}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${reasonDisplay.color}`}
+                            >
+                              {reasonDisplay.icon}
+                              <span>{order.reason}</span>
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleReturnOrderClick(order.id);
+                                }}
+                                className="text-blue-600 hover:text-blue-800 transition-colors"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-gray-400 hover:text-red-600 transition-colors"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
-            <div className="flex items-start p-3 bg-sky-50 rounded-lg">
-              <div className="bg-sky-100 p-2 rounded-full mr-3">
-                <Calendar className="h-4 w-4 text-sky-600" />
+          )}
+
+          {/* Summary Footer */}
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200 mb-6 flex items-center justify-between text-sm text-gray-600">
+            <div>
+              {activeTab === "shipments"
+                ? `Showing ${filteredShippingInfos.length} of ${shippingInfos.length} shipments`
+                : `Showing ${filteredReturnOrders.length} of ${returnOrders.length} return orders`}
+            </div>
+          </div>
+
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Shipment Status Pie Chart */}
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Shipment Status Distribution
+              </h3>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={shipmentStatusData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) =>
+                        `${name}: ${(percent * 100).toFixed(0)}%`
+                      }
+                    >
+                      {shipmentStatusData.map((entry, index) => (
+                        <Cell
+                          key={`cell-shipment-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  Shipment #UPS112233DEF expected arrival today
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Today, 8:00 AM</p>
+            </div>
+
+            {/* Return Reason Bar Chart */}
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Return Reasons Breakdown
+              </h3>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={returnReasonData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip
+                      formatter={(value) => [value, "Number of Returns"]}
+                    />
+                    <Legend />
+                    <Bar dataKey="value" name="Returns" fill="#a855f7" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Recent Fulfillment Activity
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-start p-3 bg-blue-50 rounded-lg">
+                <div className="bg-blue-100 p-2 rounded-full mr-3">
+                  <Truck className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    Shipment #DHL12345ABC status updated to 'Delivered'
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">1 hour ago</p>
+                </div>
+              </div>
+              <div className="flex items-start p-3 bg-blue-50 rounded-lg">
+                <div className="bg-blue-100 p-2 rounded-full mr-3">
+                  <RefreshCcw className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    New return order #2 created for defective items
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">3 hours ago</p>
+                </div>
+              </div>
+              <div className="flex items-start p-3 bg-blue-50 rounded-lg">
+                <div className="bg-blue-100 p-2 rounded-full mr-3">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    Shipment #UPS112233DEF expected arrival today
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Today, 8:00 AM</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>

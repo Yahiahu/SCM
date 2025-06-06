@@ -31,8 +31,18 @@ import {
   LineChart,
   Line,
 } from "recharts";
-// --- Interfaces for AI Insights Data ---
 
+// Reuse background effect
+const BlurredBackground = () => (
+  <div className="absolute inset-0 overflow-hidden z-0">
+    <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
+    <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-300/25 to-sky-300/25 blur-3xl"></div>
+    <div className="absolute -bottom-40 -left-20 w-96 h-96 rounded-full bg-gradient-to-br from-blue-300/30 to-sky-300/30 blur-3xl"></div>
+    <div className="absolute -bottom-20 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300/25 to-cyan-300/25 blur-3xl"></div>
+  </div>
+);
+
+// --- Interfaces for AI Insights Data ---
 interface Anomaly {
   id: number;
   detectedAt: string; // ISO 8601 string
@@ -365,11 +375,15 @@ const AiInsightsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
+      <BlurredBackground />
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
+
       <Navbar isLoggedIn={true} />
 
       {/* Main Content */}
-      <div className="p-8 pt-20">
+      <div className="p-8 pt-20 relative z-10">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
@@ -397,9 +411,10 @@ const AiInsightsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Stats Cards for AI Insights */}
+        {/* Stats Cards for AI Insights - Updated to grid format */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          {/* Total Anomalies Detected */}
+          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">
@@ -408,6 +423,10 @@ const AiInsightsPage: React.FC = () => {
                 <p className="text-2xl font-semibold text-gray-900 mt-1">
                   {aiStats.totalAnomalies}
                 </p>
+                <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span>+12% MoM</span>
+                </div>
               </div>
               <div className="p-3 rounded-lg bg-sky-50">
                 <Zap className="h-6 w-6 text-sky-600" />
@@ -415,7 +434,8 @@ const AiInsightsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          {/* Critical Anomalies */}
+          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">
@@ -424,6 +444,10 @@ const AiInsightsPage: React.FC = () => {
                 <p className="text-2xl font-semibold text-red-600 mt-1">
                   {aiStats.criticalAnomalies}
                 </p>
+                <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span>+8% WoW</span>
+                </div>
               </div>
               <div className="p-3 rounded-lg bg-red-50">
                 <AlertCircle className="h-6 w-6 text-red-600" />
@@ -431,7 +455,8 @@ const AiInsightsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          {/* Open Suggestions */}
+          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">
@@ -440,6 +465,10 @@ const AiInsightsPage: React.FC = () => {
                 <p className="text-2xl font-semibold text-yellow-600 mt-1">
                   {aiStats.openSuggestions}
                 </p>
+                <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span>+15% MoM</span>
+                </div>
               </div>
               <div className="p-3 rounded-lg bg-yellow-50">
                 <Lightbulb className="h-6 w-6 text-yellow-600" />
@@ -447,7 +476,8 @@ const AiInsightsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          {/* Total Active Forecasts */}
+          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">
@@ -456,6 +486,10 @@ const AiInsightsPage: React.FC = () => {
                 <p className="text-2xl font-semibold text-green-600 mt-1">
                   {aiStats.totalForecasts}
                 </p>
+                <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span>+20% YoY</span>
+                </div>
               </div>
               <div className="p-3 rounded-lg bg-green-50">
                 <TrendingUp className="h-6 w-6 text-green-600" />
@@ -465,7 +499,7 @@ const AiInsightsPage: React.FC = () => {
         </div>
 
         {/* Anomaly Detection Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200/50 p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
               <Zap className="h-5 w-5 mr-2 text-sky-600" /> Anomaly Detection
@@ -478,13 +512,13 @@ const AiInsightsPage: React.FC = () => {
                   placeholder="Search anomalies..."
                   value={anomalySearchTerm}
                   onChange={(e) => setAnomalySearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-white/70 backdrop-blur-sm"
                 />
               </div>
               <select
                 value={anomalySeverityFilter}
                 onChange={(e) => setAnomalySeverityFilter(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-white/70 backdrop-blur-sm"
               >
                 <option value="All">All Severity</option>
                 <option value="Critical">Critical</option>
@@ -496,7 +530,7 @@ const AiInsightsPage: React.FC = () => {
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50/70">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     ID
@@ -524,9 +558,9 @@ const AiInsightsPage: React.FC = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white/50 divide-y divide-gray-200">
                 {filteredAnomalies.map((anomaly) => (
-                  <tr key={anomaly.id} className="hover:bg-gray-50">
+                  <tr key={anomaly.id} className="hover:bg-gray-50/70">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       #{anomaly.id}
                     </td>
@@ -575,12 +609,15 @@ const AiInsightsPage: React.FC = () => {
         </div>
 
         {/* Forecasting Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200/50 p-6 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-4">
             <TrendingUp className="h-5 w-5 mr-2 text-sky-600" /> Forecasting
           </h3>
           {forecasts.map((forecast) => (
-            <div key={forecast.id} className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <div
+              key={forecast.id}
+              className="mb-6 p-4 bg-gray-50/70 rounded-lg"
+            >
               <p className="text-md font-semibold text-gray-900 mb-2">
                 {forecast.itemName} ({forecast.itemType} ID: {forecast.itemId})
                 - Forecast for{" "}
@@ -662,7 +699,7 @@ const AiInsightsPage: React.FC = () => {
         </div>
 
         {/* AI Suggestions Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200/50 p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
               <Lightbulb className="h-5 w-5 mr-2 text-sky-600" /> AI Suggestions
@@ -675,13 +712,13 @@ const AiInsightsPage: React.FC = () => {
                   placeholder="Search suggestions..."
                   value={suggestionSearchTerm}
                   onChange={(e) => setSuggestionSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-white/70 backdrop-blur-sm"
                 />
               </div>
               <select
                 value={suggestionPriorityFilter}
                 onChange={(e) => setSuggestionPriorityFilter(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-white/70 backdrop-blur-sm"
               >
                 <option value="All">All Priority</option>
                 <option value="High">High</option>
@@ -692,7 +729,7 @@ const AiInsightsPage: React.FC = () => {
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50/70">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     ID
@@ -717,9 +754,9 @@ const AiInsightsPage: React.FC = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white/50 divide-y divide-gray-200">
                 {filteredSuggestions.map((suggestion) => (
-                  <tr key={suggestion.id} className="hover:bg-gray-50">
+                  <tr key={suggestion.id} className="hover:bg-gray-50/70">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       #{suggestion.id}
                     </td>
@@ -767,13 +804,13 @@ const AiInsightsPage: React.FC = () => {
         </div>
 
         {/* Recent AI Activity */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Recent AI Activity
           </h3>
           <div className="space-y-3">
             {/* Combine recent activities from anomalies, forecasts, suggestions */}
-            <div className="flex items-start p-3 bg-sky-50 rounded-lg">
+            <div className="flex items-start p-3 bg-sky-50/70 rounded-lg">
               <div className="bg-sky-100 p-2 rounded-full mr-3">
                 <Zap className="h-4 w-4 text-sky-600" />
               </div>
@@ -785,7 +822,7 @@ const AiInsightsPage: React.FC = () => {
                 <p className="text-xs text-gray-500 mt-1">1 hour ago</p>
               </div>
             </div>
-            <div className="flex items-start p-3 bg-sky-50 rounded-lg">
+            <div className="flex items-start p-3 bg-sky-50/70 rounded-lg">
               <div className="bg-sky-100 p-2 rounded-full mr-3">
                 <Lightbulb className="h-4 w-4 text-sky-600" />
               </div>
@@ -796,7 +833,7 @@ const AiInsightsPage: React.FC = () => {
                 <p className="text-xs text-gray-500 mt-1">3 hours ago</p>
               </div>
             </div>
-            <div className="flex items-start p-3 bg-sky-50 rounded-lg">
+            <div className="flex items-start p-3 bg-sky-50/70 rounded-lg">
               <div className="bg-sky-100 p-2 rounded-full mr-3">
                 <TrendingUp className="h-4 w-4 text-sky-600" />
               </div>

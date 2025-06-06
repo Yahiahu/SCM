@@ -16,9 +16,20 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
+  TrendingUp,
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+
+// Reuse background effect
+const BlurredBackground = () => (
+  <div className="absolute inset-0 overflow-hidden z-0">
+    <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
+    <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-300/25 to-sky-300/25 blur-3xl"></div>
+    <div className="absolute -bottom-40 -left-20 w-96 h-96 rounded-full bg-gradient-to-br from-blue-300/30 to-sky-300/30 blur-3xl"></div>
+    <div className="absolute -bottom-20 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300/25 to-cyan-300/25 blur-3xl"></div>
+  </div>
+);
 
 const ApiIntegrationPage: React.FC = () => {
   const [integrations, setIntegrations] = useState([
@@ -162,10 +173,14 @@ const ApiIntegrationPage: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
+      <BlurredBackground />
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
+
       <Navbar isLoggedIn={true} />
 
-      <div className="p-8 pt-12">
+      <div className="p-8 pt-20 relative z-10">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
@@ -186,9 +201,9 @@ const ApiIntegrationPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Updated to grid format */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">
@@ -197,6 +212,10 @@ const ApiIntegrationPage: React.FC = () => {
                 <p className="text-2xl font-semibold text-gray-900 mt-1">
                   {integrations.length}
                 </p>
+                <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span>+5% MoM</span>
+                </div>
               </div>
               <div className="p-3 rounded-lg bg-blue-50">
                 <Cloud className="h-6 w-6 text-blue-600" />
@@ -204,13 +223,17 @@ const ApiIntegrationPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Connected</p>
                 <p className="text-2xl font-semibold text-green-600 mt-1">
                   {integrations.filter((i) => i.connected).length}
                 </p>
+                <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span>+12% YoY</span>
+                </div>
               </div>
               <div className="p-3 rounded-lg bg-green-50">
                 <CheckCircle className="h-6 w-6 text-green-600" />
@@ -218,13 +241,17 @@ const ApiIntegrationPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Available</p>
                 <p className="text-2xl font-semibold text-yellow-600 mt-1">
                   {integrations.filter((i) => !i.connected).length}
                 </p>
+                <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span>+8% WoW</span>
+                </div>
               </div>
               <div className="p-3 rounded-lg bg-yellow-50">
                 <XCircle className="h-6 w-6 text-yellow-600" />
@@ -235,12 +262,12 @@ const ApiIntegrationPage: React.FC = () => {
 
         {/* Filters and Search */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-          <div className="flex space-x-1 p-1 bg-gray-100 rounded-lg">
+          <div className="flex space-x-1 p-1 bg-gray-100/70 backdrop-blur-sm rounded-lg">
             <button
               onClick={() => setActiveTab("all")}
               className={`px-4 py-2 text-sm font-medium rounded-md ${
                 activeTab === "all"
-                  ? "bg-white shadow-sm text-gray-900"
+                  ? "bg-white/70 backdrop-blur-sm shadow-sm text-gray-900"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -250,7 +277,7 @@ const ApiIntegrationPage: React.FC = () => {
               onClick={() => setActiveTab("connected")}
               className={`px-4 py-2 text-sm font-medium rounded-md ${
                 activeTab === "connected"
-                  ? "bg-white shadow-sm text-gray-900"
+                  ? "bg-white/70 backdrop-blur-sm shadow-sm text-gray-900"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -260,7 +287,7 @@ const ApiIntegrationPage: React.FC = () => {
               onClick={() => setActiveTab("available")}
               className={`px-4 py-2 text-sm font-medium rounded-md ${
                 activeTab === "available"
-                  ? "bg-white shadow-sm text-gray-900"
+                  ? "bg-white/70 backdrop-blur-sm shadow-sm text-gray-900"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -274,7 +301,7 @@ const ApiIntegrationPage: React.FC = () => {
               placeholder="Search integrations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm"
             />
             <Code className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           </div>
@@ -285,7 +312,7 @@ const ApiIntegrationPage: React.FC = () => {
           {filteredIntegrations.map((integration) => (
             <div
               key={integration.id}
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:border-blue-200 transition-colors"
+              className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50 hover:border-blue-200 transition-colors"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center">
@@ -314,7 +341,7 @@ const ApiIntegrationPage: React.FC = () => {
                 disabled={integration.loading}
                 className={`w-full flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   integration.connected
-                    ? "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    ? "bg-white/70 backdrop-blur-sm border border-gray-300 text-gray-700 hover:bg-gray-50/70"
                     : "bg-blue-600 text-white hover:bg-blue-700"
                 }`}
               >
@@ -334,12 +361,12 @@ const ApiIntegrationPage: React.FC = () => {
         </div>
 
         {/* Documentation Section */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
+        <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             API Integration Documentation
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 border border-gray-200 rounded-lg hover:border-blue-200 transition-colors">
+            <div className="p-4 border border-gray-200/50 rounded-lg hover:border-blue-200 transition-colors bg-white/50 backdrop-blur-sm">
               <div className="flex items-center mb-3">
                 <div className="p-2 mr-3 rounded-lg bg-blue-50 text-blue-600">
                   <Code className="h-5 w-5" />
@@ -351,7 +378,7 @@ const ApiIntegrationPage: React.FC = () => {
                 application.
               </p>
             </div>
-            <div className="p-4 border border-gray-200 rounded-lg hover:border-blue-200 transition-colors">
+            <div className="p-4 border border-gray-200/50 rounded-lg hover:border-blue-200 transition-colors bg-white/50 backdrop-blur-sm">
               <div className="flex items-center mb-3">
                 <div className="p-2 mr-3 rounded-lg bg-blue-50 text-blue-600">
                   <Lock className="h-5 w-5" />
@@ -363,7 +390,7 @@ const ApiIntegrationPage: React.FC = () => {
                 API calls.
               </p>
             </div>
-            <div className="p-4 border border-gray-200 rounded-lg hover:border-blue-200 transition-colors">
+            <div className="p-4 border border-gray-200/50 rounded-lg hover:border-blue-200 transition-colors bg-white/50 backdrop-blur-sm">
               <div className="flex items-center mb-3">
                 <div className="p-2 mr-3 rounded-lg bg-blue-50 text-blue-600">
                   <Zap className="h-5 w-5" />
