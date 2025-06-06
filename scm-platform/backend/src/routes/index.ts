@@ -25,7 +25,7 @@ import poConversationThreadRoutes from "./poconversationthread.routes";
 // ✅ New Routes
 import alertRoutes from "./new/alert.routes";
 import anomalyRoutes from "./new/anomaly.routes";
-import automationRoutes from "./new/AutomationRule.routes";
+import automationRoutes from "./new/automationRule.routes";
 import binLocationRoutes from "./new/binLocation.routes";
 import goalRoutes from "./new/goal.routes";
 import inventoryAuditRoutes from "./new/inventoryAudit.routes";
