@@ -442,87 +442,117 @@ export default function SuppliersPage() {
   const metrics = calculateMetrics(suppliers);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 relative overflow-hidden text-gray-800">
+      {/* Background gradients and grid pattern */}
+      <div className="absolute inset-0 overflow-hidden z-0">
+        <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
+        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-gradient-to-br from-cyan-300/25 to-sky-300/25 blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-20 w-96 h-96 rounded-full bg-gradient-to-br from-blue-300/30 to-sky-300/30 blur-3xl"></div>
+        <div className="absolute -bottom-20 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300/25 to-cyan-300/25 blur-3xl"></div>
+        {/* Adjusted grid pattern to be slightly less opaque */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.1)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
+      </div>
+
       <Navbar isLoggedIn={true} />
 
-      <main className="flex-1 pt-20 px-6 bg-gray-50">
+      {/* Main content area - now explicitly bg-sky-50 */}
+      <main className="flex-1 pt-20 px-6 z-10">
+        {" "}
+        {/* Added z-10 to ensure it sits above the blurred background */}
         <div className="flex flex-col gap-6">
-          <SupplierMetrics
-            totalSuppliers={metrics.totalSuppliers}
-            preferredSuppliers={metrics.preferredSuppliers}
-            avgRating={metrics.avgRating}
-            avgOnTimeRate={metrics.avgOnTimeRate}
-          />
+          {/* SupplierMetrics - explicitly bg-sky-50 and rounded */}
+          <div className="p-6 rounded-lg">
+            <SupplierMetrics
+              totalSuppliers={metrics.totalSuppliers}
+              preferredSuppliers={metrics.preferredSuppliers}
+              avgRating={metrics.avgRating}
+              avgOnTimeRate={metrics.avgOnTimeRate}
+            />
+          </div>
 
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-3 overflow-x-auto lg:w-3/4">
-              <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-gray-800">
-                  Supplier Management
-                </h1>
+              {/* SearchFilterBar - explicitly bg-sky-50 and rounded */}
+              <div className="p-6 rounded-lg flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-sky-50">
+                <SearchFilterBar
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                  onExport={exportToCSV}
+                  onPrint={handlePrint}
+                  onAddSupplier={() => setIsAddModalOpen(true)}
+                />
 
-                {/* Radix UI Dropdown Menu for Add Supplier and Import */}
-                <DropdownMenu.Root>
-                  <DropdownMenu.Trigger asChild>
-                    <button className="inline-flex items-center px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
-                      <FiPlus className="mr-2" />
-                      Add New
-                    </button>
-                  </DropdownMenu.Trigger>
+                <div className="self-center md:self-start mt-[20px]">
+                  <DropdownMenu.Root>
+                    <DropdownMenu.Trigger asChild>
+                      <button className="inline-flex items-center px-3 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                        <FiPlus className="mr-2" />
+                        Add
+                      </button>
+                    </DropdownMenu.Trigger>
 
-                  <DropdownMenu.Portal>
-                    <DropdownMenu.Content className="bg-white rounded-md shadow-lg p-1 z-50">
-                      <DropdownMenu.Item
-                        className="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer rounded-md"
-                        onSelect={() => setIsAddModalOpen(true)}
-                      >
-                        Add New Supplier
-                      </DropdownMenu.Item>
-                      <DropdownMenu.Item
-                        className="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer rounded-md"
-                        onSelect={handleImportSuppliers}
-                      >
-                        Import Suppliers (CSV)
-                      </DropdownMenu.Item>
-                    </DropdownMenu.Content>
-                  </DropdownMenu.Portal>
-                </DropdownMenu.Root>
+                    <DropdownMenu.Portal>
+                      <DropdownMenu.Content className="bg-white rounded-md shadow-lg p-1 z-50">
+                        <DropdownMenu.Item
+                          className="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer rounded-md"
+                          onSelect={() => setIsAddModalOpen(true)}
+                        >
+                          Add New Supplier
+                        </DropdownMenu.Item>
+                        <DropdownMenu.Item
+                          className="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer rounded-md"
+                          onSelect={handleImportSuppliers}
+                        >
+                          Import Suppliers (CSV)
+                        </DropdownMenu.Item>
+                      </DropdownMenu.Content>
+                    </DropdownMenu.Portal>
+                  </DropdownMenu.Root>
+                </div>
               </div>
 
-              <SearchFilterBar
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                sortBy={sortBy}
-                onSortChange={setSortBy}
-                onExport={exportToCSV}
-                onPrint={handlePrint}
-                onAddSupplier={() => setIsAddModalOpen(true)} // This can be removed or kept depending on desired UX (dropdown now handles add)
-              />
-
-              <SupplierTable
-                suppliers={filteredSuppliers}
-                isLoading={isLoading}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onViewDetails={handleViewDetails}
-                onCreatePO={handleCreatePO}
-                isMobile={false}
-              />
+              {/* SupplierTable - explicitly bg-sky-50 and rounded */}
+              <div className="p-0 rounded-lg shadow-md">
+                {" "}
+                {/* Added bg-sky-50 here */}
+                <SupplierTable
+                  suppliers={filteredSuppliers}
+                  isLoading={isLoading}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onViewDetails={handleViewDetails}
+                  onCreatePO={handleCreatePO}
+                  isMobile={false}
+                />
+              </div>
             </div>
 
-            <div className="flex-1 lg:w-1/4 min-w-[300px]">
-              <PerformanceCard
-                avgOnTimeRate={metrics.avgOnTimeRate}
-                avgResponseTime={metrics.avgResponseTime}
-                onGenerateReport={generatePerformanceReport}
-              />
-
-              <QuickActionsCard
-                onAddSupplier={() => setIsAddModalOpen(true)} // This can also be removed or kept
-                onCreatePO={handleCreatePO}
-                onImportSuppliers={handleImportSuppliers}
-                onViewShipping={handleShippingUpdates}
-              />
+            <div className="flex-1 lg:w-1/4 min-w-[300px] flex flex-col gap-6">
+              {" "}
+              {/* Added flex-col and gap-6 for spacing */}
+              {/* PerformanceCard - explicitly bg-sky-50 and rounded */}
+              <div className="p-0 rounded-lg">
+                {" "}
+                {/* Added bg-sky-50 here */}
+                <PerformanceCard
+                  avgOnTimeRate={metrics.avgOnTimeRate}
+                  avgResponseTime={metrics.avgResponseTime}
+                  onGenerateReport={generatePerformanceReport}
+                />
+              </div>
+              {/* QuickActionsCard - explicitly bg-sky-50 and rounded */}
+              <div className="p-0 rounded-lg">
+                {" "}
+                {/* Added bg-sky-50 here */}
+                <QuickActionsCard
+                  onAddSupplier={() => setIsAddModalOpen(true)}
+                  onCreatePO={handleCreatePO}
+                  onImportSuppliers={handleImportSuppliers}
+                  onViewShipping={handleShippingUpdates}
+                />
+              </div>
             </div>
           </div>
         </div>

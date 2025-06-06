@@ -16,6 +16,8 @@ import {
 } from "react-icons/fa";
 import { GiFactory } from "react-icons/gi";
 import { MdInventory, MdOutlineSecurity } from "react-icons/md";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
 const BlurredBackground = () => (
   <div className="absolute inset-0 overflow-hidden -z-10">
@@ -92,37 +94,9 @@ const SupplyChainDashboard = () => {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(140,165,233,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.1)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
 
-      {/* Header */}
-      <header className="relative z-10 backdrop-blur-lg bg-white/80 border-b border-sky-200/50 shadow-sm">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-3"
-          >
-            <div className="p-2 rounded-xl bg-gradient-to-br from-sky-400 to-blue-500 shadow-md">
-              <FaWarehouse className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent">
-              SupplyChainPro
-            </h1>
-          </motion.div>
+      <Navbar isLoggedIn={true} />
 
-          <div className="flex items-center gap-4">
-            <button className="p-2 rounded-full bg-white/80 backdrop-blur-md border border-sky-200/50 shadow-sm hover:shadow-md transition-all">
-              <FaBell className="text-gray-600 w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-2 p-2 rounded-full bg-white/80 backdrop-blur-md border border-sky-200/50 shadow-sm hover:shadow-md transition-all">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center">
-                <FaUserCircle className="text-white w-5 h-5" />
-              </div>
-              <span className="font-medium text-gray-700">Admin</span>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="relative z-10 container mx-auto px-6 py-8">
+      <main className="relative z-10 container mx-auto px-6 py-8 pt-20">
         {/* Search and Filters */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -458,31 +432,12 @@ const SupplyChainDashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-sky-100/50 to-blue-100/50 h-48 rounded-xl flex items-center justify-center mb-6 border border-sky-200/30">
-                <div className="text-center">
-                  <div className="animate-spin mb-2">
-                    <svg
-                      className="w-8 h-8 text-sky-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                  </div>
-                  <p className="text-gray-500">Loading network visualization</p>
-                </div>
+              <div className="bg-gradient-to-br from-sky-100/50 to-blue-100/50 h-48 rounded-xl flex items-center justify-center mb-6 border border-sky-200/30 overflow-hidden">
+                <img
+                  src="https://cdn.britannica.com/37/245037-050-79129D52/world-map-continents-oceans.jpg"
+                  alt="Network Map"
+                  className="object-cover w-full h-full"
+                />
               </div>
 
               <div className="space-y-4">
@@ -603,6 +558,7 @@ const SupplyChainDashboard = () => {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

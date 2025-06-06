@@ -53,10 +53,10 @@ function ProductProfileCard({ product }: ProductProfileCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       whileHover={{ y: -8 }}
-      className="flex justify-center"
+      className="flex justify-center py-8"
     >
       <div
-        className="relative w-full max-w-sm bg-gradient-to-br from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 dark:bg-gray-800 rounded-3xl shadow-lg hover:shadow-2xl overflow-hidden cursor-pointer transition-all duration-500 group border border-sky-100 dark:border-sky-800/50"
+        className="relative w-full max-w-sm h-[42rem] bg-gradient-to-br from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 dark:bg-gray-800 rounded-3xl shadow-lg hover:shadow-2xl overflow-hidden cursor-pointer transition-all duration-500 group border border-sky-100 dark:border-sky-800/50"
         onClick={() => router.push(`/product/${product.id}`)}
       >
         {/* Header with gradient */}
@@ -92,7 +92,7 @@ function ProductProfileCard({ product }: ProductProfileCardProps) {
         </div>
 
         {/* Content section */}
-        <div className="p-6 relative">
+        <div className="p-6 relative h-[calc(42rem-16rem)] flex flex-col">
           {/* Product name and category */}
           <div className="text-center mb-6">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-sky-700 dark:group-hover:text-sky-300 transition-colors">
@@ -110,7 +110,7 @@ function ProductProfileCard({ product }: ProductProfileCardProps) {
                 <Package className="w-6 h-6 text-sky-600 dark:text-sky-400" />
               </div>
               <p className="font-bold text-lg text-gray-900 dark:text-white">
-
+                {product.stock}
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
                 Units Available
@@ -132,8 +132,8 @@ function ProductProfileCard({ product }: ProductProfileCardProps) {
 
           {/* Description preview */}
           {product.description && (
-            <div className="mb-6">
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center line-clamp-2">
+            <div className="mb-6 flex-grow">
+              <p className="text-sm text-gray-600 dark:text-gray-400 text-center line-clamp-3">
                 {product.description}
               </p>
             </div>

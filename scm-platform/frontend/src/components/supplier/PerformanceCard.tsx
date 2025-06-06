@@ -15,46 +15,52 @@ export const PerformanceCard = ({
   const responsePercent = 100 - (parseFloat(avgResponseTime) / 72) * 100;
 
   return (
-    <div className="rounded-xl bg-white border border-sky-100 shadow-sm p-6 space-y-6">
-      <h2 className="text-lg font-semibold text-gray-800">
-        Supplier Performance
-      </h2>
-
-      <div className="space-y-5">
-        <div>
-          <p className="text-sm text-gray-600 mb-2">Avg. On-Time Rate</p>
-          <div className="w-full h-3 bg-sky-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-green-500 transition-all"
-              style={{ width: `${onTimeValue}%` }}
-            />
-          </div>
-          <p className="text-right text-xs text-gray-500 mt-1">
-            {onTimeValue}%
-          </p>
-        </div>
-
-        <div>
-          <p className="text-sm text-gray-600 mb-2">Avg. Response Time</p>
-          <div className="w-full h-3 bg-sky-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-500 transition-all"
-              style={{ width: `${responsePercent}%` }}
-            />
-          </div>
-          <p className="text-right text-xs text-gray-500 mt-1">
-            {avgResponseTime} hours
-          </p>
-        </div>
+    <div className="rounded-xl border border-sky-100 shadow-sm overflow-hidden">
+      {/* Header */}
+      <div className="bg-sky-50 px-6 py-4">
+        <h2 className="text-lg font-semibold text-gray-800">
+          Supplier Performance
+        </h2>
       </div>
 
-      <div>
-        <button
-          onClick={onGenerateReport}
-          className="w-full py-2 mt-2 rounded-md bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition"
-        >
-          Supplier Performance Report
-        </button>
+      {/* Body */}
+      <div className="bg-white px-6 py-6 space-y-6">
+        <div className="space-y-5">
+          <div>
+            <p className="text-sm text-gray-600 mb-2">Avg. On-Time Rate</p>
+            <div className="w-full h-3 bg-sky-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-500 transition-all"
+                style={{ width: `${onTimeValue}%` }}
+              />
+            </div>
+            <p className="text-right text-xs text-gray-500 mt-1">
+              {onTimeValue}%
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-600 mb-2">Avg. Response Time</p>
+            <div className="w-full h-3 bg-sky-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-500 transition-all"
+                style={{ width: `${responsePercent}%` }}
+              />
+            </div>
+            <p className="text-right text-xs text-gray-500 mt-1">
+              {avgResponseTime} hours
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <button
+            onClick={onGenerateReport}
+            className="w-full py-2 mt-2 rounded-md bg-blue-500 text-white text-sm font-medium hover:bg-sky-700 transition"
+          >
+            Supplier Performance Report
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ export const HeaderSection = ({
       </button>
       <button
         onClick={onOpen}
-        className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700"
+        className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700"
       >
         <FiPlus className="h-4 w-4" />
         Add Item

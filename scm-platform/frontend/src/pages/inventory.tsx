@@ -325,16 +325,10 @@ export default function LogisticsPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl flex items-center justify-center shadow-xl shadow-sky-500/25">
-                  <FiActivity className="w-6 h-6 text-white" />
-                </div>
                 <div>
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-sky-700 via-blue-700 to-cyan-600 bg-clip-text text-transparent">
-                    Logistics Dashboard
+                    Inventory
                   </h1>
-                  <p className="text-sky-600 font-medium">
-                    Manage your supply chain operations
-                  </p>
                 </div>
               </div>
 

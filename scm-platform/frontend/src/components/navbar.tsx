@@ -59,15 +59,13 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
           <div className="flex items-center justify-between h-16">
             {/* Enhanced Logo */}
             <div className="flex items-center space-x-4 group cursor-pointer">
+              
+              {/* Enhanced brand name */}
+              <Link href="/" className="flex items-center space-x-4 group cursor-pointer">
               <div className="relative">
-                {/* Glow effect */}
                 <div className="absolute inset-0 w-12 h-12 bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-all duration-700 transform group-hover:scale-150"></div>
-
-                {/* Main logo container */}
                 <div className="relative w-12 h-12 flex items-center justify-center rounded-2xl bg-gradient-to-br from-sky-100 via-white to-blue-100 border border-sky-200/60 group-hover:border-sky-300/80 transition-all duration-500 group-hover:scale-110 group-hover:shadow-2xl group-hover:shadow-sky-500/25 transform-gpu">
-                  {/* Inner gradient overlay */}
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-sky-400/5 via-transparent to-blue-400/10 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-
                   <FaCodeBranch
                     className={`w-6 h-6 text-sky-600 group-hover:text-sky-700 transform transition-all duration-700 ${
                       sidebarVisible ? "rotate-180 scale-110" : "rotate-90"
@@ -75,15 +73,13 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
                   />
                 </div>
               </div>
-
-              {/* Enhanced brand name */}
               <div className="relative">
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-sky-600 via-blue-600 to-cyan-500 bg-clip-text text-transparent tracking-tight group-hover:from-sky-700 group-hover:via-blue-700 group-hover:to-cyan-600 transition-all duration-500">
                   Orontis
                 </h1>
-                {/* Underline effect */}
                 <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-sky-500 to-blue-500 group-hover:w-full transition-all duration-500 ease-out"></div>
               </div>
+            </Link>
             </div>
 
             {/* Enhanced Right Side */}

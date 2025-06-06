@@ -561,7 +561,7 @@ export default function SettingsPage() {
 
             {/* Save Button */}
             <button
-              className="lg:col-span-2 w-full py-4 rounded-xl font-semibold bg-sky-500 text-white shadow-lg hover:bg-sky-600 transition-colors duration-200"
+              className="lg:col-span-2 w-full py-4 rounded-xl font-semibold bg-blue-500 text-white shadow-lg hover:bg-sky-600 transition-colors duration-200"
               onClick={saveSettings}
             >
               Save All Settings

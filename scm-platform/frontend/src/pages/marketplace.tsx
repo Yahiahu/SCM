@@ -255,12 +255,12 @@ export default function MarketplacePage() {
                 <FiShoppingCart className="w-8 h-8 text-blue-600" />
               </div>
               <h1 className="text-5xl font-bold bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">
-                Product Marketplace
+                Supplier Marketplace
               </h1>
             </div>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Discover and configure professional component bundles with
-              real-time pricing and inventory.
+              Connect with suppliers and access real-time pricing to optimize
+              your inventory.
             </p>
           </motion.div>
 
@@ -322,11 +322,10 @@ export default function MarketplacePage() {
                           : "border-gray-200 hover:border-blue-200 hover:shadow-xl"
                       }
                     `}
-
-                      onClick={() => setSelectedBundle(bundle)}
-                      whileHover={{ scale: 1.005 }} // Slightly reduced hover scale
-                      whileTap={{ scale: 0.995 }}   // Slightly increased tap scale
-                    >
+                    onClick={() => setSelectedBundle(bundle)}
+                    whileHover={{ scale: 1.005 }} // Slightly reduced hover scale
+                    whileTap={{ scale: 0.995 }} // Slightly increased tap scale
+                  >
                     {/* Selection indicator */}
                     {selectedBundle?.id === bundle.id && (
                       <motion.div

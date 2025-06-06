@@ -19,7 +19,11 @@ export function ProductAnalytics({
         <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
           Product Analytics
         </h2>
-        <Button size="sm" onClick={onExportCSV}>
+        <Button
+          size="sm"
+          onClick={onExportCSV}
+          className="bg-blue-500 hover:bg-blue-700 text-white"
+        >
           Export Data
         </Button>
       </div>

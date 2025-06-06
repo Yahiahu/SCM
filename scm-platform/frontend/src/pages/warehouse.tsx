@@ -25,7 +25,6 @@ import {
   WarehouseLocation,
 } from "../components/warehouse/types";
 
-
 const BlurredBackground = () => (
   <div className="absolute inset-0 overflow-hidden z-0">
     <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
@@ -37,7 +36,7 @@ const BlurredBackground = () => (
 
 export default function WarehousePage() {
   const router = useRouter();
-  const  toast  = useToast();
+  const toast = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [incoming, setIncoming] = useState<IncomingShipment[]>([]);
@@ -216,44 +215,77 @@ export default function WarehousePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
       <BlurredBackground />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
+      {/* Adjusted grid pattern to be slightly less opaque */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.1)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
 
       <Navbar isLoggedIn={true} />
-      <HeaderSection
-        onOpen={() => setIsModalOpen(true)}
-        refreshData={refreshData}
-        isLoading={isLoading}
-      />
-      <AlertsSection
-        outOfStockItems={outOfStockItems}
-        delayedIncoming={delayedIncoming}
-      />
-      <StatsCards
-        totalItems={totalItems}
-        utilizationPercentage={utilizationPercentage}
-        processingOutgoing={processingOutgoing}
-      />
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1 overflow-x-auto max-w-full">
-          <InventoryTable
-            isLoading={isLoading}
-            inventory={inventory}
-            filteredInventory={filteredInventory}
-            activeTab={activeTab}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            setActiveTab={setActiveTab}
-            updateItemQuantity={updateItemQuantity}
-            deleteItem={deleteItem}
-            handleViewLocation={handleViewLocation}
-            router={router}
-          />
+
+      {/* Main content area - now explicitly bg-sky-50 for its children */}
+      <main className="flex-1 pt-20 px-6 z-10">
+        {" "}
+        {/* Added z-10 for layering */}
+        <div className="flex flex-col gap-0">
+          {/* HeaderSection - wrapped with bg-sky-50 */}
+          <div className="p-4 rounded-lg bg-sky-50 ">
+            <HeaderSection
+              onOpen={() => setIsModalOpen(true)}
+              refreshData={refreshData}
+              isLoading={isLoading}
+            />
+          </div>
+
+          {/* AlertsSection - wrapped with bg-sky-50 */}
+          <div className="p-6 rounded-lg">
+            <AlertsSection
+              outOfStockItems={outOfStockItems}
+              delayedIncoming={delayedIncoming}
+            />
+          </div>
+
+          {/* StatsCards - wrapped with bg-sky-50 */}
+          <div className="p-2 rounded-lg">
+            <StatsCards
+              totalItems={totalItems}
+              utilizationPercentage={utilizationPercentage}
+              processingOutgoing={processingOutgoing}
+            />
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-0">
+            <div className="flex-1 overflow-x-auto max-w-full">
+              {/* InventoryTable - wrapped with bg-sky-50 */}
+              <div className="p-0 rounded-lg mr-2">
+                <InventoryTable
+                  isLoading={isLoading}
+                  inventory={inventory}
+                  filteredInventory={filteredInventory}
+                  activeTab={activeTab}
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  setActiveTab={setActiveTab}
+                  updateItemQuantity={updateItemQuantity}
+                  deleteItem={deleteItem}
+                  handleViewLocation={handleViewLocation}
+                  router={router}
+                />
+              </div>
+            </div>
+            <div className="w-full lg:w-[30%] space-y-6 flex flex-col">
+              {" "}
+              {/* Added flex-col to enable gap on children */}
+              {/* QuickActionsCard - wrapped with bg-sky-50 */}
+              <div className="p-0 rounded-lg">
+                <QuickActionsCard />
+              </div>
+              {/* ShipmentsCard - wrapped with bg-sky-50 */}
+              <div className="p-0 rounded-lg">
+                <ShipmentsCard incoming={incoming} />
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="w-full lg:w-[30%] space-y-6">
-          <QuickActionsCard />
-          <ShipmentsCard incoming={incoming} />
-        </div>
-      </div>
+      </main>
+
       <Footer />
       <AddInventoryModal
         isOpen={isModalOpen}
