@@ -30,7 +30,7 @@ const settings = {
   slidesToScroll: 1,
 };
 
-function ProductCarousel({ products }: ProductCarouselProps) {
+export default function ProductCarousel({ products }: ProductCarouselProps) {
   const [slider, setSlider] = useState<Slider | null>(null);
   const router = useRouter();
 
@@ -39,15 +39,15 @@ function ProductCarousel({ products }: ProductCarouselProps) {
 
   if (!products || products.length === 0) {
     return (
-      <div className="mb-16">
-        <p>No featured products to display.</p>
+      <div className="mb-16 text-center text-gray-600 dark:text-gray-300">
+        No featured products to display.
       </div>
     );
   }
 
   return (
     <div className="relative w-full overflow-hidden mb-16">
-      {/* Slick Carousel CSS links */}
+      {/* Slick Carousel CSS */}
       <link
         rel="stylesheet"
         type="text/css"
@@ -62,22 +62,22 @@ function ProductCarousel({ products }: ProductCarouselProps) {
       {/* Left Arrow */}
       <button
         aria-label="left-arrow"
-        className="absolute z-20 left-[30%] md:left-10 top-[90%] md:top-1/2 transform -translate-y-1/2 text-white hover:bg-black/30 rounded-full p-2 transition-colors duration-200"
+        className="absolute z-20 left-[30%] md:left-10 top-[90%] md:top-1/2 transform -translate-y-1/2 text-white hover:bg-black/30 bg-black/20 backdrop-blur-md rounded-full p-2 transition"
         onClick={() => slider?.slickPrev()}
       >
-        <BiLeftArrowAlt size="40px" />
+        <BiLeftArrowAlt size="36" />
       </button>
 
       {/* Right Arrow */}
       <button
         aria-label="right-arrow"
-        className="absolute z-20 right-[30%] md:right-10 top-[90%] md:top-1/2 transform -translate-y-1/2 text-white hover:bg-black/30 rounded-full p-2 transition-colors duration-200"
+        className="absolute z-20 right-[30%] md:right-10 top-[90%] md:top-1/2 transform -translate-y-1/2 text-white hover:bg-black/30 bg-black/20 backdrop-blur-md rounded-full p-2 transition"
         onClick={() => slider?.slickNext()}
       >
-        <BiRightArrowAlt size="40px" />
+        <BiRightArrowAlt size="36" />
       </button>
 
-      {/* Slider Component */}
+      {/* Slider */}
       <Slider {...settings} ref={(s) => setSlider(s)}>
         {products.map((product) => (
           <div
@@ -88,18 +88,19 @@ function ProductCarousel({ products }: ProductCarouselProps) {
             }}
           >
             {/* Overlay */}
-            <div className="absolute inset-0 bg-black/50" />
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
 
-            <div className="container mx-auto h-[600px] relative px-4">
-              <div className="max-w-lg absolute top-1/2 transform -translate-y-1/2 text-white space-y-6">
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold">
+            {/* Content */}
+            <div className="container mx-auto h-full relative z-10 px-4">
+              <div className="max-w-lg absolute top-1/2 -translate-y-1/2 text-white space-y-6">
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
                   {product.name}
-                </h1>
-                <p className="text-base lg:text-lg text-gray-100">
+                </h2>
+                <p className="text-base lg:text-lg text-gray-100 line-clamp-3">
                   {product.description}
                 </p>
                 <button
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors duration-200 w-fit"
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-3 px-6 rounded-xl transition shadow-md"
                   onClick={() => router.push(`/product/${product.id}`)}
                 >
                   View Product
@@ -112,5 +113,3 @@ function ProductCarousel({ products }: ProductCarouselProps) {
     </div>
   );
 }
-
-export default ProductCarousel;
