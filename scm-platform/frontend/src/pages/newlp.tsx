@@ -21,7 +21,8 @@ import {
 import { MdInventory, MdTimeline } from "react-icons/md";
 import { GiFactory, GiDeliveryDrone } from "react-icons/gi";
 import Footer from "../components/footer";
-import Navbar from "../components/navbar";
+import Navbar from "../components/nb";
+import screenshot from "../assets/Screenshot1.png";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import router from "next/router";
+import Image from "next/image";
 
 // Custom animations
 const fadeIn = "animate-fade-in";
@@ -308,16 +311,19 @@ const InventoryDashboardPreview = () => {
                   </DialogTitle>
                 </DialogHeader>
                 <div className="relative aspect-video rounded-md overflow-hidden border border-blue-200">
-                  <img
-                    src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-                    alt="Inventory Dashboard"
-                    className="object-cover w-full h-full"
+                  <Image
+                    src={screenshot}
+                    alt="Screenshot of website"
+                    className="rounded-md border"
                   />
                 </div>
                 <DialogFooter>
                   <Button variant="outline">Close</Button>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    Request Demo
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => router.push("/login")}
+                  >
+                    See Demo
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -489,7 +495,7 @@ export default function LandingPage() {
               style={{ animationDelay: "0.6s" }}
             >
               <Button
-                onClick={() => router.push("/product")}
+                onClick={() => router.push("/login")}
                 className="bg-white text-blue-700 hover:bg-blue-100 group border border-blue-300"
                 size="lg"
               >
@@ -498,6 +504,7 @@ export default function LandingPage() {
               </Button>
 
               <Button
+                onClick={() => router.push("/demo")}
                 variant="outline"
                 className="border-blue-300 text-blue-700 hover:bg-blue-700/30 hover:text-white"
                 size="lg"
@@ -736,9 +743,26 @@ export default function LandingPage() {
                 />
               </div>
               <Button
-                type="submit"
+                type="button"
                 size="lg"
                 className="w-full group bg-blue-600 hover:bg-blue-700"
+                onClick={() => {
+                  const name = (
+                    document.getElementById("name") as HTMLInputElement
+                  )?.value;
+                  const email = (
+                    document.getElementById("email") as HTMLInputElement
+                  )?.value;
+                  const company = (
+                    document.getElementById("company") as HTMLInputElement
+                  )?.value;
+                  const message = (
+                    document.getElementById("message") as HTMLTextAreaElement
+                  )?.value;
+
+                  const mailto = `mailto:yahiahu24@gmail.com?subject=Contact from ${name} at ${company}&body=Name: ${name}%0D%0AEmail: ${email}%0D%0ACompany: ${company}%0D%0AMessage:%0D%0A${message}`;
+                  window.location.href = mailto;
+                }}
               >
                 Get in Touch
                 <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />

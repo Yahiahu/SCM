@@ -19,7 +19,8 @@
     "baseUrl": "src",
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "types": ["next", "next/navigation"]
   },
   "include": [
     "src",

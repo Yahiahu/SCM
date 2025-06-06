@@ -1,417 +1,83 @@
 "use client";
 
-import {
-  Box,
-  ChakraProvider,
-  extendTheme,
-  Flex,
-  Heading,
-  VStack,
-  HStack,
-  Text,
-  IconButton,
-  Tooltip,
-  Icon,
-  Button,
-  useColorModeValue,
-  Image,
-  FormControl,
-  Input,
-  Textarea,
-  FormLabel,
-  Container,
-  SimpleGrid,
-  useBreakpointValue,
-  Grid,
-  GridItem,
-  Divider,
-  Badge,
-  Avatar,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-} from "@chakra-ui/react";
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-  RefObject,
-} from "react";
-import { Link as ChakraLink } from "@chakra-ui/react";
-import NextLink from "next/link";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
   FaTruck,
-  FaCogs,
   FaChartLine,
   FaCloud,
   FaShieldAlt,
-  FaRocket,
   FaArrowRight,
-  FaCodeBranch,
   FaBoxOpen,
-  FaRegLightbulb,
   FaWarehouse,
-  FaPallet,
   FaBarcode,
   FaMapMarkedAlt,
   FaClipboardCheck,
   FaExchangeAlt,
   FaPlane,
 } from "react-icons/fa";
-import {
-  MdOutlineSecurity,
-  MdSync,
-  MdInventory,
-  MdTimeline,
-} from "react-icons/md";
+import { MdInventory, MdTimeline } from "react-icons/md";
 import { GiFactory, GiDeliveryDrone } from "react-icons/gi";
-import { keyframes } from "@emotion/react";
-import { useRouter } from "next/navigation";
-import Navbar from "../components/navbar";
+import Footer from "../components/footer";
+import Navbar from "../components/nb";
 
-// Plane Animation Keyframes
-const planeTakeoff = keyframes`
-  0% { 
-    transform: translateX(-100px) translateY(-5000px) scale(1); 
-    opacity: 0; 
-  }
-  10% { 
-    opacity: 1; 
-    transform: translateX(0) translateY(0) scale(1);
-  }
-  20% { 
-    transform: translateX(50px) translateY(0px) rotate(5deg);
-  }
-  100% { 
-    transform: translateX(100vw) translateY(0px) rotate(10deg);
-  }
-`;
+// UI Components
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
-const planeFlyover = keyframes`
-  0% { 
-    transform: translateX(-100px) translateY(-1000px) rotate(10deg);
-    opacity: 1;
-  }
-  50% {
-    transform: translateX(50vw) translateY(-1000px) rotate(0deg);
-  }
-  100% { 
-    transform: translateX(100vw) translateY(-1000px) rotate(-10deg);
-    opacity: 1;
-  }
-`;
+// Custom animations
+const fadeIn = "animate-fade-in";
+const slideInLeft = "animate-slide-in-left";
+const slideInRight = "animate-slide-in-right";
+const floatUp = "animate-float-up";
+const scaleUp = "animate-scale-up";
+const pulseGlow = "animate-pulse-glow";
 
-const planeLanding = keyframes`
-  0% { 
-    transform: translateX(-100px) translateY(0px) rotate(-10deg);
-    opacity: 1;
-  }
-  80% {
-    transform: translateX(50px) translateY(0) rotate(0deg);
-    opacity: 1;
-  }
-  100% { 
-    transform: translateX(100px) translateY(0px) scale(0.8);
-    opacity: 0;
-  }
-`;
-
-// Enhanced Chakra UI Theme with supply chain aesthetic
-const config = {
-  initialColorMode: "dark",
-  useSystemColorMode: false,
-};
-
-const colors = {
-  brand: {
-    50: "#e0f7fa",
-    100: "#b3e5fc",
-    200: "#81d4fa",
-    300: "#4fc3f7",
-    400: "#29b6f6",
-    500: "#03a9f4", // Main accent color
-    600: "#039be5",
-    700: "#0288d1",
-    800: "#0277bd",
-    900: "#01579b",
-  },
-  dark: {
-    bg: "#1A202C", // Dark background
-    text: "#E2E8F0", // Light text
-    card: "#2D3748", // Slightly lighter dark for cards
-    border: "#4A5568", // Subtle border
-  },
-  light: {
-    bg: "#F7FAFC",
-    text: "#2D3748",
-    card: "#FFFFFF",
-    border: "#E2E8F0",
-  },
-};
-
-const theme = extendTheme({
-  config,
-  colors,
-  fonts: {
-    heading: `'Inter', sans-serif`,
-    body: `'Inter', sans-serif`,
-  },
-  styles: {
-    global: (props: { colorMode: string }) => ({
-      body: {
-        bg: props.colorMode === "dark" ? "dark.bg" : "light.bg",
-        color: props.colorMode === "dark" ? "dark.text" : "light.text",
-        transitionProperty: "background-color",
-        transitionDuration: "normal",
-      },
-      "::selection": {
-        bg: "brand.500",
-        color: "white",
-      },
-    }),
-  },
-  components: {
-    Button: {
-      baseStyle: {
-        borderRadius: "md",
-        fontWeight: "semibold",
-      },
-      variants: {
-        solid: (props: { colorMode: string }) => ({
-          bg: props.colorMode === "dark" ? "brand.500" : "brand.600",
-          color: "white",
-          _hover: {
-            bg: props.colorMode === "dark" ? "brand.600" : "brand.700",
-          },
-        }),
-        outline: (props: { colorMode: string }) => ({
-          borderColor: props.colorMode === "dark" ? "brand.500" : "brand.600",
-          color: props.colorMode === "dark" ? "brand.500" : "brand.600",
-          _hover: {
-            bg: props.colorMode === "dark" ? "brand.500" : "brand.600",
-            color: "white",
-          },
-        }),
-      },
-    },
-    Input: {
-      baseStyle: (props: { colorMode: string }) => ({
-        field: {
-          bg: props.colorMode === "dark" ? "dark.card" : "light.card",
-          borderColor:
-            props.colorMode === "dark" ? "dark.border" : "light.border",
-          _focus: {
-            borderColor: "brand.500",
-            boxShadow: `0 0 0 1px ${colors.brand[500]}`,
-          },
-        },
-      }),
-    },
-    Textarea: {
-      baseStyle: (props: { colorMode: string }) => ({
-        bg: props.colorMode === "dark" ? "dark.card" : "light.card",
-        borderColor:
-          props.colorMode === "dark" ? "dark.border" : "light.border",
-        _focus: {
-          borderColor: "brand.500",
-          boxShadow: `0 0 0 1px ${colors.brand[500]}`,
-        },
-      }),
-    },
-    Tooltip: {
-      baseStyle: {
-        bg: "brand.500",
-        color: "white",
-      },
-    },
-    Card: {
-      baseStyle: {
-        container: {
-          border: "1px solid",
-          borderColor: "gray.200",
-          borderRadius: "lg",
-          boxShadow: "sm",
-          _hover: {
-            boxShadow: "md",
-            transform: "translateY(-2px)",
-          },
-          transition: "all 0.2s ease-in-out",
-        },
-      },
-    },
-  },
-});
-
-// Supply Chain Themed Animations
-const conveyorBelt = keyframes`
-  0% { background-position: 0 0; }
-  100% { background-position: 100% 0; }
-`;
-
-const barcodeScan = keyframes`
-  0% { transform: translateY(0); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { transform: translateY(100%); opacity: 0; }
-`;
-
-const inventoryPulse = keyframes`
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.8; }
-  100% { transform: scale(1); opacity: 1; }
-`;
-
-const truckMovement = keyframes`
-  0% { transform: translateX(-20vw) translateY(0); }
-  25% { transform: translateX(20vw) translateY(-3px); }
-  50% { transform: translateX(60vw) translateY(0); }
-  75% { transform: translateX(100vw) translateY(-3px); }
-  100% { transform: translateX(140vw) translateY(0); }
-`;
-
-const warehouseGlow = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(3, 169, 244, 0.4); }
-  70% { box-shadow: 0 0 0 15px rgba(3, 169, 244, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(3, 169, 244, 0); }
-`;
-
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-
-const slideInLeft = keyframes`
-  from { opacity: 0; transform: translateX(-50px); }
-  to { opacity: 1; transform: translateX(0); }
-`;
-
-const slideInRight = keyframes`
-  from { opacity: 0; transform: translateX(50px); }
-  to { opacity: 1; transform: translateX(0); }
-`;
-
-const scaleUp = keyframes`
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-`;
-
-const rotateIn = keyframes`
-  from { opacity: 0; transform: rotate(-15deg) scale(0.8); }
-  to { opacity: 1; transform: rotate(0) scale(1); }
-`;
-
-const floatUp = keyframes`
-  0% { opacity: 0; transform: translateY(30px); }
-  50% { transform: translateY(-10px); }
-  100% { opacity: 1; transform: translateY(0); }
-`;
-
-const pulseGlow = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(3, 169, 244, 0.4); }
-  70% { box-shadow: 0 0 0 15px rgba(3, 169, 244, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(3, 169, 244, 0); }
-`;
-
-const gradientFlow = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-`;
-
-const chainLink = keyframes`
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0); }
-`;
-
-// Plane Animation Component
 const PlaneAnimation = () => {
-  const planeCount = 5;
-  const planeDelay = 4; // seconds between each plane
-
-const animationKeyframes = keyframes`
-  0% {
-    transform: translateX(-100px) translateY(20px) rotate(0deg);
-    opacity: 0.3;
-  }
-
-  10% {
-    transform: translateX(5vw) translateY(-100px) rotate(-20deg);
-    opacity: 0.6;
-  }
-
-  20% {
-    transform: translateX(15vw) translateY(-170px) rotate(-30deg);
-    opacity: 0.8;
-  }
-
-  40% {
-    transform: translateX(40vw) translateY(-210px) rotate(-5deg);
-    opacity: 1;
-  }
-
-  55% { /* ⬅️ Descent starts here — tweak this point */
-    transform: translateX(60vw) translateY(-210px) rotate(5deg);
-    opacity: 1;
-  }
-
-  70% {
-    transform: translateX(80vw) translateY(-160px) rotate(15deg); /* gentle curve */
-    opacity: 0.8;
-  }
-
-  85% {
-    transform: translateX(90vw) translateY(-80px) rotate(25deg); /* smoother entry to bottom */
-    opacity: 0.6;
-  }
-
-  100% {
-    transform: translateX(100vw) translateY(30px) rotate(15deg); /* land */
-    opacity: 0.3;
-  }
-`;
-
-
   return (
-    <>
-      {[...Array(planeCount)].map((_, index) => (
-        <Box
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[...Array(3)].map((_, index) => (
+        <div
           key={index}
-          position="absolute"
-          bottom="55px" // 🛫 Adjust this to move the entire path higher/lower relative to the factory
-          left="-50px"
-          zIndex={10}
-          animation={`${animationKeyframes} 12s linear ${
-            index * planeDelay
-          }s infinite`}
+          className="absolute bottom-14 left-[-50px] z-10"
+          style={{
+            animation: `plane-animation 12s linear ${index * 4}s infinite`,
+          }}
         >
-          <Icon as={FaPlane} w={8} h={8} color="white" />
-        </Box>
+          <FaPlane className="w-8 h-8 text-white" />
+        </div>
       ))}
-    </>
+    </div>
   );
 };
 
-
-// Utility hook for scroll animations
-const useScrollAnimation = (
-  threshold: number = 0.2
-): [RefObject<HTMLDivElement>, boolean] => {
+const useScrollAnimation = (threshold: number = 0.2) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   const handleScroll = useCallback(() => {
     if (ref.current) {
       const { top, bottom } = ref.current.getBoundingClientRect();
-      const viewportHeight =
-        window.innerHeight || document.documentElement.clientHeight;
+      const viewportHeight = window.innerHeight;
 
       if (
         top < viewportHeight * (1 - threshold) &&
@@ -424,59 +90,13 @@ const useScrollAnimation = (
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
-    handleScroll(); // Check on mount
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  return [ref, isVisible];
+  return [ref, isVisible] as const;
 };
 
-// Props interface for AnimatedSection
-interface AnimatedSectionProps {
-  children: React.ReactNode;
-  animationKeyframes: string;
-  delay?: number;
-  duration?: number;
-  [key: string]: any;
-}
-
-// Enhanced Section Component with more animation control
-const AnimatedSection = ({
-  children,
-  animationKeyframes,
-  delay = 0,
-  duration = 0.8,
-  ...props
-}: AnimatedSectionProps) => {
-  const [ref, isVisible] = useScrollAnimation(0.2);
-  const cardBg = useColorModeValue("light.card", "dark.card");
-  const borderColor = useColorModeValue("light.border", "dark.border");
-
-  return (
-    <Box
-      ref={ref}
-      py={{ base: 12, md: 20 }}
-      px={{ base: 4, md: 8 }}
-      textAlign="center"
-      bg={cardBg}
-      borderBottom="1px solid"
-      borderColor={borderColor}
-      style={{
-        animation: isVisible
-          ? `${animationKeyframes} ${duration}s ease-out ${delay}s forwards`
-          : "none",
-        opacity: isVisible ? 1 : 0,
-      }}
-      {...props}
-    >
-      <Container maxW="6xl">{children}</Container>
-    </Box>
-  );
-};
-
-// Enhanced FeatureCard with staggered animations
 interface FeatureCardProps {
   icon: React.ElementType;
   title: string;
@@ -487,204 +107,117 @@ interface FeatureCardProps {
 }
 
 const FeatureCard = ({
-  icon,
+  icon: Icon,
   title,
   description,
   animationDelay,
-  animationType = "fadeIn",
+  animationType = "fade-in",
   badgeText,
 }: FeatureCardProps) => {
   const [ref, isVisible] = useScrollAnimation(0.3);
-  const cardBg = useColorModeValue("light.card", "dark.card");
-  const borderColor = useColorModeValue("light.border", "dark.border");
 
-  const animations = {
-    fadeIn,
-    slideInLeft,
-    slideInRight,
-    scaleUp,
-    floatUp,
-  };
-
-  const selectedAnimation =
-    animations[animationType as keyof typeof animations] || fadeIn;
+  const animationClasses = {
+    "fade-in": fadeIn,
+    "slide-in-left": slideInLeft,
+    "slide-in-right": slideInRight,
+    "scale-up": scaleUp,
+    "float-up": floatUp,
+  }[animationType];
 
   return (
-    <VStack
+    <Card
       ref={ref}
-      p={6}
-      bg={cardBg}
-      borderRadius="lg"
-      boxShadow="xl"
-      border="1px solid"
-      borderColor={borderColor}
-      alignItems="center"
-      spacing={4}
-      textAlign="center"
-      transition="all 0.3s ease-in-out"
-      _hover={{
-        transform: "translateY(-5px)",
-        animation: `${pulseGlow} 1.5s infinite`,
-      }}
+      className={cn(
+        "p-6 flex flex-col items-center text-center gap-4 transition-all hover:-translate-y-1 hover:shadow-lg relative border border-blue-200/50 bg-white/90 backdrop-blur-sm",
+        isVisible ? animationClasses : "opacity-0",
+        "hover:before:absolute hover:before:inset-0 hover:before:rounded-lg hover:before:bg-blue-100/30"
+      )}
       style={{
-        animation: isVisible
-          ? `${selectedAnimation} 0.8s ease-out ${animationDelay}s forwards`
-          : "none",
-        opacity: isVisible ? 1 : 0,
+        animationDelay: isVisible ? `${animationDelay}s` : "0s",
       }}
-      position="relative"
     >
       {badgeText && (
-        <Badge
-          position="absolute"
-          top={-3}
-          right={4}
-          colorScheme="brand"
-          px={2}
-          py={1}
-          borderRadius="full"
-          fontSize="xs"
-          fontWeight="bold"
-        >
+        <Badge className="absolute top-0 right-0 translate-x-1 -translate-y-1/2 bg-blue-600 text-white">
           {badgeText}
         </Badge>
       )}
-      <Icon
-        as={icon}
-        w={10}
-        h={10}
-        color="brand.500"
-        _hover={{
-          animation: `${chainLink} 0.5s ease-in-out`,
-        }}
-      />
-      <Heading size="md">{title}</Heading>
-      <Text fontSize="sm" color={useColorModeValue("gray.600", "gray.300")}>
-        {description}
-      </Text>
-    </VStack>
+      <div className="p-3 rounded-full bg-blue-100/80">
+        <Icon className="w-6 h-6 text-blue-700" />
+      </div>
+      <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+      <p className="text-sm text-gray-600">{description}</p>
+    </Card>
   );
 };
 
-// Supply Chain Network Visualization
 const SupplyChainNetwork = () => {
   const [ref, isVisible] = useScrollAnimation(0.3);
-  const lineColor = useColorModeValue("brand.500", "brand.400");
-  const nodeBg = useColorModeValue("brand.100", "brand.700");
-  const nodeText = useColorModeValue("dark.text", "light.text");
-
   const nodes = [
-    { icon: FaBoxOpen, label: "Suppliers", color: "brand.500" },
-    { icon: GiFactory, label: "Manufacturing", color: "brand.500" },
-    { icon: FaWarehouse, label: "Warehousing", color: "brand.500" },
-    { icon: FaTruck, label: "Distribution", color: "brand.500" },
-    { icon: GiDeliveryDrone, label: "Last Mile", color: "brand.500" },
+    { icon: FaBoxOpen, label: "Suppliers" },
+    { icon: GiFactory, label: "Manufacturing" },
+    { icon: FaWarehouse, label: "Warehousing" },
+    { icon: FaTruck, label: "Distribution" },
+    { icon: GiDeliveryDrone, label: "Last Mile" },
   ];
 
   return (
-    <Box
+    <div
       ref={ref}
-      py={16}
-      position="relative"
-      animation={isVisible ? `${fadeIn} 1s ease-out forwards` : "none"}
+      className={cn(
+        "py-16 relative bg-gradient-to-t from-blue-500 via-blue-700/80 to-blue-500",
+        isVisible ? fadeIn : "opacity-0"
+      )}
     >
-      <Heading mb={12} size="xl" textAlign="center">
-        End-to-End Supply Chain Visibility
-      </Heading>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-bold text-center mb-12 text-white">
+          End-to-End Supply Chain Visibility
+        </h2>
 
-      {/* Conveyor belt background */}
-      <Box
-        position="absolute"
-        bottom="40%"
-        left={0}
-        right={0}
-        height="4px"
-        bg={`linear-gradient(90deg, transparent, ${lineColor}, transparent)`}
-        backgroundSize="200% 100%"
-        animation={isVisible ? `${conveyorBelt} 3s linear infinite` : "none"}
-        opacity={0.5}
-        zIndex={0}
-      />
+        <div className="relative">
+          <div className="absolute inset-x-0 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-blue-300/70 to-transparent" />
 
-      <Flex
-        direction={{ base: "column", md: "row" }}
-        justify="space-around"
-        align="center"
-        position="relative"
-        w="full"
-      >
-        {/* Nodes with enhanced animations */}
-        {nodes.map((node, index) => (
-          <VStack
-            key={node.label}
-            spacing={2}
-            p={4}
-            borderRadius="full"
-            bg={node.color}
-            boxShadow={`0 0 15px ${node.color}`}
-            _hover={{
-              boxShadow: `0 0 25px ${node.color}`,
-              transform: "scale(1.05)",
-            }}
-            transition="all 0.3s ease-in-out"
-            zIndex={1}
-            style={{
-              animation: isVisible
-                ? `${floatUp} 0.8s ease-out ${0.2 * index}s forwards`
-                : "none",
-              opacity: isVisible ? 1 : 0,
-            }}
-            mx={useBreakpointValue({ base: 0, md: 4 })}
-            my={useBreakpointValue({ base: 4, md: 0 })}
-          >
-            <Icon
-              as={node.icon}
-              w={10}
-              h={10}
-              color="white"
-              _hover={{
-                animation: `${rotateIn} 0.5s ease-out`,
-              }}
-            />
-            <Text fontWeight="bold" color="white">
-              {node.label}
-            </Text>
-          </VStack>
-        ))}
-      </Flex>
+          <div className="flex flex-col md:flex-row justify-between items-center relative">
+            {nodes.map((node, index) => (
+              <div
+                key={node.label}
+                className={cn(
+                  "flex flex-col items-center p-4 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all z-10 mb-8 md:mb-0",
+                  isVisible ? floatUp : "opacity-0",
+                  "border border-blue-200/50"
+                )}
+                style={{
+                  animationDelay: isVisible ? `${0.2 * index}s` : "0s",
+                }}
+              >
+                <div className="p-3 mb-3 rounded-full bg-blue-100/80">
+                  <node.icon className="w-6 h-6 text-blue-700" />
+                </div>
+                <span className="font-semibold text-blue-800">
+                  {node.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-      {/* Connecting lines for desktop */}
-      <Box
-        position="absolute"
-        top="50%"
-        left="10%"
-        right="10%"
-        height="2px"
-        bg={lineColor}
-        zIndex={0}
-        display={{ base: "none", md: "block" }}
-        style={{
-          animation: isVisible ? `${fadeIn} 1.5s ease-out forwards` : "none",
-        }}
-      />
-
-      <Text
-        mt={8}
-        fontSize="lg"
-        textAlign="center"
-        opacity={isVisible ? 1 : 0}
-        animation={isVisible ? `${fadeIn} 1s ease-out 1.2s forwards` : "none"}
-      >
-        Our platform provides real-time tracking across your entire supply
-        network.
-      </Text>
-    </Box>
+        <p
+          className={cn(
+            "mt-12 text-lg text-center max-w-3xl mx-auto text-blue-100",
+            isVisible ? fadeIn : "opacity-0"
+          )}
+          style={{
+            animationDelay: isVisible ? "1.2s" : "0s",
+          }}
+        >
+          Our platform provides real-time tracking across your entire supply
+          network with predictive analytics and automated alerts.
+        </p>
+      </div>
+    </div>
   );
 };
 
-// Inventory Dashboard Preview Component
 const InventoryDashboardPreview = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const [ref, isVisible] = useScrollAnimation(0.3);
 
   const inventoryItems = [
@@ -700,132 +233,102 @@ const InventoryDashboardPreview = () => {
   ];
 
   return (
-    <Box
+    <div
       ref={ref}
-      py={16}
-      bg={useColorModeValue("gray.50", "gray.800")}
-      animation={isVisible ? `${fadeIn} 1s ease-out forwards` : "none"}
+      className={cn(
+        "py-16 relative bg-gradient-to-b from-blue-500 via-blue-300/70 to-blue-100",
+        isVisible ? fadeIn : "opacity-0"
+      )}
     >
-      <Container maxW="6xl">
-        <VStack spacing={8}>
-          <Heading size="xl" textAlign="center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-8">
+          <h2 className="text-3xl font-bold text-center text-blue-800">
             Real-Time Inventory Management
-          </Heading>
+          </h2>
 
-          <Box
-            p={6}
-            bg={useColorModeValue("white", "gray.700")}
-            borderRadius="lg"
-            boxShadow="xl"
-            border="1px solid"
-            borderColor={useColorModeValue("gray.200", "gray.600")}
-            w="full"
-            maxW="4xl"
-            mx="auto"
-            position="relative"
-            overflow="hidden"
-            _before={{
-              content: '""',
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "4px",
-              bg: "brand.500",
-              animation: `${conveyorBelt} 3s linear infinite`,
-            }}
-          >
-            <HStack justify="space-between" mb={6}>
-              <Heading size="md">Current Inventory</Heading>
-              <Badge colorScheme="brand" px={3} py={1} borderRadius="full">
+          <Card className="p-6 w-full max-w-4xl mx-auto relative overflow-hidden border border-blue-200/50 bg-white/90 backdrop-blur-sm">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600" />
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-blue-800">
+                Current Inventory
+              </h3>
+              <Badge className="bg-blue-600 text-white px-3 py-1 rounded-full">
                 Live Updates
               </Badge>
-            </HStack>
+            </div>
 
-            <VStack spacing={4} align="stretch">
+            <div className="flex flex-col gap-4">
               {inventoryItems.map((item, index) => (
-                <Box
+                <div
                   key={item.id}
-                  p={4}
-                  bg={useColorModeValue("gray.50", "gray.600")}
-                  borderRadius="md"
-                  borderLeft="4px solid"
-                  borderColor="brand.500"
-                  position="relative"
+                  className={cn(
+                    "p-4 bg-blue-50/70 rounded-md border-l-4 border-blue-600 relative transition-all hover:translate-x-1 hover:shadow-md",
+                    isVisible ? fadeIn : "opacity-0"
+                  )}
                   style={{
-                    animation: isVisible
-                      ? `${fadeIn} 0.5s ease-out ${0.1 * index}s forwards`
-                      : "none",
-                    opacity: isVisible ? 1 : 0,
+                    animationDelay: isVisible ? `${0.1 * index}s` : "0s",
                   }}
-                  _hover={{
-                    transform: "translateX(5px)",
-                    boxShadow: "md",
-                  }}
-                  transition="all 0.2s ease-in-out"
                 >
-                  <HStack justify="space-between">
-                    <VStack align="start" spacing={1}>
-                      <Text fontWeight="bold">{item.name}</Text>
-                      <Text
-                        fontSize="sm"
-                        color={useColorModeValue("gray.600", "gray.300")}
-                      >
+                  <div className="flex justify-between items-center">
+                    <div className="flex flex-col items-start gap-1">
+                      <span className="font-bold text-blue-800">
+                        {item.name}
+                      </span>
+                      <span className="text-sm text-gray-600">
                         {item.id} • {item.location}
-                      </Text>
-                    </VStack>
+                      </span>
+                    </div>
                     <Badge
-                      colorScheme={item.quantity < 100 ? "red" : "green"}
-                      px={3}
-                      py={1}
-                      borderRadius="full"
+                      className={cn(
+                        "px-3 py-1 rounded-full",
+                        item.quantity < 100 ? "bg-red-500" : "bg-green-500"
+                      )}
                     >
                       {item.quantity} units
                     </Badge>
-                  </HStack>
-                </Box>
+                  </div>
+                </div>
               ))}
-            </VStack>
+            </div>
 
-            <Button
-              mt={6}
-              w="full"
-              variant="outline"
-              rightIcon={<FaArrowRight />}
-              onClick={onOpen}
-            >
-              View Full Dashboard
-            </Button>
-          </Box>
-        </VStack>
-      </Container>
-
-      {/* Modal for dashboard preview */}
-      <Modal isOpen={isOpen} onClose={onClose} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Inventory Dashboard Preview</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Image
-              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-              alt="Inventory Dashboard"
-              borderRadius="md"
-            />
-          </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="brand" mr={3} onClick={onClose}>
-              Close
-            </Button>
-            <Button variant="ghost">Request Demo</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </Box>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="mt-6 w-full border border-blue-300 hover:bg-blue-50"
+                  size="lg"
+                >
+                  View Full Dashboard <FaArrowRight className="ml-2" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-xl">
+                <DialogHeader>
+                  <DialogTitle className="text-blue-800">
+                    Inventory Dashboard Preview
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="relative aspect-video rounded-md overflow-hidden border border-blue-200">
+                  <img
+                    src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+                    alt="Inventory Dashboard"
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline">Close</Button>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    Request Demo
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 };
 
-// Supply Chain Metrics Component
 const SupplyChainMetrics = () => {
   const [ref, isVisible] = useScrollAnimation(0.3);
   const metrics = [
@@ -836,79 +339,69 @@ const SupplyChainMetrics = () => {
   ];
 
   return (
-    <Box
+    <div
       ref={ref}
-      py={16}
-      bg={useColorModeValue("brand.50", "brand.900")}
-      animation={isVisible ? `${fadeIn} 1s ease-out forwards` : "none"}
+      className={cn(
+        "py-16 relative bg-gradient-to-t from-blue-300 via-blue-500 to-blue-500",
+        isVisible ? fadeIn : "opacity-0"
+      )}
     >
-      <Container maxW="6xl">
-        <VStack spacing={8}>
-          <Heading size="xl" textAlign="center">
-            Proven Supply Chain Results
-          </Heading>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-8 text-center">
+          <h2 className="text-3xl font-bold text-white">
+            Supply Chain Performance Metrics
+          </h2>
 
-          <SimpleGrid columns={{ base: 2, md: 4 }} spacing={6} w="full">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 w-full">
             {metrics.map((metric, index) => (
-              <VStack
+              <Card
                 key={metric.label}
-                p={6}
-                bg={useColorModeValue("white", "dark.card")}
-                borderRadius="lg"
-                boxShadow="md"
-                spacing={3}
+                className={cn(
+                  "p-6 flex flex-col items-center gap-3 border border-blue-200/50 bg-white/90 backdrop-blur-sm",
+                  isVisible ? floatUp : "opacity-0"
+                )}
                 style={{
-                  animation: isVisible
-                    ? `${floatUp} 0.8s ease-out ${0.2 * index}s forwards`
-                    : "none",
-                  opacity: isVisible ? 1 : 0,
+                  animationDelay: isVisible ? `${0.2 * index}s` : "0s",
                 }}
               >
-                <Icon as={metric.icon} w={8} h={8} color="brand.500" />
-                <Heading size="xl" color="brand.500">
+                <div className="p-3 rounded-full bg-blue-100/80">
+                  <metric.icon className="w-6 h-6 text-blue-700" />
+                </div>
+                <h3 className="text-3xl font-bold text-blue-700">
                   {metric.value}
-                </Heading>
-                <Text fontSize="sm" fontWeight="medium">
+                </h3>
+                <p className="text-sm font-medium text-gray-700">
                   {metric.label}
-                </Text>
-              </VStack>
+                </p>
+              </Card>
             ))}
-          </SimpleGrid>
+          </div>
 
-          <Text
-            fontSize="sm"
-            textAlign="center"
-            maxW="2xl"
-            opacity={isVisible ? 1 : 0}
-            animation={
-              isVisible ? `${fadeIn} 1s ease-out 0.8s forwards` : "none"
-            }
+          <p
+            className={cn(
+              "text-sm text-center max-w-2xl mx-auto text-blue-100",
+              isVisible ? fadeIn : "opacity-0"
+            )}
+            style={{
+              animationDelay: isVisible ? "0.8s" : "0s",
+            }}
           >
             *Based on average results from clients after 12 months of
             implementation.
-          </Text>
-        </VStack>
-      </Container>
-    </Box>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
 
 export default function LandingPage() {
   const router = useRouter();
-  const bgColor = useColorModeValue("light.bg", "dark.bg");
-  const textColor = useColorModeValue("light.text", "dark.text");
-  const headerBg = useColorModeValue("whiteAlpha.900", "dark.bg");
-  const headerBorder = useColorModeValue("light.border", "dark.border");
-
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 50);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -923,684 +416,485 @@ export default function LandingPage() {
   };
 
   return (
-    <ChakraProvider theme={theme}>
-      <Box minH="100vh" bg={bgColor} color={textColor} overflowX="hidden">
-        {/* Fixed Header with animation */}
-        <Flex
-          as="header"
-          position="fixed"
-          top={0}
-          left={0}
-          right={0}
-          zIndex={100}
-          p={4}
-          justifyContent="space-between"
-          alignItems="center"
-          bg={isScrolled ? headerBg : "transparent"}
-          boxShadow={isScrolled ? "md" : "none"}
-          borderBottom={isScrolled ? "1px solid" : "none"}
-          borderColor={headerBorder}
-          transition="all 0.3s ease-in-out"
-          backdropFilter={isScrolled ? "blur(8px)" : "none"}
-          transform={isScrolled ? "none" : "translateY(-20px)"}
-          opacity={isScrolled ? 1 : 0}
-          animation={`${fadeIn} 0.5s ease-out 0.5s forwards`}
-        >
-          <ChakraLink
-            href="/"
-            display="flex"
-            alignItems="center"
-            _hover={{ textDecoration: "none" }}
-          >
-            <Icon
-              as={FaCodeBranch}
-              w={8}
-              h={8}
-              mr={2}
-              color="brand.500"
-              _hover={{
-                animation: `${rotateIn} 0.5s ease-out`,
+    <div className="min-h-screen bg-sky-50 text-gray-800 overflow-x-hidden">
+      {/* Fixed Header */}
+      <Navbar isLoggedIn={true} />
+
+      {/* Hero Section */}
+      <section
+        className={cn(
+          "pt-32 pb-20 min-h-screen flex items-center justify-center text-center relative overflow-hidden",
+          "bg-gradient-to-b from-sky-50 via-blue-200 to-blue-500"
+        )}
+      >
+        <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(140,165,233,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.1)_1px,transparent_1px)] bg-[size:50px_50px]" />
+
+        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
+        <PlaneAnimation />
+
+        {/* Animated Factory to Warehouse Supply Path */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 z-10 pointer-events-none">
+          {/* Factory */}
+          <div className="absolute bottom-0 left-0 w-20 h-20 flex items-end justify-center z-20">
+            <GiFactory className="w-24 h-24 text-blue-200" />
+          </div>
+
+          {/* Warehouse */}
+          <div className="absolute bottom-0 right-0 w-20 h-20 flex items-end justify-center z-20">
+            <FaWarehouse className="w-16 h-16 text-blue-200" />
+          </div>
+
+          {/* Animated Trucks */}
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="absolute bottom-2"
+              style={{
+                left: "-35px",
+                animation: `truck-drive 14s linear ${i * 2}s infinite`,
               }}
-            />
-            <Heading
-              size="md"
-              fontFamily="heading"
-              letterSpacing="wide"
-              color={isScrolled ? "brand.500" : "white"}
-              transition="color 0.3s ease"
             >
-              Orontis
-            </Heading>
-          </ChakraLink>
+              <FaTruck className="w-8 h-8 text-white" />
+            </div>
+          ))}
+        </div>
 
-          <HStack spacing={6}>
-
-            <ChakraLink
-              color="white"
-              _hover={{ color: "brand.500", transform: "translateY(-2px)" }}
-              cursor="pointer"
-              onClick={() => router.push("/login")}
-              transition="all 0.2s ease-in-out"
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col gap-8">
+            <h1
+              className={cn(
+                "text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight text-balance",
+                floatUp,
+                "opacity-0"
+              )}
             >
-              Login
-            </ChakraLink>
-            <Button
-              variant="solid"
-              size="sm"
-              onClick={() => router.push("/createAccount")}
-              _hover={{
-                transform: "translateY(-2px)",
-                boxShadow: "0 4px 12px rgba(3, 169, 244, 0.3)",
-              }}
-              transition="all 0.2s ease-in-out"
+              <span className="text-blue-500">Transform Your Supply Chain</span>
+              <br />
+              <span className="text-blue-400">With Intelligent Automation</span>
+            </h1>
+
+            <p
+              className={cn(
+                "text-xl md:text-2xl max-w-3xl mx-auto text-white",
+                floatUp,
+                "opacity-0"
+              )}
+              style={{ animationDelay: "0.3s" }}
             >
-              Sign up
-            </Button>
-          </HStack>
-        </Flex>
+              Real-time visibility, predictive analytics, and seamless
+              integration across your entire supply network.
+            </p>
 
-        {/* Hero Section with supply chain theme */}
-        <AnimatedSection
-          animationKeyframes={fadeIn}
-          pt={{ base: 20, md: 24 }}
-          pb={{ base: 12, md: 20 }}
-          minH="80vh"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          bgGradient="linear(to-br, brand.900, brand.700, brand.900)"
-          color="white"
-          textAlign="center"
-          position="relative"
-          overflow="hidden"
-          _after={{
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            bg: "linear-gradient(90deg, rgba(3,169,244,0.1) 0%, rgba(3,169,244,0) 50%, rgba(3,169,244,0.1) 100%)",
-            animation: `${gradientFlow} 15s linear infinite`,
-            backgroundSize: "200% 100%",
-            opacity: 0.3,
-            zIndex: -1,
-          }}
-        >
-          <Container maxW="6xl">
-            <VStack spacing={8} zIndex={1}>
-              <Heading
-                as="h1"
-                size={{ base: "2xl", md: "3xl", lg: "4xl" }}
-                fontWeight="extrabold"
-                lineHeight="shorter"
-                textShadow="0 0 15px rgba(0,0,0,0.5)"
-                animation={`${floatUp} 1s ease-out forwards`}
-                opacity={0}
+            <div
+              className={cn("flex gap-4 justify-center", floatUp, "opacity-0")}
+              style={{ animationDelay: "0.6s" }}
+            >
+              <Button
+                onClick={() => router.push("/product")}
+                className="bg-white text-blue-700 hover:bg-blue-100 group border border-blue-300"
+                size="lg"
               >
-                Transform Your Supply Chain Operations
-              </Heading>
+                Get Started
+                <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
 
-              {/* Add the flying words */}
-              <Box position="relative" height="100px" width="full">
-                <Text
-                  position="absolute"
-                  left="15%"
-                  top="30%"
-                  fontWeight="bold"
-                  opacity={0}
-                  animation={`${fadeIn} 1s ease-out 2s forwards`}
-                >
-                  Streamline Processes
-                </Text>
-                <Text
-                  position="absolute"
-                  left="45%"
-                  top="30%"
-                  fontWeight="bold"
-                  opacity={0}
-                  animation={`${fadeIn} 1s ease-out 2.5s forwards`}
-                >
-                  Sharpen Insights
-                </Text>
-                <Text
-                  position="absolute"
-                  left="70%"
-                  top="30%"
-                  fontWeight="bold"
-                  opacity={0}
-                  animation={`${fadeIn} 1s ease-out 3s forwards`}
-                >
-                  Speed Up Results
-                </Text>
-              </Box>
-
-              <PlaneAnimation />
-
-              <Text
-                fontSize={{ base: "lg", md: "xl" }}
-                maxWidth="3xl"
-                animation={`${floatUp} 1s ease-out 0.3s forwards`}
-                opacity={0}
+              <Button
+                variant="outline"
+                className="border-blue-300 text-blue-700 hover:bg-blue-700/30 hover:text-white"
+                size="lg"
               >
-                <Text
-                  as="span"
-                  fontWeight="bold"
-                  borderBottom="2px solid"
-                  borderColor="brand.500"
-                >
-                  Real-time visibility. Intelligent automation. Seamless
-                  integration.
-                </Text>
-                <br />
-                <Text as="span">
-                  Our platform connects every link in your supply chain for
-                  maximum efficiency and control.
-                </Text>
-              </Text>
+                Explore Features
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
 
-              <HStack
-                spacing={4}
-                animation={`${floatUp} 1s ease-out 0.6s forwards`}
-                opacity={1}
-              >
-                <NextLink href="/product" passHref legacyBehavior>
-                  <Button
-                    as="a"
-                    size="lg"
-                    variant="solid"
-                    rightIcon={<FaArrowRight />}
-                    _hover={{
-                      animation: `${pulseGlow} 1.5s infinite`,
-                    }}
-                    sx={{
-                      position: "relative",
-                      zIndex: 10,
-                    }}
-                  >
-                    Get Started
-                  </Button>
-                </NextLink>
+      {/* Supply Chain Network */}
+      <section>
+        <SupplyChainNetwork />
+      </section>
 
-                <NextLink href="/demo" passHref legacyBehavior>
-                  <Button
-                    as="a"
-                    size="lg"
-                    variant="outline"
-                    borderColor="black" // 👈 Black outline
-                    color="white"
-                    sx={{
-                      position: "relative",
-                      zIndex: 10,
-                    }}
-                    _hover={{
-                      animation: `${pulseGlow} 1.5s infinite`,
-                    }}
-                  >
-                    Explore Features
-                  </Button>
-                </NextLink>
-              </HStack>
-            </VStack>
-          </Container>
+      {/* Inventory Dashboard Preview */}
+      <InventoryDashboardPreview />
 
-          {/* Animated truck moving across the bottom */}
-          <Box
-            position="absolute"
-            bottom="0"
-            left="0"
-            right="0"
-            height="60px"
-            zIndex={1}
-          >
-            {/* Black box for the Factory */}
-            <Box
-              position="absolute"
-              left="-2" // Match the factory's left position
-              bottom="-2" // Match the factory's bottom position
-              width="100px" // Adjust to cover the factory's width
-              height="40px" // Adjust to cover the factory's height
-              bg="black" // Or your dark background color
-              zIndex={2} // Higher zIndex than trucks (2), lower than factory icon (2) - this is tricky
-            />
-            {/* Truck depot on the left */}
-            <Icon
-              as={GiFactory}
-              w="120px"
-              h="120px"
-              color="white"
-              position="absolute"
-              left="-2"
-              bottom="-2"
-              zIndex={3} // Ensure factory icon is above the black box
-            />
-
-            {/* Black box for the Warehouse */}
-            <Box
-              position="absolute"
-              right="-2" // Match the warehouse's right position
-              bottom="-2" // Match the warehouse's bottom position
-              width="80px" // Adjust to cover the warehouse's width
-              height="50px" // Adjust to cover the warehouse's height
-              bg="black" // Or your dark background color
-              zIndex={2} // Higher zIndex than trucks (2), lower than warehouse icon (2)
-            />
-            {/* Warehouse on the right */}
-            <Icon
-              as={FaWarehouse}
-              w={20}
-              h={20}
-              color="white"
-              position="absolute"
-              right="-2"
-              bottom="-2"
-              zIndex={3} // Ensure warehouse icon is above the black box
-            />
-
-            {/* Moving trucks */}
-            {[0, 1, 2, 3, 4].map((i) => (
-              <Icon
-                key={i}
-                as={FaTruck}
-                w={8}
-                h={8}
-                color="white"
-                position="absolute"
-                left="0"
-                bottom="-1"
-                animation={`${truckMovement} 15s linear ${i * 2}s infinite`}
-                zIndex={1} // Ensure trucks are behind the black boxes
-              />
-            ))}
-          </Box>
-        </AnimatedSection>
-
-        {/* Supply Chain Network Visualization */}
-        <AnimatedSection
-          animationKeyframes={fadeIn}
-          py={16}
-          bg={useColorModeValue("white", "dark.card")}
-        >
-          <SupplyChainNetwork />
-        </AnimatedSection>
-
-        {/* Inventory Dashboard Preview */}
-        <InventoryDashboardPreview />
-
-        {/* Key Features Section with supply chain focus */}
-        <AnimatedSection
-          id="features"
-          animationKeyframes={fadeIn}
-          bg={useColorModeValue("white", "dark.card")}
-          py={16}
-        >
-          <VStack spacing={8} textAlign="center">
-            <Heading size="xl" animation={`${fadeIn} 0.8s ease-out forwards`}>
+      {/* Key Features Section */}
+      <section id="features">
+        <div className="w-full py-16 text-center bg-gradient-to-b from-blue-100 via-blue-300 to-blue-500">
+          <div className="max-w-7xl mx-auto flex flex-col gap-8">
+            <h2 className="text-3xl font-bold text-blue-800">
               Supply Chain Solutions
-            </Heading>
-            <Text
-              fontSize="lg"
-              maxW="4xl"
-              animation={`${fadeIn} 0.8s ease-out 0.2s forwards`}
-              opacity={0}
+            </h2>
+
+            <p
+              className={cn(
+                "text-lg max-w-3xl mx-auto text-blue-700",
+                fadeIn,
+                "opacity-0"
+              )}
+              style={{ animationDelay: "0.2s" }}
             >
               Comprehensive tools designed specifically for modern supply chain
               challenges.
-            </Text>
+            </p>
 
-            <SimpleGrid
-              columns={{ base: 1, md: 2, lg: 3 }}
-              spacing={8}
-              mt={10}
-              width="full"
-            >
-              <FeatureCard
-                icon={MdInventory}
-                title="Inventory Optimization"
-                description="Automated tracking and predictive restocking to maintain optimal inventory levels."
-                animationDelay={0.2}
-                animationType="slideInLeft"
-                badgeText="AI-Powered"
-              />
-              <FeatureCard
-                icon={FaWarehouse}
-                title="Warehouse Management"
-                description="Streamline operations with smart bin locations and picking routes."
-                animationDelay={0.3}
-                animationType="floatUp"
-              />
-              <FeatureCard
-                icon={FaTruck}
-                title="Logistics Coordination"
-                description="Real-time tracking and route optimization for all shipments."
-                animationDelay={0.4}
-                animationType="slideInRight"
-                badgeText="New"
-              />
-              <FeatureCard
-                icon={FaBarcode}
-                title="Asset Tracking"
-                description="End-to-end visibility from manufacturer to end customer."
-                animationDelay={0.5}
-                animationType="slideInLeft"
-              />
-              <FeatureCard
-                icon={FaExchangeAlt}
-                title="Supplier Integration"
-                description="Seamless connection with your supplier network for just-in-time delivery."
-                animationDelay={0.6}
-                animationType="floatUp"
-              />
-              <FeatureCard
-                icon={MdTimeline}
-                title="Demand Forecasting"
-                description="Predict market trends and adjust production accordingly."
-                animationDelay={0.7}
-                animationType="slideInRight"
-                badgeText="AI-Powered"
-              />
-            </SimpleGrid>
-          </VStack>
-        </AnimatedSection>
-
-        {/* Supply Chain Metrics */}
-        <SupplyChainMetrics />
-
-        {/* Problem/Solution Section */}
-        <AnimatedSection
-          id="solutions"
-          animationKeyframes={fadeIn}
-          bg={useColorModeValue("white", "dark.card")}
-          py={16}
-        >
-          <VStack spacing={8} textAlign="center">
-            <Heading size="xl" animation={`${fadeIn} 0.8s ease-out forwards`}>
-              Supply Chain Pain Points We Solve
-            </Heading>
-
-            <Grid
-              templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }}
-              gap={8}
-              width="full"
-              maxW="4xl"
-              mx="auto"
-            >
-              <GridItem>
-                <VStack
-                  p={6}
-                  bg={useColorModeValue("brand.50", "brand.900")}
-                  borderRadius="lg"
-                  boxShadow="lg"
-                  align="start"
-                  textAlign="left"
-                  spacing={4}
-                  height="full"
-                  animation={`${slideInLeft} 0.8s ease-out 0.2s forwards`}
-                  opacity={0}
-                >
-                  <Heading size="md" color="brand.600">
-                    Common Challenges
-                  </Heading>
-                  <VStack align="start" spacing={3}>
-                    <HStack>
-                      <Box w={2} h={2} bg="brand.500" borderRadius="full" />
-                      <Text>Inventory inaccuracies</Text>
-                    </HStack>
-                    <HStack>
-                      <Box w={2} h={2} bg="brand.500" borderRadius="full" />
-                      <Text>Supplier communication gaps</Text>
-                    </HStack>
-                    <HStack>
-                      <Box w={2} h={2} bg="brand.500" borderRadius="full" />
-                      <Text>Lack of real-time visibility</Text>
-                    </HStack>
-                    <HStack>
-                      <Box w={2} h={2} bg="brand.500" borderRadius="full" />
-                      <Text>Inefficient warehouse operations</Text>
-                    </HStack>
-                    <HStack>
-                      <Box w={2} h={2} bg="brand.500" borderRadius="full" />
-                      <Text>Demand forecasting errors</Text>
-                    </HStack>
-                  </VStack>
-                </VStack>
-              </GridItem>
-
-              <GridItem>
-                <VStack
-                  p={6}
-                  bg={useColorModeValue("white", "gray.700")}
-                  borderRadius="lg"
-                  boxShadow="lg"
-                  border="1px solid"
-                  borderColor={useColorModeValue("gray.200", "gray.600")}
-                  align="start"
-                  textAlign="left"
-                  spacing={4}
-                  height="full"
-                  animation={`${slideInRight} 0.8s ease-out 0.4s forwards`}
-                  opacity={0}
-                >
-                  <Heading size="md" color="brand.600">
-                    Our Solutions
-                  </Heading>
-                  <VStack align="start" spacing={3}>
-                    <HStack>
-                      <Icon as={FaClipboardCheck} color="brand.500" />
-                      <Text>Automated inventory tracking</Text>
-                    </HStack>
-                    <HStack>
-                      <Icon as={FaCloud} color="brand.500" />
-                      <Text>Supplier collaboration portal</Text>
-                    </HStack>
-                    <HStack>
-                      <Icon as={FaMapMarkedAlt} color="brand.500" />
-                      <Text>Real-time GPS tracking</Text>
-                    </HStack>
-                    <HStack>
-                      <Icon as={FaPallet} color="brand.500" />
-                      <Text>Smart warehouse optimization</Text>
-                    </HStack>
-                    <HStack>
-                      <Icon as={FaChartLine} color="brand.500" />
-                      <Text>AI-powered demand forecasting</Text>
-                    </HStack>
-                  </VStack>
-                </VStack>
-              </GridItem>
-            </Grid>
-          </VStack>
-        </AnimatedSection>
-
-        {/* Call to Action / Contact Form Section */}
-        <AnimatedSection
-          id="contact"
-          animationKeyframes={fadeIn}
-          py={16}
-          bg={useColorModeValue("gray.50", "gray.800")}
-        >
-          <VStack spacing={8} textAlign="center" maxW="3xl" mx="auto">
-            <Heading size="xl" animation={`${fadeIn} 0.8s ease-out forwards`}>
-              Ready to Optimize Your Supply Chain?
-            </Heading>
-            <Text
-              fontSize="lg"
-              animation={`${fadeIn} 0.8s ease-out 0.2s forwards`}
-              opacity={0}
-            >
-              Speak with our supply chain experts to see how we can transform
-              your operations.
-            </Text>
-
-            <Box
-              as="form"
-              width="full"
-              p={{ base: 6, md: 8 }}
-              bg={useColorModeValue("white", "dark.card")}
-              borderRadius="lg"
-              boxShadow="2xl"
-              border="1px solid"
-              borderColor={useColorModeValue("light.border", "dark.border")}
-              animation={`${scaleUp} 0.8s ease-out 0.4s forwards`}
-              opacity={0}
-              _hover={{
-                boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-              }}
-              transition="all 0.3s ease-in-out"
-            >
-              <VStack spacing={5}>
-                <FormControl id="name" isRequired>
-                  <FormLabel>Your Name</FormLabel>
-                  <Input
-                    type="text"
-                    placeholder="John Doe"
-                    _focus={{
-                      boxShadow: "0 0 0 2px brand.500",
-                    }}
-                  />
-                </FormControl>
-                <FormControl id="email" isRequired>
-                  <FormLabel>Work Email</FormLabel>
-                  <Input
-                    type="email"
-                    placeholder="john.doe@company.com"
-                    _focus={{
-                      boxShadow: "0 0 0 2px brand.500",
-                    }}
-                  />
-                </FormControl>
-                <FormControl id="company">
-                  <FormLabel>Company Name</FormLabel>
-                  <Input
-                    type="text"
-                    placeholder="Acme Logistics Inc."
-                    _focus={{
-                      boxShadow: "0 0 0 2px brand.500",
-                    }}
-                  />
-                </FormControl>
-                <FormControl id="message">
-                  <FormLabel>How can we help you?</FormLabel>
-                  <Textarea
-                    placeholder="Tell us about your supply chain challenges..."
-                    rows={4}
-                    _focus={{
-                      boxShadow: "0 0 0 2px brand.500",
-                    }}
-                  />
-                </FormControl>
-                <Button
-                  type="submit"
-                  size="lg"
-                  variant="solid"
-                  width="full"
-                  rightIcon={<FaArrowRight />}
-                  _hover={{
-                    animation: `${pulseGlow} 1.5s infinite`,
-                  }}
-                >
-                  Get in Touch
-                </Button>
-              </VStack>
-            </Box>
-          </VStack>
-        </AnimatedSection>
-
-        {/* Footer */}
-        <Box
-          as="footer"
-          py={8}
-          bg={useColorModeValue("gray.100", "dark.bg")}
-          borderTop="1px solid"
-          borderColor={useColorModeValue("light.border", "dark.border")}
-          textAlign="center"
-          animation={`${fadeIn} 0.8s ease-out forwards`}
-        >
-          <Container maxW="6xl">
-            <VStack spacing={6}>
-              <HStack spacing={6} justify="center">
-                <ChakraLink
-                  href="/"
-                  fontSize="sm"
-                  _hover={{
-                    color: "brand.500",
-                    transform: "translateY(-2px)",
-                  }}
-                  transition="all 0.2s ease-in-out"
-                >
-                  Home
-                </ChakraLink>
-                <ChakraLink
-                  fontSize="sm"
-                  _hover={{
-                    color: "brand.500",
-                    transform: "translateY(-2px)",
-                  }}
-                  cursor="pointer"
-                  onClick={() => scrollToSection("features")}
-                  transition="all 0.2s ease-in-out"
-                >
-                  Features
-                </ChakraLink>
-                <ChakraLink
-                  fontSize="sm"
-                  _hover={{
-                    color: "brand.500",
-                    transform: "translateY(-2px)",
-                  }}
-                  cursor="pointer"
-                  onClick={() => scrollToSection("solutions")}
-                  transition="all 0.2s ease-in-out"
-                >
-                  Solutions
-                </ChakraLink>
-                <ChakraLink
-                  fontSize="sm"
-                  _hover={{
-                    color: "brand.500",
-                    transform: "translateY(-2px)",
-                  }}
-                  cursor="pointer"
-                  onClick={() => scrollToSection("contact")}
-                  transition="all 0.2s ease-in-out"
-                >
-                  Contact
-                </ChakraLink>
-              </HStack>
-
-              <Divider
-                borderColor={useColorModeValue("gray.300", "gray.600")}
-              />
-
-              <HStack spacing={4} justify="center">
-                <IconButton
-                  aria-label="LinkedIn"
-                  icon={<FaCloud />}
-                  variant="ghost"
-                  colorScheme="brand"
+            <div className="px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10 w-full">
+                <FeatureCard
+                  icon={MdInventory}
+                  title="Inventory Optimization"
+                  description="Automated tracking and predictive restocking to maintain optimal inventory levels."
+                  animationDelay={0.2}
+                  animationType="slide-in-left"
+                  badgeText="AI-Powered"
                 />
-                <IconButton
-                  aria-label="Twitter"
-                  icon={<FaTruck />}
-                  variant="ghost"
-                  colorScheme="brand"
+                <FeatureCard
+                  icon={FaWarehouse}
+                  title="Warehouse Management"
+                  description="Streamline operations with smart bin locations and picking routes."
+                  animationDelay={0.3}
+                  animationType="float-up"
                 />
-                <IconButton
-                  aria-label="GitHub"
-                  icon={<FaWarehouse />}
-                  variant="ghost"
-                  colorScheme="brand"
+                <FeatureCard
+                  icon={FaTruck}
+                  title="Logistics Coordination"
+                  description="Real-time tracking and route optimization for all shipments."
+                  animationDelay={0.4}
+                  animationType="slide-in-right"
+                  badgeText="New"
                 />
-              </HStack>
+                <FeatureCard
+                  icon={FaBarcode}
+                  title="Asset Tracking"
+                  description="End-to-end visibility from manufacturer to end customer."
+                  animationDelay={0.5}
+                  animationType="slide-in-left"
+                />
+                <FeatureCard
+                  icon={FaExchangeAlt}
+                  title="Supplier Integration"
+                  description="Seamless connection with your supplier network for just-in-time delivery."
+                  animationDelay={0.6}
+                  animationType="float-up"
+                />
+                <FeatureCard
+                  icon={MdTimeline}
+                  title="Demand Forecasting"
+                  description="Predict market trends and adjust production accordingly."
+                  animationDelay={0.7}
+                  animationType="slide-in-right"
+                  badgeText="AI-Powered"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-              <Text fontSize="sm">
-                &copy; {new Date().getFullYear()} Orontis Supply Chain
-                Solutions. All rights reserved.
-              </Text>
-            </VStack>
-          </Container>
-        </Box>
-      </Box>
-    </ChakraProvider>
+      {/* Supply Chain Metrics */}
+      <SupplyChainMetrics />
+
+      {/* Problem/Solution Section */}
+      <section id="solutions">
+        <div className="w-full py-16 text-center bg-gradient-to-b from-blue-300 via-blue-100 to-white">
+          <div className="max-w-7xl mx-auto flex flex-col gap-8">
+            <div className="px-4 sm:px-6 lg:px-8">
+              <h2 className="text-3xl font-bold text-blue-800">
+                Supply Chain Pain Points We Solve
+              </h2>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl mx-auto">
+            <Card
+              className={cn(
+                "p-6 flex flex-col items-start gap-4 h-full text-left bg-white/90 backdrop-blur-sm border border-blue-200/50",
+                slideInLeft,
+                "opacity-0"
+              )}
+              style={{ animationDelay: "0.2s" }}
+            >
+              <h3 className="text-xl font-semibold text-blue-800">
+                Common Challenges
+              </h3>
+              <ul className="flex flex-col gap-3">
+                {[
+                  "Inventory inaccuracies",
+                  "Supplier communication gaps",
+                  "Lack of real-time visibility",
+                  "Inefficient warehouse operations",
+                  "Demand forecasting errors",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-blue-600" />
+                    <span className="text-gray-700">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+
+            <Card
+              className={cn(
+                "p-6 flex flex-col items-start gap-4 h-full text-left bg-white/90 backdrop-blur-sm border border-blue-200/50",
+                slideInRight,
+                "opacity-0"
+              )}
+              style={{ animationDelay: "0.4s" }}
+            >
+              <h3 className="text-xl font-semibold text-blue-800">
+                Our Solutions
+              </h3>
+              <ul className="flex flex-col gap-3">
+                {[
+                  {
+                    icon: FaClipboardCheck,
+                    text: "Automated inventory tracking",
+                  },
+                  { icon: FaCloud, text: "Supplier collaboration portal" },
+                  { icon: FaMapMarkedAlt, text: "Real-time GPS tracking" },
+                  { icon: FaWarehouse, text: "Smart warehouse optimization" },
+                  { icon: FaChartLine, text: "AI-powered demand forecasting" },
+                ].map((item) => (
+                  <li key={item.text} className="flex items-center gap-3">
+                    <div className="p-1 rounded-full bg-blue-100/80">
+                      <item.icon className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <span className="text-gray-700">{item.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section
+        id="contact"
+        className="py-16 bg-gradient-to-b from-white via-blue to-sky-50"
+      >
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8 text-center">
+          <h2 className="text-3xl font-bold text-blue-500">
+            Ready to Optimize Your Supply Chain?
+          </h2>
+          <p
+            className={cn("text-lg text-blue-500", fadeIn, "opacity-0")}
+            style={{ animationDelay: "0.2s" }}
+          >
+            Speak with our supply chain experts to see how we can transform your
+            operations.
+          </p>
+
+          <Card
+            className={cn(
+              "w-full p-6 md:p-8 hover:shadow-xl transition-all border border-blue-200/50 bg-white/90 backdrop-blur-sm",
+              scaleUp,
+              "opacity-0"
+            )}
+            style={{ animationDelay: "0.4s" }}
+          >
+            <form className="flex flex-col gap-5">
+              <div className="space-y-2 text-left">
+                <Label htmlFor="name" className="text-gray-700">
+                  Your Name
+                </Label>
+                <Input
+                  id="name"
+                  placeholder="John Doe"
+                  className="border-blue-200 bg-white"
+                />
+              </div>
+              <div className="space-y-2 text-left">
+                <Label htmlFor="email" className="text-gray-700">
+                  Work Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="john.doe@company.com"
+                  className="border-blue-200 bg-white"
+                />
+              </div>
+              <div className="space-y-2 text-left">
+                <Label htmlFor="company" className="text-gray-700">
+                  Company Name
+                </Label>
+                <Input
+                  id="company"
+                  placeholder="Acme Logistics Inc."
+                  className="border-blue-200 bg-white"
+                />
+              </div>
+              <div className="space-y-2 text-left">
+                <Label htmlFor="message" className="text-gray-700">
+                  How can we help you?
+                </Label>
+                <Textarea
+                  id="message"
+                  placeholder="Tell us about your supply chain challenges..."
+                  rows={4}
+                  className="border-blue-200 bg-white"
+                />
+              </div>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full group bg-blue-600 hover:bg-blue-700"
+              >
+                Get in Touch
+                <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </form>
+          </Card>
+        </div>
+      </section>
+
+      <Footer />
+
+      {/* Animations */}
+      <style jsx global>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes slide-in-left {
+          from {
+            opacity: 0;
+            transform: translateX(-50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        @keyframes slide-in-right {
+          from {
+            opacity: 0;
+            transform: translateX(50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        @keyframes float-up {
+          0% {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes scale-up {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        @keyframes pulse-glow {
+          0% {
+            box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+          }
+          70% {
+            box-shadow: 0 0 0 15px rgba(37, 99, 235, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+          }
+        }
+        @keyframes truck-movement {
+          0% {
+            transform: translateX(-10px);
+          }
+          100% {
+            transform: translateX(10px);
+          }
+        }
+        @keyframes plane-animation {
+          0% {
+            transform: translateX(0vw) translateY(20px) rotate(0deg);
+            opacity: 0;
+          }
+          10% {
+            transform: translateX(10vw) translateY(-100px) rotate(-20deg);
+            opacity: 0.6;
+          }
+          20% {
+            transform: translateX(20vw) translateY(-170px) rotate(-30deg);
+            opacity: 0.8;
+          }
+          40% {
+            transform: translateX(40vw) translateY(-210px) rotate(-5deg);
+            opacity: 1;
+          }
+          60% {
+            transform: translateX(60vw) translateY(-210px) rotate(5deg);
+            opacity: 1;
+          }
+          80% {
+            transform: translateX(80vw) translateY(-170px) rotate(30deg);
+            opacity: 0.8;
+          }
+          90% {
+            transform: translateX(90vw) translateY(-100px) rotate(20deg);
+            opacity: 0.6;
+          }
+          100% {
+            transform: translateX(100vw) translateY(20px) rotate(10deg);
+            opacity: 0;
+          }
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.8s ease-out forwards;
+        }
+        .animate-slide-in-left {
+          animation: slide-in-left 0.8s ease-out forwards;
+        }
+        .animate-slide-in-right {
+          animation: slide-in-right 0.8s ease-out forwards;
+        }
+        .animate-float-up {
+          animation: float-up 0.8s ease-out forwards;
+        }
+        .animate-scale-up {
+          animation: scale-up 0.8s ease-out forwards;
+        }
+        .animate-pulse-glow {
+          animation: pulse-glow 1.5s infinite;
+        }
+        @keyframes truck-drive {
+          0% {
+            transform: translateX(0vw);
+            opacity: 0;
+          }
+          10% {
+            opacity: 1;
+          }
+          90% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateX(100vw);
+            opacity: 0;
+          }
+        }
+      `}</style>
+    </div>
   );
 }

@@ -44,6 +44,8 @@ import {
   Area,
   AreaChart,
 } from "recharts";
+import Footer from "@/components/footer";
+import Navbar from "@/components/navbar";
 
 interface Invoice {
   id: number;
@@ -390,39 +392,7 @@ const FinanceAndInvoicingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-xl">
-                <Wallet className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                  Finance Dashboard
-                </h1>
-                <p className="text-slate-500 text-sm">
-                  Manage your business finances with ease
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <button className="relative p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-              </button>
-              <button className="p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
-                <Settings className="h-5 w-5" />
-              </button>
-              <button className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
-                <Plus className="h-4 w-4 mr-2" />
-                New Invoice
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar isLoggedIn={true}/>
 
       <div className="px-6 py-6">
         {/* Key Metrics Cards */}
@@ -926,6 +896,7 @@ const FinanceAndInvoicingPage: React.FC = () => {
             </div>
           </div>
         )}
+        <Footer/>
       </div>
     </div>
   );

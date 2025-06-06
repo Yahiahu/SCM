@@ -6,7 +6,6 @@ import Link from "next/link";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Separator from "@radix-ui/react-separator";
 import { FaCodeBranch, FaUser, FaSignOutAlt } from "react-icons/fa";
-import Sidebar from "./sidebar";
 
 interface NavbarProps {
   isLoggedIn: boolean;
@@ -14,12 +13,12 @@ interface NavbarProps {
 
 export default function Navbar({ isLoggedIn }: NavbarProps) {
   const router = useRouter();
-  const [sidebarVisible, setSidebarVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    if (!isLoggedIn) router.push("/login");
 
     // Enhanced scroll effect
     const handleScroll = () => {
@@ -29,22 +28,11 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isLoggedIn, router]);
 
-  const handleSignOut = async () => {
-    try {
-      router.push("/login");
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
-
   if (!mounted || !isLoggedIn) return null;
 
   return (
     <div
-      onMouseEnter={() => setSidebarVisible(true)}
-      onMouseLeave={() => setSidebarVisible(false)}
     >
-      <Sidebar visible={sidebarVisible} setVisible={setSidebarVisible} />
       <nav
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-out ${
           scrolled
@@ -69,9 +57,8 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-sky-400/5 via-transparent to-blue-400/10 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
 
                   <FaCodeBranch
-                    className={`w-6 h-6 text-sky-600 group-hover:text-sky-700 transform transition-all duration-700 ${
-                      sidebarVisible ? "rotate-180 scale-110" : "rotate-90"
-                    }`}
+                    className={`w-6 h-6 text-sky-600 group-hover:text-sky-700 transform transition-all duration-700`}
+                    
                   />
                 </div>
               </div>
@@ -89,18 +76,18 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
             {/* Enhanced Right Side */}
             <div className="flex items-center space-x-4">
               {/* My Account Button - Desktop */}
-              <Link href="/myAccount" className="hidden sm:block">
+              <Link href="/demo" className="hidden sm:block">
                 <button className="relative inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-sky-700 bg-sky-50/60 border border-sky-200/70 rounded-xl hover:bg-white hover:border-sky-300/80 hover:text-sky-800 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg hover:shadow-sky-500/10 group overflow-hidden">
                   {/* Button glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-sky-100/50 to-blue-100/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <FaUser className="relative w-3.5 h-3.5 mr-2 group-hover:scale-110 transition-transform duration-300" />
-                  <span className="relative">My Account</span>
+                  <span className="relative">Demo</span>
                 </button>
               </Link>
 
               {/* Enhanced Sign Out Button */}
               <button
-                onClick={handleSignOut}
+                onClick={() => signOut({ callbackUrl: "/login" })}
                 className="relative inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-sky-500 via-blue-500 to-sky-600 rounded-xl hover:from-sky-600 hover:via-blue-600 hover:to-sky-700 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-sky-400/50 focus:ring-offset-2 group overflow-hidden shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/35"
               >
                 {/* Button shine effect */}
@@ -110,7 +97,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-sky-300/20 to-blue-300/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
                 <FaSignOutAlt className="relative w-3.5 h-3.5 mr-2 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
-                <span className="relative">Sign Out</span>
+                <span className="relative">Sign in</span>
               </button>
 
               {/* Enhanced Mobile Menu */}
@@ -135,7 +122,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
                           className="flex items-center w-full px-4 py-3 text-sm text-sky-700 rounded-xl hover:bg-sky-50/80 hover:text-sky-800 transition-all duration-200 focus:outline-none focus:bg-sky-50/80 group"
                         >
                           <FaUser className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform duration-200" />
-                          <span>My Account</span>
+                          <span>Demo</span>
                         </Link>
                       </DropdownMenu.Item>
 
@@ -143,7 +130,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
 
                       <DropdownMenu.Item asChild>
                         <button
-                          onClick={handleSignOut}
+                          onClick={() => signOut({ callbackUrl: "/login" })}
                           className="flex items-center w-full px-4 py-3 text-sm text-red-600 rounded-xl hover:bg-red-50/80 hover:text-red-700 transition-all duration-200 focus:outline-none focus:bg-red-50/80 group"
                         >
                           <FaSignOutAlt className="w-4 h-4 mr-3 group-hover:scale-110 group-hover:rotate-12 transition-all duration-200" />

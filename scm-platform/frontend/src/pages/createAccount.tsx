@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -12,6 +14,8 @@ import {
   FaWarehouse,
   FaTruck,
 } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+
 
 const BlurredBackground = () => (
   <div className="absolute inset-0 overflow-hidden">
@@ -127,6 +131,7 @@ const Toast = ({ message, type, onClose }: ToastProps) => (
 );
 
 export default function CreateAccount() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     username: "",
@@ -150,13 +155,12 @@ export default function CreateAccount() {
     setTimeout(() => setToast(null), 4000);
   };
 
-
-  const handleChange = (e: { target: { name: any; value: any; }; }) => {
+  const handleChange = (e: { target: { name: any; value: any } }) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -191,12 +195,12 @@ export default function CreateAccount() {
       showToast("Account created successfully!", "success");
 
       setTimeout(() => {
-        console.log("Redirecting to login...");
+        router.push("/login");
       }, 1500);
-    }  catch (err) {
-  const error = err as Error;
-  showToast(error.message || "Failed to create account", "error");
-  } finally {
+    } catch (err) {
+      const error = err as Error;
+      showToast(error.message || "Failed to create account", "error");
+    } finally {
       setIsLoading(false);
     }
   };

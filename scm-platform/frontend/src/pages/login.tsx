@@ -11,6 +11,7 @@ import {
   FaTruck,
   FaGoogle,
 } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 const BlurredBackground = () => (
   <div className="absolute inset-0 overflow-hidden">
@@ -126,6 +127,7 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => (
 );
 
 export default function Login() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     username: "",
@@ -170,7 +172,7 @@ const showToast = (message: string, type: ToastType) => {
       }
       showToast("Login successful!", "success");
       setTimeout(() => {
-        console.log("Redirecting to dashboard...");
+        router.push("/product");
       }, 1500);
      } catch (err) {
   const message =
