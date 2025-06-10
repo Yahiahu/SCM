@@ -48,5 +48,7 @@ export class PurchaseOrder {
   })
   purchase_group!: PurchaseGroup | null;
   return_orders: any;
+    isCompleted: any;
+    totalValue: number = 0;
 }
 

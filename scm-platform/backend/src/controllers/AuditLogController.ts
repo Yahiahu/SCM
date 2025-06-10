@@ -72,4 +72,19 @@ export const AuditLogController = {
     await AuditLogRepository.remove(existing);
     res.status(204).send();
   }) as RequestHandler,
+
+  // New method for getting recent audit logs
+  getRecent: (async (req: Request, res: Response) => {
+    try {
+      const logs = await AuditLogRepository.find({
+        order: { timestamp: "DESC" },
+        take: 10,
+        relations: ["actor"], // Include actor relations if needed for recent logs
+      });
+      res.json(logs);
+    } catch (err) {
+      console.error("Audit log error:", err);
+      res.status(500).json({ error: "Failed to fetch recent audit logs" });
+    }
+  }) as RequestHandler,
 };

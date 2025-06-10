@@ -22,7 +22,11 @@ import warehouseLayoutRoutes from "./warehouselayout.routes";
 import aiSuggestionRoutes from "./aisuggestion.routes";
 import poConversationThreadRoutes from "./poconversationthread.routes";
 
+
+
+
 // ✅ New Routes
+import adminRoutes from "./new/admin.routes";
 import alertRoutes from "./new/alert.routes";
 import anomalyRoutes from "./new/anomaly.routes";
 import automationRoutes from "./new/automationRule.routes";
@@ -67,22 +71,24 @@ router.use("/aisuggestion", aiSuggestionRoutes);
 router.use("/poconversationthread", poConversationThreadRoutes);
 
 // New structured routes
-router.use("/api/alerts", alertRoutes);
-router.use("/api/anomalies", anomalyRoutes);
-router.use("/api/automationrules", automationRoutes);
-router.use("/api/binlocations", binLocationRoutes);
-router.use("/api/goals", goalRoutes);
-router.use("/api/inventoryaudits", inventoryAuditRoutes);
-router.use("/api/inventorybatches", inventoryBatchRoutes);
-router.use("/api/inventorytransactions", inventoryTransactionRoutes);
-router.use("/api/inventoryvaluations", inventoryValuationRoutes);
-router.use("/api/landedcosts", landedCostRoutes);
-router.use("/api/purchasegroups", purchaseGroupRoutes);
-router.use("/api/returnorders", returnOrderRoutes);
-router.use("/api/rfqs", rfqRoutes);
-router.use("/api/riskpredictions", riskPredictionRoutes);
-router.use("/api/scenariomodels", scenarioModelRoutes);
-router.use("/api/supplierscores", supplierScoreRoutes);
-router.use("/api/tasks", taskRoutes);
+router.use("/alerts", alertRoutes);
+router.use("/anomalies", anomalyRoutes);
+router.use("/automationrules", automationRoutes);
+router.use("/binlocations", binLocationRoutes);
+router.use("/goals", goalRoutes);
+router.use("/inventoryaudits", inventoryAuditRoutes);
+router.use("/inventorybatches", inventoryBatchRoutes);
+router.use("/inventorytransactions", inventoryTransactionRoutes);
+router.use("/inventoryvaluations", inventoryValuationRoutes);
+router.use("/landedcosts", landedCostRoutes);
+router.use("/purchasegroups", purchaseGroupRoutes);
+router.use("/returnorders", returnOrderRoutes);
+router.use("/rfqs", rfqRoutes);
+router.use("/riskpredictions", riskPredictionRoutes);
+router.use("/scenariomodels", scenarioModelRoutes);
+router.use("/supplierscores", supplierScoreRoutes);
+router.use("/tasks", taskRoutes);
+router.use("/admin", adminRoutes);
+
 
 export default router;
