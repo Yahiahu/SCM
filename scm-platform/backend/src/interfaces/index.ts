@@ -28,6 +28,10 @@ export interface Supplier {
 }
 
 export interface Component {
+  preferred_supplier: any;
+  lead_time_days: any;
+  last_purchase_price: any;
+  min_order_quantity: string;
   id: number;
   num: string;
   description: string;
@@ -40,6 +44,7 @@ export interface Component {
 }
 
 export interface Product {
+  sku: any;
   id: number;
   name: string;
   description: string;
@@ -67,6 +72,8 @@ export interface Warehouse {
 }
 
 export interface WarehouseInventory {
+  product: any;
+  product_id: number;
   id: number;
   warehouseId: number;
   componentId: number;
@@ -89,6 +96,7 @@ export interface POItem {
 }
 
 export interface PurchaseOrder {
+  product_id: number;
   id: number;
   supplierId: number;
   createdById: number;
@@ -192,6 +200,8 @@ export interface AuditLog {
 }
 
 export interface MonthlyStock {
+  qty_used: number;
+  current_qty: any;
   id: number;
   warehouseId: number;
   month: number;
