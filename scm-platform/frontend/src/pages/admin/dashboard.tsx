@@ -103,36 +103,29 @@ const AdminDashboardPage: React.FC = () => {
     loadData();
   }, []);
 
-  const loadData = async () => {
-    setLoading(true);
-    setError(null);
+const loadData = async () => {
+  try {
+    const [summaryRes, auditLogRes] = await Promise.all([
+      fetchDashboardSummary(),
+      fetchRecentAuditLogs(),
+    ]);
 
-    try {
-      const [summaryResponse, auditLogsResponse] = await Promise.all([
-        fetchDashboardSummary(),
-        fetchRecentAuditLogs(),
-      ]);
-
-      if (!summaryResponse.ok || !auditLogsResponse.ok) {
-        throw new Error("Failed to fetch dashboard data");
-      }
-
-      const summaryData = await summaryResponse.json();
-      const auditLogsData = await auditLogsResponse.json();
-
-      setDashboardSummary(summaryData);
-      setRecentAuditLogs(auditLogsData);
-      setLoading(false);
-    } catch (err) {
-      setError("Failed to load dashboard data");
-      toast({
-        title: "Error",
-        description: "Could not load dashboard data",
-        variant: "destructive",
-      });
-      setLoading(false);
+    if (!summaryRes.ok || !auditLogRes.ok) {
+      throw new Error("Failed to load dashboard data.");
     }
-  };
+
+    const summaryData = await summaryRes.json();
+    const auditLogData = await auditLogRes.json();
+
+    setDashboardSummary(summaryData);
+    setRecentAuditLogs(auditLogData);
+  } catch (err: any) {
+    setError(err.message || "Something went wrong.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const fetchDashboardSummary = async () => {
     try {
@@ -152,7 +145,7 @@ const AdminDashboardPage: React.FC = () => {
 
   const fetchRecentAuditLogs = async () => {
     try {
-      const response = await fetch("/api/auditlog/recent", {
+      const response = await fetch("/api/auditlog", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -217,6 +210,30 @@ const AdminDashboardPage: React.FC = () => {
     );
   }
 
+  const handleExportCSV = () => {
+    if (!dashboardSummary) return;
+
+    const rows = [
+      ["Metric", "Value"],
+      ...Object.entries(dashboardSummary).map(([key, value]) => [
+        key,
+        typeof value === "number" ? value.toString() : value,
+      ]),
+    ];
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," + rows.map((e) => e.join(",")).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "dashboard_summary.csv");
+    document.body.appendChild(link); // Required for Firefox
+    link.click();
+    document.body.removeChild(link);
+  };
+
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
       <BlurredBackground />
@@ -244,12 +261,16 @@ const AdminDashboardPage: React.FC = () => {
                 </p>
               </div>
               <div className="flex items-center space-x-3">
-                <button className="inline-flex items-center px-6 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white/70 backdrop-blur-sm hover:bg-white/90 transition-all duration-300 hover:shadow-lg hover:scale-105">
-                  <Download className="h-4 w-4 mr-2" />
+                <button
+                  onClick={handleExportCSV}
+                  className="inline-flex items-center px-6 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white/70 backdrop-blur-sm hover:bg-white/90 transition-all duration-300 hover:shadow-lg hover:scale-105"
+                >
+                  <Download className="h-4 w-4 mr-2 text-blue-600" />
                   Export Dashboard Data
                 </button>
+
                 <button
-                  onClick={() => router.push("/admin/settings")}
+                  onClick={() => router.push("/settings")}
                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-xl text-sm font-medium hover:from-sky-700 hover:to-blue-700 transition-all duration-300 hover:shadow-lg hover:scale-105"
                 >
                   <ShieldCheck className="h-4 w-4 mr-2" />
