@@ -513,3 +513,5 @@ export const fetchWarehouseLayouts = async (): Promise<WarehouseLayout[]> =>
     `${API_BASE_URL}/warehouselayout`,
     "Failed to fetch warehouse layouts"
   );
+
+  

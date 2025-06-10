@@ -89,7 +89,7 @@ const COLORS = [
 
 const AdminDashboardPage: React.FC = () => {
   const router = useRouter();
-  const  toast  = useToast();
+  const toast  = useToast();
   const [dashboardSummary, setDashboardSummary] =
     useState<AdminDashboardSummary | null>(null);
   const [recentAuditLogs, setRecentAuditLogs] = useState<AuditLogEntry[]>([]);
@@ -108,88 +108,21 @@ const AdminDashboardPage: React.FC = () => {
     setError(null);
 
     try {
-      // Simulate API calls with mock data
-      await Promise.all([fetchDashboardSummary(), fetchRecentAuditLogs()]);
+      const [summaryResponse, auditLogsResponse] = await Promise.all([
+        fetchDashboardSummary(),
+        fetchRecentAuditLogs(),
+      ]);
 
-      // Mock data
-      const mockSummary: AdminDashboardSummary = {
-        totalUsers: 50,
-        activeOrganizations: 5,
-        totalPurchaseOrders: 150,
-        outstandingPurchaseOrders: 35,
-        totalPurchaseOrderValue: 750000,
-        shipmentsInTransit: 12,
-        totalDeliveredShipments: 250,
-        totalReturnOrders: 8,
-        totalBOMs: 75,
-        activeBOMs: 60,
-        totalWorkOrders: 90,
-        workOrdersInProgress: 25,
-        workOrdersCompleted: 40,
-        totalAnomalies: 15,
-        criticalAnomalies: 3,
-        openSuggestions: 7,
-      };
+      if (!summaryResponse.ok || !auditLogsResponse.ok) {
+        throw new Error("Failed to fetch dashboard data");
+      }
 
-      const mockAuditLogs: AuditLogEntry[] = [
-        {
-          id: 1,
-          entity_type: "PurchaseOrder",
-          entity_id: 1001,
-          action_type: "create",
-          actorId: 1,
-          timestamp: "2025-06-05T14:30:00Z",
-          change_summary: "New PO created for Alpha Components",
-          actorUsername: "testuser",
-        },
-        {
-          id: 2,
-          entity_type: "WorkOrder",
-          entity_id: 5,
-          action_type: "update",
-          actorId: 2,
-          timestamp: "2025-06-05T10:15:00Z",
-          change_summary: "Work Order WO-005 status changed to InProgress",
-          actorUsername: "admin_user",
-        },
-        {
-          id: 3,
-          entity_type: "Supplier",
-          entity_id: 2,
-          action_type: "update",
-          actorId: 1,
-          timestamp: "2025-06-04T17:00:00Z",
-          change_summary: "Supplier Beta Electronics contact email updated",
-          actorUsername: "testuser",
-        },
-        {
-          id: 4,
-          entity_type: "AnomalyLog",
-          entity_id: 1,
-          action_type: "detect",
-          actorId: -1,
-          timestamp: "2025-06-04T09:00:00Z",
-          change_summary:
-            "High severity anomaly detected in Component 123 demand",
-          actorUsername: "System (AI)",
-        },
-        {
-          id: 5,
-          entity_type: "User",
-          entity_id: 4,
-          action_type: "create",
-          actorId: 2,
-          timestamp: "2025-06-03T11:45:00Z",
-          change_summary: "New user 'staff_ft' created",
-          actorUsername: "admin_user",
-        },
-      ];
+      const summaryData = await summaryResponse.json();
+      const auditLogsData = await auditLogsResponse.json();
 
-      setTimeout(() => {
-        setDashboardSummary(mockSummary);
-        setRecentAuditLogs(mockAuditLogs);
-        setLoading(false);
-      }, 500);
+      setDashboardSummary(summaryData);
+      setRecentAuditLogs(auditLogsData);
+      setLoading(false);
     } catch (err) {
       setError("Failed to load dashboard data");
       toast({
@@ -202,11 +135,35 @@ const AdminDashboardPage: React.FC = () => {
   };
 
   const fetchDashboardSummary = async () => {
-    console.log("Fetching admin dashboard summary...");
+    try {
+      const response = await fetch("/api/admin/dashboard-summary", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      return response;
+    } catch (error) {
+      console.error("Error fetching dashboard summary:", error);
+      throw error;
+    }
   };
 
   const fetchRecentAuditLogs = async () => {
-    console.log("Fetching recent audit logs...");
+    try {
+      const response = await fetch("/api/auditlog/recent", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      return response;
+    } catch (error) {
+      console.error("Error fetching recent audit logs:", error);
+      throw error;
+    }
   };
 
   const orderStatusData = dashboardSummary
@@ -613,7 +570,7 @@ const AdminDashboardPage: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            {log.actorUsername}
+                            {log.actorUsername || `User ${log.actorId}`}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
