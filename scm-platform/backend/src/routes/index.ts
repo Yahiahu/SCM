@@ -21,6 +21,7 @@ import warehouseInventoryRoutes from "./warehouseinventory.routes";
 import warehouseLayoutRoutes from "./warehouselayout.routes";
 import aiSuggestionRoutes from "./aisuggestion.routes";
 import poConversationThreadRoutes from "./poconversationthread.routes";
+import financeRoutes from "./new/finance.routes";
 
 
 
@@ -44,6 +45,8 @@ import riskPredictionRoutes from "./new/riskprediction.routes";
 import scenarioModelRoutes from "./new/scenariomodel.routes";
 import supplierScoreRoutes from "./new/supplierscore.routes";
 import taskRoutes from "./new/task.routes";
+import invoiceRoutes from "./new/invoice.routes";
+import paymentRoutes from "./new/payment.routes";
 
 const router = Router();
 
@@ -89,6 +92,9 @@ router.use("/scenariomodels", scenarioModelRoutes);
 router.use("/supplierscores", supplierScoreRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/admin", adminRoutes);
+router.use("/invoices", invoiceRoutes);
+router.use("/payments", paymentRoutes);
+router.use("/finance", financeRoutes);
 
 
 export default router;

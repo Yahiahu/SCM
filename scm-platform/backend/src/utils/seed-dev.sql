@@ -295,3 +295,8 @@ INSERT INTO scenario_model (id, name, description, input_parameters, output_metr
 INSERT INTO scenario_model (id, name, description, input_parameters, output_metrics, status, "createdById", created_at) VALUES (5, 'New Product Introduction Simulation', 'Simulating inventory and supply chain needs for a new product launch', '{"new_product_details": {}}', '{"component_requirements": {}, "initial_po_plan": {}}', 'pending', 1, '2025-06-05');
 
 
+INSERT INTO invoice (invoice_number, customer_name, issue_date, due_date, total_amount, amount_paid, balance_due, status, currency, created_at, updated_at)
+VALUES ('INV-2025-001', 'Test Client', '2025-06-01', '2025-06-15', 1000, 500, 500, 'Partially Paid', 'USD', now(), now());
+
+INSERT INTO payment (payment_id, invoice_id, payment_date, amount, type, method, status, description, currency, created_at, updated_at)
+VALUES ('PAY-001', 1, now(), 500, 'Incoming', 'Bank Transfer', 'Completed', 'First partial payment', 'USD', now(), now());
