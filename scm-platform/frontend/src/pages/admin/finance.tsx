@@ -46,6 +46,7 @@ import {
 } from "recharts";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
+import axios from "axios";
 
 // Reuse background effect
 const BlurredBackground = () => (
@@ -99,6 +100,13 @@ interface FinancialSummary {
   averagePaymentDays: number;
 }
 
+interface CashFlowData {
+  month: string;
+  income: number;
+  expenses: number;
+  net: number;
+}
+
 const COLORS = {
   primary: "#0ea5e9",
   primaryLight: "#38bdf8",
@@ -128,6 +136,7 @@ const FinanceAndInvoicingPage: React.FC = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [financialSummary, setFinancialSummary] =
     useState<FinancialSummary | null>(null);
+  const [cashFlowData, setCashFlowData] = useState<CashFlowData[]>([]);
   const [invoiceSearchTerm, setInvoiceSearchTerm] = useState<string>("");
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<string>("All");
   const [paymentSearchTerm, setPaymentSearchTerm] = useState<string>("");
@@ -137,114 +146,38 @@ const FinanceAndInvoicingPage: React.FC = () => {
     "overview" | "invoices" | "payments"
   >("overview");
 
-  // Mock data setup
+  // Fetch data from backend
   useEffect(() => {
-    const mockInvoices: Invoice[] = [
-      {
-        id: 1,
-        invoiceNumber: "INV-2025-001",
-        customerName: "Global Corp",
-        issueDate: "2025-05-15",
-        dueDate: "2025-06-15",
-        totalAmount: 15000.0,
-        amountPaid: 15000.0,
-        balanceDue: 0,
-        status: "Paid",
-        currency: "USD",
-      },
-      {
-        id: 2,
-        invoiceNumber: "INV-2025-002",
-        customerName: "Tech Solutions Inc.",
-        issueDate: "2025-05-20",
-        dueDate: "2025-06-20",
-        totalAmount: 7500.0,
-        amountPaid: 5000.0,
-        balanceDue: 2500.0,
-        status: "Partially Paid",
-        currency: "USD",
-      },
-      {
-        id: 3,
-        invoiceNumber: "INV-2025-003",
-        customerName: "Innovate Ltd.",
-        issueDate: "2025-05-25",
-        dueDate: "2025-06-05",
-        totalAmount: 2000.0,
-        amountPaid: 0,
-        balanceDue: 2000.0,
-        status: "Overdue",
-        currency: "USD",
-      },
-      {
-        id: 4,
-        invoiceNumber: "INV-2025-004",
-        customerName: "Future Systems",
-        issueDate: "2025-06-01",
-        dueDate: "2025-07-01",
-        totalAmount: 10000.0,
-        amountPaid: 0,
-        balanceDue: 10000.0,
-        status: "Sent",
-        currency: "USD",
-      },
-    ];
+    const fetchData = async () => {
+      try {
+        setLoading(true);
 
-    const mockPayments: Payment[] = [
-      {
-        id: 1,
-        paymentId: "PAY-001",
-        invoiceId: 1,
-        invoiceNumber: "INV-2025-001",
-        paymentDate: "2025-06-01T10:00:00",
-        amount: 15000.0,
-        type: "Incoming",
-        method: "Bank Transfer",
-        status: "Completed",
-        description: "Payment for INV-2025-001",
-        currency: "USD",
-      },
-      {
-        id: 2,
-        paymentId: "PAY-002",
-        invoiceId: 2,
-        invoiceNumber: "INV-2025-002",
-        paymentDate: "2025-06-03T14:30:00",
-        amount: 5000.0,
-        type: "Incoming",
-        method: "Credit Card",
-        status: "Completed",
-        description: "Partial payment for INV-2025-002",
-        currency: "USD",
-      },
-      {
-        id: 3,
-        paymentId: "PAY-EXP-001",
-        paymentDate: "2025-05-28T09:00:00",
-        amount: 2500.0,
-        type: "Outgoing",
-        method: "Bank Transfer",
-        status: "Completed",
-        description: "Vendor payment for office supplies",
-        currency: "USD",
-      },
-    ];
+        // Fetch all data in parallel
+        const [
+          invoicesResponse,
+          paymentsResponse,
+          summaryResponse,
+          cashflowResponse,
+        ] = await Promise.all([
+          axios.get("/api/invoices"),
+          axios.get("/api/payments"),
+          axios.get("/api/finance/summary"),
+          axios.get("/api/finance/cash-flow"),
+        ]);
 
-    const mockFinancialSummary: FinancialSummary = {
-      totalOutstandingInvoices: 12500.0,
-      totalRevenueYTD: 1500000.0,
-      totalExpensesYTD: 800000.0,
-      currentCashBalance: 700000.0,
-      overdueInvoicesCount: 1,
-      averagePaymentDays: 32,
+        setInvoices(invoicesResponse.data);
+        setPayments(paymentsResponse.data);
+        setFinancialSummary(summaryResponse.data);
+        setCashFlowData(cashflowResponse.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        // Handle error (e.g., show error message to user)
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setTimeout(() => {
-      setInvoices(mockInvoices);
-      setPayments(mockPayments);
-      setFinancialSummary(mockFinancialSummary);
-      setLoading(false);
-    }, 1000);
+    fetchData();
   }, []);
 
   const formatCurrency = (value: number, currency: string = "USD") => {
@@ -343,16 +276,6 @@ const FinanceAndInvoicingPage: React.FC = () => {
     return matchesSearch && matchesType;
   });
 
-  // Sample cash flow data for chart
-  const cashFlowData = [
-    { month: "Jan", income: 120000, expenses: 80000, net: 40000 },
-    { month: "Feb", income: 135000, expenses: 85000, net: 50000 },
-    { month: "Mar", income: 148000, expenses: 92000, net: 56000 },
-    { month: "Apr", income: 162000, expenses: 98000, net: 64000 },
-    { month: "May", income: 175000, expenses: 105000, net: 70000 },
-    { month: "Jun", income: 188000, expenses: 112000, net: 76000 },
-  ];
-
   const invoiceStatusData = [
     {
       name: "Paid",
@@ -400,7 +323,7 @@ const FinanceAndInvoicingPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 relative overflow-hidden">
+    <div className="pt-20 min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 relative overflow-hidden">
       <BlurredBackground />
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>

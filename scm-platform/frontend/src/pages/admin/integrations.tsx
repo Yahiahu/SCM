@@ -184,14 +184,15 @@ const ApiIntegrationPage: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+            <div className="bg-sky-50 rounded-xl shadow p-6">
+              <h1 className="text-3xl font-bold text-blue-500">
                 API Integrations
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-blue-700 mt-1">
                 Connect your application with external services and platforms
               </p>
             </div>
+
             <div className="flex items-center space-x-3">
               <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
                 <Zap className="h-4 w-4 mr-2" />
