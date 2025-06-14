@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { forwardRef } from "react";
 import {
   FiHome,
   FiBox,
@@ -15,7 +15,6 @@ import {
 } from "react-icons/fi";
 import { IconType } from "react-icons";
 import Link from "next/link";
-import * as Separator from "@radix-ui/react-separator";
 
 interface LinkItemProps {
   name: string;
@@ -40,52 +39,61 @@ const LinkItems: Array<LinkItemProps> = [
 interface SidebarProps {
   visible: boolean;
   setVisible: (visible: boolean) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-export default function Sidebar({ visible, setVisible }: SidebarProps) {
-  const sidebarWidth = "w-52";
-  const hoverBg = "hover:bg-sky-100";
-  const activeBg = "bg-sky-200";
+const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
+  ({ visible, setVisible, onMouseEnter, onMouseLeave }, ref) => {
+    const sidebarWidth = "w-52";
+    const hoverBg = "hover:bg-sky-100";
+    const activeBg = "bg-sky-200";
 
-  return (
-    <>
-      <div
-        className="fixed top-0 left-0 h-screen w-3 z-50"
-        onMouseEnter={() => setVisible(true)}
-      />
+    return (
+      <>
+        <div
+          className="fixed top-0 left-0 h-screen w-3 z-50"
+          onMouseEnter={() => setVisible(true)}
+        />
 
-      <div
-        className={`fixed top-0 h-screen ${sidebarWidth} z-40 bg-white border-r border-sky-200 transition-all duration-300 ease-in-out shadow-lg ${
-          visible ? "left-0" : "-left-52"
-        }`}
-        onMouseLeave={() => setVisible(false)}
-      >
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-center px-4 py-6">
-            <span className="text-xl font-bold bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">
-              Orontis
-            </span>
+        <div
+          ref={ref}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          className={`fixed top-0 h-screen ${sidebarWidth} z-40 bg-white border-r border-sky-200 transition-all duration-300 ease-in-out shadow-lg ${
+            visible ? "left-0" : "-left-52"
+          }`}
+        >
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-center px-4 py-6">
+              <span className="text-xl font-bold bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">
+                Orontis
+              </span>
+            </div>
+
+            <nav className="flex-1 overflow-y-auto py-4">
+              <ul className="space-y-1 px-2">
+                {LinkItems.map((link) => (
+                  <NavItem
+                    key={link.name}
+                    icon={link.icon}
+                    label={link.name}
+                    path={link.path}
+                    hoverBg={hoverBg}
+                    activeBg={activeBg}
+                  />
+                ))}
+              </ul>
+            </nav>
           </div>
-
-          <nav className="flex-1 overflow-y-auto py-4">
-            <ul className="space-y-1 px-2">
-              {LinkItems.map((link) => (
-                <NavItem
-                  key={link.name}
-                  icon={link.icon}
-                  label={link.name}
-                  path={link.path}
-                  hoverBg={hoverBg}
-                  activeBg={activeBg}
-                />
-              ))}
-            </ul>
-          </nav>
         </div>
-      </div>
-    </>
-  );
-}
+      </>
+    );
+  }
+);
+
+Sidebar.displayName = "Sidebar";
+export default Sidebar;
 
 interface NavItemProps {
   icon: IconType;
