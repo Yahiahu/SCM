@@ -23,6 +23,7 @@ import { GiFactory, GiDeliveryDrone } from "react-icons/gi";
 import Footer from "../components/footer";
 import Navbar from "../components/nb";
 import screenshot from "../assets/Screenshot1.png";
+import emailjs from "emailjs-com";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -73,9 +74,13 @@ const PlaneAnimation = () => {
   );
 };
 
+
+
+
+
 const useScrollAnimation = (threshold: number = 0.2) => {
   const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   const handleScroll = useCallback(() => {
     if (ref.current) {
@@ -119,6 +124,7 @@ const FeatureCard = ({
 }: FeatureCardProps) => {
   const [ref, isVisible] = useScrollAnimation(0.3);
 
+  
   const animationClasses = {
     "fade-in": fadeIn,
     "slide-in-left": slideInLeft,
@@ -318,7 +324,6 @@ const InventoryDashboardPreview = () => {
                   />
                 </div>
                 <DialogFooter>
-                  <Button variant="outline">Close</Button>
                   <Button
                     className="bg-blue-600 hover:bg-blue-700"
                     onClick={() => router.push("/login")}
@@ -402,6 +407,45 @@ const SupplyChainMetrics = () => {
 };
 
 export default function LandingPage() {
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+
+  const handleSendEmail = () => {
+    const name = (document.getElementById("name") as HTMLInputElement)?.value;
+    const email = (document.getElementById("email") as HTMLInputElement)?.value;
+    const company = (document.getElementById("company") as HTMLInputElement)
+      ?.value;
+    const message = (document.getElementById("message") as HTMLTextAreaElement)
+      ?.value;
+
+    emailjs
+      .send(
+        "service_u6wqffk",
+        "template_nmord0n",
+        {
+          name: name,
+          email: email,
+          company: company,
+          message: message,
+        },
+        "d2qf7nrCHDz5d-v-6"
+      )
+      .then(() => {
+        setToast({ message: "Email sent successfully!", type: "success" });
+        setTimeout(() => setToast(null), 4000);
+      })
+      .catch((err) => {
+        console.error("Failed to send email:", err);
+        setToast({
+          message: "Failed to send email. Try again.",
+          type: "error",
+        });
+        setTimeout(() => setToast(null), 4000);
+      });
+  };
+
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -454,7 +498,7 @@ export default function LandingPage() {
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
-              className="absolute bottom-2 left-0"
+              className="absolute bottom-2 left-20"
               style={{
                 animation: `truck-drive 14s linear ${i * 2}s infinite`,
               }}
@@ -746,23 +790,7 @@ export default function LandingPage() {
                 type="button"
                 size="lg"
                 className="w-full group bg-blue-600 hover:bg-blue-700"
-                onClick={() => {
-                  const name = (
-                    document.getElementById("name") as HTMLInputElement
-                  )?.value;
-                  const email = (
-                    document.getElementById("email") as HTMLInputElement
-                  )?.value;
-                  const company = (
-                    document.getElementById("company") as HTMLInputElement
-                  )?.value;
-                  const message = (
-                    document.getElementById("message") as HTMLTextAreaElement
-                  )?.value;
-
-                  const mailto = `mailto:yahiahu24@gmail.com?subject=Contact from ${name} at ${company}&body=Name: ${name}%0D%0AEmail: ${email}%0D%0ACompany: ${company}%0D%0AMessage:%0D%0A${message}`;
-                  window.location.href = mailto;
-                }}
+                onClick={handleSendEmail}
               >
                 Get in Touch
                 <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
@@ -916,6 +944,14 @@ export default function LandingPage() {
           }
         }
       `}</style>
+      {toast && (
+        <div
+          className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg text-white z-50 transition-all
+    ${toast.type === "success" ? "bg-green-600" : "bg-red-600"}`}
+        >
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

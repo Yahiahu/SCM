@@ -1,40 +1,32 @@
 "use client";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
+
+import { createContext, useContext, ReactNode } from "react";
+import { useSession, signOut } from "next-auth/react";
 
 interface AuthContextType {
   isLoggedIn: boolean;
-  login: (user: any) => void;
   logout: () => void;
+  user: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  } | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { data: session, status } = useSession();
 
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-    setIsLoggedIn(!!user);
-  }, []);
-
-  const login = (user: any) => {
-    localStorage.setItem("user", JSON.stringify(user));
-    setIsLoggedIn(true);
-  };
+  const isLoggedIn = status === "authenticated";
+  const user = session?.user ?? null;
 
   const logout = () => {
-    localStorage.removeItem("user");
-    setIsLoggedIn(false);
+    signOut({ callbackUrl: "/login" });
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, logout, user }}>
       {children}
     </AuthContext.Provider>
   );

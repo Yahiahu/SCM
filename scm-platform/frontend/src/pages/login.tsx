@@ -12,6 +12,9 @@ import {
   FaGoogle,
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 const BlurredBackground = () => (
   <div className="absolute inset-0 overflow-hidden">
@@ -149,6 +152,14 @@ const showToast = (message: string, type: ToastType) => {
   setTimeout(() => setToast(null), 4000);
 };
 
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
+
+  useEffect(() => {
+    if (error) {
+      showToast("Google sign-in failed. Please try again.", "error");
+    }
+  }, [error]);
 
   const handleChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
@@ -185,7 +196,7 @@ const showToast = (message: string, type: ToastType) => {
   };
 
   const handleGoogleSignIn = () => {
-    showToast("Google sign-in would be implemented here", "success");
+    signIn("google", { callbackUrl: "/product" });
   };
 
   return (
