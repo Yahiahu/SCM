@@ -25,19 +25,11 @@ import {
   DollarSign,
 } from "lucide-react";
 import {
-  BarChart,
-  PieChart as RechartsPieChart,
   Pie,
   Cell,
   ResponsiveContainer,
   Tooltip,
   Legend,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  LineChart,
-  Line,
-  Bar,
   PieChart,
 } from "recharts";
 
@@ -72,13 +64,24 @@ interface RequestForQuotation {
   totalEstimatedCost?: number;
 }
 
-interface RfqItem {
+interface RfqStats {
+  totalRfqs: number;
+  draftRfqs: number;
+  sentRfqs: number;
+  awaitingQuotesRfqs: number;
+  quotesReceivedRfqs: number;
+  awardedRfqs: number;
+  closedRfqs: number;
+  cancelledRfqs: number;
+}
+
+interface RfqActivity {
   id: number;
-  rfqId: number;
-  partNumber: string;
-  description: string;
-  quantity: number;
-  unitOfMeasure: string;
+  type: string;
+  message: string;
+  timestamp: string;
+  rfqId?: number;
+  rfqNumber?: string;
 }
 
 const COLORS = [
@@ -96,6 +99,17 @@ const RfqPage: React.FC = () => {
   const router = useRouter();
   const  toast  = useToast();
   const [rfqs, setRfqs] = useState<RequestForQuotation[]>([]);
+  const [rfqStats, setRfqStats] = useState<RfqStats>({
+    totalRfqs: 0,
+    draftRfqs: 0,
+    sentRfqs: 0,
+    awaitingQuotesRfqs: 0,
+    quotesReceivedRfqs: 0,
+    awardedRfqs: 0,
+    closedRfqs: 0,
+    cancelledRfqs: 0,
+  });
+  const [recentActivity, setRecentActivity] = useState<RfqActivity[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [sortField, setSortField] = useState<keyof RequestForQuotation>("id");
@@ -107,88 +121,66 @@ const RfqPage: React.FC = () => {
 
   useEffect(() => {
     setIsClient(true);
-    fetchRfqs();
+    fetchData();
   }, []);
 
-  const fetchRfqs = async () => {
+  const fetchData = async () => {
     try {
-      const mockRfqs: RequestForQuotation[] = [
-        {
-          id: 1,
-          rfqNumber: "RFQ-2025-001",
-          title: "Raw Material for Product A",
-          status: "AwaitingQuotes",
-          dueDate: "2025-06-20",
-          supplierCount: 5,
-          quotesReceivedCount: 2,
-          createdAt: "2025-06-01",
-          lastUpdated: "2025-06-05",
-          totalEstimatedCost: 15000,
-        },
-        {
-          id: 2,
-          rfqNumber: "RFQ-2025-002",
-          title: "Packaging Supplies Q3 2025",
-          status: "Draft",
-          dueDate: "2025-06-25",
-          supplierCount: 0,
-          quotesReceivedCount: 0,
-          createdAt: "2025-06-03",
-          lastUpdated: "2025-06-03",
-        },
-        {
-          id: 3,
-          rfqNumber: "RFQ-2025-003",
-          title: "Custom Electronic Components",
-          status: "QuotesReceived",
-          dueDate: "2025-06-10",
-          supplierCount: 3,
-          quotesReceivedCount: 3,
-          createdAt: "2025-05-28",
-          lastUpdated: "2025-06-09",
-          awardStatus: "Awarded",
-          totalEstimatedCost: 50000,
-        },
-        {
-          id: 4,
-          rfqNumber: "RFQ-2025-004",
-          title: "Maintenance Service Contract",
-          status: "Sent",
-          dueDate: "2025-06-18",
-          supplierCount: 4,
-          quotesReceivedCount: 0,
-          createdAt: "2025-06-02",
-          lastUpdated: "2025-06-02",
-        },
-        {
-          id: 5,
-          rfqNumber: "RFQ-2025-005",
-          title: "Office Supplies Annual Bid",
-          status: "Closed",
-          dueDate: "2025-05-30",
-          supplierCount: 6,
-          quotesReceivedCount: 5,
-          createdAt: "2025-05-15",
-          lastUpdated: "2025-05-30",
-          awardStatus: "NotAwarded",
-        },
-      ];
+      setLoading(true);
 
-      setTimeout(() => {
-        setRfqs(mockRfqs);
-        setLoading(false);
-      }, 500);
-    } catch (err: any) {
-      setError(`Failed to fetch RFQs: ${err.message}`);
-      toast({
-        title: "Error",
-        description: `Failed to fetch RFQs: ${err.message}`,
-        variant: "destructive",
-      });
-      console.error("Error fetching RFQs:", err);
-      setLoading(false);
-    }
-  };
+  const rfqsRes = await fetch("/api/rfqs");
+
+  if (!rfqsRes.ok) {
+    throw new Error("Failed to fetch RFQs");
+  }
+
+  const rfqsData = await rfqsRes.json();
+  
+  // Generate stats on the client
+const statsData = {
+  totalRfqs: rfqsData.length,
+  draftRfqs: rfqsData.filter((r: { status: string; }) => r.status === "Draft").length,
+  sentRfqs: rfqsData.filter((r: { status: string; }) => r.status === "Sent").length,
+  awaitingQuotesRfqs: rfqsData.filter((r: { status: string; }) => r.status === "AwaitingQuotes").length,
+  quotesReceivedRfqs: rfqsData.filter((r: { status: string; }) => r.status === "QuotesReceived").length,
+  awardedRfqs: rfqsData.filter((r: { status: string; }) => r.status === "Awarded").length,
+  closedRfqs: rfqsData.filter((r: { status: string; }) => r.status === "Closed").length,
+  cancelledRfqs: rfqsData.filter((r: { status: string; }) => r.status === "Cancelled").length,
+};
+
+
+  // Simulate recent activity from RFQs
+  const activityData = rfqsData
+    .slice()
+    .sort(
+      (a: { created_at: string }, b: { created_at: string }) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+    .slice(0, 5)
+    .map((rfq: { created_at: string; items: any[]; supplier: { name: string } }) => ({
+      date: rfq.created_at,
+      description: `RFQ for ${rfq.items
+        .map((i) => i.component.num)
+        .join(", ")} to ${rfq.supplier.name}`,
+    }));
+
+  // ✅ Set state
+  setRfqs(rfqsData);
+  setRfqStats(statsData);
+  setRecentActivity(activityData);
+  setLoading(false);
+} catch (err: any) {
+  setError(`Failed to fetch data: ${err.message}`);
+  toast({
+    title: "Error",
+    description: `Failed to fetch data: ${err.message}`,
+    variant: "destructive",
+  });
+  console.error("Error fetching data:", err);
+  setLoading(false);
+}
+}
+
 
   const getStatusDisplay = (status: RequestForQuotation["status"]) => {
     switch (status) {
@@ -235,6 +227,21 @@ const RfqPage: React.FC = () => {
     }
   };
 
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "creation":
+        return <Plus className="h-4 w-4 text-sky-600" />;
+      case "quote":
+        return <DollarSign className="h-4 w-4 text-sky-600" />;
+      case "award":
+        return <CheckCircle className="h-4 w-4 text-sky-600" />;
+      case "update":
+        return <Edit className="h-4 w-4 text-sky-600" />;
+      default:
+        return <FileText className="h-4 w-4 text-sky-600" />;
+    }
+  };
+
   const handleSort = (field: keyof RequestForQuotation) => {
     const newSortOrder =
       sortField === field && sortOrder === "asc" ? "desc" : "asc";
@@ -263,19 +270,6 @@ const RfqPage: React.FC = () => {
       rfq.title.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
-
-  const rfqStats = {
-    totalRfqs: rfqs.length,
-    draftRfqs: rfqs.filter((r) => r.status === "Draft").length,
-    sentRfqs: rfqs.filter((r) => r.status === "Sent").length,
-    awaitingQuotesRfqs: rfqs.filter((r) => r.status === "AwaitingQuotes")
-      .length,
-    quotesReceivedRfqs: rfqs.filter((r) => r.status === "QuotesReceived")
-      .length,
-    awardedRfqs: rfqs.filter((r) => r.status === "Awarded").length,
-    closedRfqs: rfqs.filter((r) => r.status === "Closed").length,
-    cancelledRfqs: rfqs.filter((r) => r.status === "Cancelled").length,
-  };
 
   const rfqStatusData = [
     { name: "Draft", value: rfqStats.draftRfqs },
@@ -691,39 +685,24 @@ const RfqPage: React.FC = () => {
               Recent RFQ Activity
             </h3>
             <div className="space-y-3">
-              <div className="flex items-start p-3 bg-sky-50/70 rounded-lg">
-                <div className="bg-sky-100 p-2 rounded-full mr-3">
-                  <Plus className="h-4 w-4 text-sky-600" />
+              {recentActivity.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start p-3 bg-sky-50/70 rounded-lg"
+                >
+                  <div className="bg-sky-100 p-2 rounded-full mr-3">
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {activity.message}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(activity.timestamp).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    New RFQ "RFQ-2025-006" created: "Warehouse Shelving"
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start p-3 bg-sky-50/70 rounded-lg">
-                <div className="bg-sky-100 p-2 rounded-full mr-3">
-                  <DollarSign className="h-4 w-4 text-sky-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    Quote received for RFQ "RFQ-2025-001" from Supplier B
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">5 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start p-3 bg-sky-50/70 rounded-lg">
-                <div className="bg-sky-100 p-2 rounded-full mr-3">
-                  <CheckCircle className="h-4 w-4 text-sky-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    RFQ "RFQ-2025-003" awarded to XYZ Solutions
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">Yesterday</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -732,6 +711,5 @@ const RfqPage: React.FC = () => {
       <Footer />
     </div>
   );
-};
-
+  };
 export default RfqPage;

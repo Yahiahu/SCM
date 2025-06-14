@@ -12,11 +12,9 @@ import {
   Hourglass,
   TrendingUp,
   ArrowRightLeft,
-  Filter,
   Search,
   Plus,
   Download,
-  MoreVertical,
   Eye,
   Edit,
   XCircle,
@@ -24,7 +22,6 @@ import {
 } from "lucide-react";
 import {
   BarChart,
-  PieChart as RechartsPieChart,
   Pie,
   Cell,
   ResponsiveContainer,
@@ -39,7 +36,6 @@ import {
   PieChart,
 } from "recharts";
 
-// Reuse background effect
 const BlurredBackground = () => (
   <div className="absolute inset-0 overflow-hidden z-0">
     <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
@@ -104,16 +100,12 @@ const COLORS = [
 
 const InventoryInsightsPage: React.FC = () => {
   const router = useRouter();
-  const  toast  = useToast();
+  const  toast = useToast();
   const [cycleCounts, setCycleCounts] = useState<CycleCountRecord[]>([]);
-  const [inventoryMovements, setInventoryMovements] = useState<
-    InventoryMovement[]
-  >([]);
-  const [valuationSummary, setValuationSummary] =
-    useState<InventoryValuationSummary | null>(null);
+  const [inventoryMovements, setInventoryMovements] = useState<InventoryMovement[]>([]);
+  const [valuationSummary, setValuationSummary] = useState<InventoryValuationSummary | null>(null);
   const [cycleCountSearchTerm, setCycleCountSearchTerm] = useState<string>("");
-  const [cycleCountStatusFilter, setCycleCountStatusFilter] =
-    useState<string>("All");
+  const [cycleCountStatusFilter, setCycleCountStatusFilter] = useState<string>("All");
   const [movementSearchTerm, setMovementSearchTerm] = useState<string>("");
   const [movementTypeFilter, setMovementTypeFilter] = useState<string>("All");
   const [loading, setLoading] = useState<boolean>(true);
@@ -127,127 +119,28 @@ const InventoryInsightsPage: React.FC = () => {
   }, []);
 
   const fetchInventoryData = async () => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      const mockCycleCounts: CycleCountRecord[] = [
-        {
-          id: 1,
-          countId: "CC-2025-001",
-          countDate: "2025-06-03",
-          item: {
-            partNumber: "PN-A123",
-            description: "Processor Unit",
-            unitCost: 150.0,
-          },
-          systemQuantity: 100,
-          countedQuantity: 98,
-          varianceUnits: -2,
-          variancePercentage: 0.02,
-          accuracyPercentage: 0.98,
-          status: "Completed",
-          countedBy: "Alice Johnson",
-          lastUpdated: "2025-06-03",
-        },
-        {
-          id: 2,
-          countId: "CC-2025-002",
-          countDate: "2025-06-05",
-          item: {
-            partNumber: "PN-B456",
-            description: "Memory Module",
-            unitCost: 75.0,
-          },
-          systemQuantity: 250,
-          countedQuantity: 250,
-          varianceUnits: 0,
-          variancePercentage: 0,
-          accuracyPercentage: 1,
-          status: "Reviewed",
-          countedBy: "Bob Williams",
-          lastUpdated: "2025-06-06",
-        },
-        {
-          id: 3,
-          countId: "CC-2025-003",
-          countDate: "2025-06-07",
-          item: {
-            partNumber: "PN-C789",
-            description: "Power Supply",
-            unitCost: 40.0,
-          },
-          systemQuantity: 120,
-          countedQuantity: 115,
-          varianceUnits: -5,
-          variancePercentage: 0.0417,
-          accuracyPercentage: 0.9583,
-          status: "InProgress",
-          countedBy: "Charlie Davis",
-          lastUpdated: "2025-06-07",
-        },
-      ];
+      // Fetch cycle counts from warehouse inventory endpoint
+      const countsResponse = await fetch("/api/warehouseinventory/cycle-counts");
+      if (!countsResponse.ok) throw new Error("Failed to fetch cycle counts");
+      const countsData = await countsResponse.json();
+      setCycleCounts(countsData);
 
-      const mockInventoryMovements: InventoryMovement[] = [
-        {
-          id: 1,
-          movementId: "MOV-001",
-          movementType: "Transfer",
-          item: {
-            partNumber: "PN-A123",
-            description: "Processor Unit",
-            unitCost: 150.0,
-          },
-          quantity: 10,
-          fromLocation: "WH1-A-01",
-          toLocation: "ASSEMBLY-LINE-2",
-          movementDate: "2025-06-04T10:30:00",
-          recordedBy: "Alice Johnson",
-        },
-        {
-          id: 2,
-          movementId: "MOV-002",
-          movementType: "Receipt",
-          item: {
-            partNumber: "PN-B456",
-            description: "Memory Module",
-            unitCost: 75.0,
-          },
-          quantity: 200,
-          fromLocation: "Supplier-XYZ",
-          toLocation: "WH1-B-05",
-          movementDate: "2025-06-05T14:00:00",
-          recordedBy: "Bob Williams",
-        },
-        {
-          id: 3,
-          movementId: "MOV-003",
-          movementType: "Adjustment",
-          item: {
-            partNumber: "PN-C789",
-            description: "Power Supply",
-            unitCost: 40.0,
-          },
-          quantity: -5,
-          fromLocation: "WH1-C-10",
-          toLocation: "WH1-C-10",
-          movementDate: "2025-06-06T09:15:00",
-          recordedBy: "Charlie Davis",
-        },
-      ];
+      // Fetch movements from inventory transactions endpoint
+      const movementsResponse = await fetch("/api/inventorytransactions");
+      if (!movementsResponse.ok) throw new Error("Failed to fetch inventory movements");
+      const movementsData = await movementsResponse.json();
+      setInventoryMovements(movementsData);
 
-      const mockValuationSummary: InventoryValuationSummary = {
-        totalInventoryValue: 1250000,
-        costOfGoodsOnHand: 1100000,
-        obsoleteInventoryValue: 50000,
-        fastMovingInventoryValue: 800000,
-        slowMovingInventoryValue: 200000,
-        lastValuationDate: "2025-06-01",
-      };
+      // Fetch valuation from inventory valuation endpoint
+      const valuationResponse = await fetch("/api/inventoryvaluations/latest");
+      if (!valuationResponse.ok) throw new Error("Failed to fetch valuation data");
+      const valuationData = await valuationResponse.json();
+      setValuationSummary(valuationData);
 
-      setTimeout(() => {
-        setCycleCounts(mockCycleCounts);
-        setInventoryMovements(mockInventoryMovements);
-        setValuationSummary(mockValuationSummary);
-        setLoading(false);
-      }, 500);
     } catch (err: any) {
       setError(`Failed to fetch inventory data: ${err.message}`);
       toast({
@@ -256,6 +149,7 @@ const InventoryInsightsPage: React.FC = () => {
         variant: "destructive",
       });
       console.error("Error fetching inventory data:", err);
+    } finally {
       setLoading(false);
     }
   };
@@ -300,8 +194,7 @@ const InventoryInsightsPage: React.FC = () => {
       case "Transfer":
         return "bg-blue-100 text-blue-800";
       case "Adjustment":
-        return (inventoryMovements.find((m) => m.movementType === type)
-          ?.quantity || 0) < 0
+        return (inventoryMovements.find((m) => m.movementType === type)?.quantity || 0) < 0
           ? "bg-red-100 text-red-800"
           : "bg-yellow-100 text-yellow-800";
       case "Receipt":
@@ -319,12 +212,8 @@ const InventoryInsightsPage: React.FC = () => {
     const matchesSearch =
       cycleCountSearchTerm === "" ||
       cc.countId.toLowerCase().includes(cycleCountSearchTerm.toLowerCase()) ||
-      cc.item.partNumber
-        .toLowerCase()
-        .includes(cycleCountSearchTerm.toLowerCase()) ||
-      cc.item.description
-        .toLowerCase()
-        .includes(cycleCountSearchTerm.toLowerCase()) ||
+      cc.item.partNumber.toLowerCase().includes(cycleCountSearchTerm.toLowerCase()) ||
+      cc.item.description.toLowerCase().includes(cycleCountSearchTerm.toLowerCase()) ||
       cc.countedBy.toLowerCase().includes(cycleCountSearchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
@@ -335,42 +224,25 @@ const InventoryInsightsPage: React.FC = () => {
     const matchesSearch =
       movementSearchTerm === "" ||
       mov.movementId.toLowerCase().includes(movementSearchTerm.toLowerCase()) ||
-      mov.item.partNumber
-        .toLowerCase()
-        .includes(movementSearchTerm.toLowerCase()) ||
-      mov.item.description
-        .toLowerCase()
-        .includes(movementSearchTerm.toLowerCase()) ||
-      mov.fromLocation
-        .toLowerCase()
-        .includes(movementSearchTerm.toLowerCase()) ||
+      mov.item.partNumber.toLowerCase().includes(movementSearchTerm.toLowerCase()) ||
+      mov.item.description.toLowerCase().includes(movementSearchTerm.toLowerCase()) ||
+      mov.fromLocation.toLowerCase().includes(movementSearchTerm.toLowerCase()) ||
       mov.toLocation.toLowerCase().includes(movementSearchTerm.toLowerCase());
     return matchesType && matchesSearch;
   });
 
   const inventoryStats = {
-    totalItemsTracked:
-      cycleCounts.length +
-      inventoryMovements.reduce(
-        (sum, mov) => sum + (mov.movementType === "Receipt" ? 1 : 0),
-        0
-      ),
+    totalItemsTracked: cycleCounts.length,
     openCycleCounts: cycleCounts.filter(
       (cc) => cc.status === "Planned" || cc.status === "InProgress"
     ).length,
     averageCycleCountAccuracy:
-      cycleCounts.filter(
-        (cc) => cc.status === "Completed" || cc.status === "Reviewed"
-      ).length > 0
+      cycleCounts.filter((cc) => cc.status === "Completed" || cc.status === "Reviewed").length > 0
         ? (
             cycleCounts
-              .filter(
-                (cc) => cc.status === "Completed" || cc.status === "Reviewed"
-              )
+              .filter((cc) => cc.status === "Completed" || cc.status === "Reviewed")
               .reduce((sum, cc) => sum + cc.accuracyPercentage, 0) /
-            cycleCounts.filter(
-              (cc) => cc.status === "Completed" || cc.status === "Reviewed"
-            ).length
+            cycleCounts.filter((cc) => cc.status === "Completed" || cc.status === "Reviewed").length
           ).toFixed(2)
         : "N/A",
     totalMovementsLast30Days: inventoryMovements.filter((mov) => {
@@ -396,23 +268,14 @@ const InventoryInsightsPage: React.FC = () => {
 
   const valuationBreakdownData = valuationSummary
     ? [
-        {
-          name: "Cost of Goods on Hand",
-          value: valuationSummary.costOfGoodsOnHand,
-        },
-        {
-          name: "Obsolete Inventory",
-          value: valuationSummary.obsoleteInventoryValue,
-        },
+        { name: "Cost of Goods on Hand", value: valuationSummary.costOfGoodsOnHand },
+        { name: "Obsolete Inventory", value: valuationSummary.obsoleteInventoryValue },
       ]
     : [];
 
   const accuracyTrendData = cycleCounts
     .filter((cc) => cc.status === "Completed" || cc.status === "Reviewed")
-    .sort(
-      (a, b) =>
-        new Date(a.countDate).getTime() - new Date(b.countDate).getTime()
-    )
+    .sort((a, b) => new Date(a.countDate).getTime() - new Date(b.countDate).getTime())
     .map((cc) => ({
       date: new Date(cc.countDate).toLocaleDateString("en-US", {
         month: "short",
@@ -443,7 +306,6 @@ const InventoryInsightsPage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
       <BlurredBackground />
-      {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
 
       <Navbar isLoggedIn={true} />
@@ -558,29 +420,6 @@ const InventoryInsightsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Quick Actions
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Record Adjustment
-                </button>
-                <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Generate Valuation Report
-                </button>
-                <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Locations Map
-                </button>
-              </div>
-            </div>
-          </div>
-
           {/* Cycle Counting Overview Section */}
           <div className="bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200/50 p-6 mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -664,7 +503,9 @@ const InventoryInsightsPage: React.FC = () => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-900">
-                            {cc.item.partNumber} - {cc.item.description}
+                            {cc.item
+                              ? `${cc.item.partNumber} - ${cc.item.description}`
+                              : "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -698,12 +539,6 @@ const InventoryInsightsPage: React.FC = () => {
                             >
                               <Eye className="h-4 w-4" />
                             </button>
-                            <button
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -713,37 +548,41 @@ const InventoryInsightsPage: React.FC = () => {
               </table>
             </div>
             {/* Cycle Count Accuracy Trend Chart */}
-            <h4 className="text-md font-semibold text-gray-800 mb-3">
-              Accuracy Trend
-            </h4>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={accuracyTrendData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis
-                    domain={[0, 100]}
-                    label={{
-                      value: "Accuracy (%)",
-                      angle: -90,
-                      position: "insideLeft",
-                    }}
-                  />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="accuracy"
-                    stroke="#22d3ee"
-                    activeDot={{ r: 8 }}
-                    name="Accuracy"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            {accuracyTrendData.length > 0 && (
+              <>
+                <h4 className="text-md font-semibold text-gray-800 mb-3">
+                  Accuracy Trend
+                </h4>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={accuracyTrendData}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis
+                        domain={[0, 100]}
+                        label={{
+                          value: "Accuracy (%)",
+                          angle: -90,
+                          position: "insideLeft",
+                        }}
+                      />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="accuracy"
+                        stroke="#22d3ee"
+                        activeDot={{ r: 8 }}
+                        name="Accuracy"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Inventory Movement & Shifting Section */}
@@ -829,9 +668,12 @@ const InventoryInsightsPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
-                          {mov.item.partNumber} - {mov.item.description}
+                          {mov.item
+                            ? `${mov.item.partNumber} - ${mov.item.description}`
+                            : "N/A"}
                         </div>
                       </td>
+
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {mov.quantity}
                       </td>
@@ -855,12 +697,6 @@ const InventoryInsightsPage: React.FC = () => {
                           >
                             <Eye className="h-4 w-4" />
                           </button>
-                          <button
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-gray-400 hover:text-gray-600 transition-colors"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -869,24 +705,28 @@ const InventoryInsightsPage: React.FC = () => {
               </table>
             </div>
             {/* Movement Type Distribution Chart */}
-            <h4 className="text-md font-semibold text-gray-800 mb-3">
-              Movement Type Distribution
-            </h4>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={movementTypeData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="value" fill="#60a5fa" name="Count" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {movementTypeData.length > 0 && (
+              <>
+                <h4 className="text-md font-semibold text-gray-800 mb-3">
+                  Movement Type Distribution
+                </h4>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={movementTypeData}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="value" fill="#60a5fa" name="Count" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Inventory Valuation & Health Section */}
@@ -902,7 +742,7 @@ const InventoryInsightsPage: React.FC = () => {
                     Cost of Goods On Hand
                   </p>
                   <p className="text-xl font-semibold text-gray-900 mt-1">
-                    {valuationSummary.costOfGoodsOnHand.toLocaleString(
+                    {(valuationSummary.costOfGoodsOnHand ?? 0).toLocaleString(
                       "en-US",
                       {
                         style: "currency",
@@ -916,13 +756,12 @@ const InventoryInsightsPage: React.FC = () => {
                     Obsolete Inventory Value
                   </p>
                   <p className="text-xl font-semibold text-red-600 mt-1">
-                    {valuationSummary.obsoleteInventoryValue.toLocaleString(
-                      "en-US",
-                      {
-                        style: "currency",
-                        currency: "USD",
-                      }
-                    )}
+                    {(
+                      valuationSummary.obsoleteInventoryValue ?? 0
+                    ).toLocaleString("en-US", {
+                      style: "currency",
+                      currency: "USD",
+                    })}
                   </p>
                 </div>
                 <div className="p-4 bg-gray-50/70 rounded-lg border border-gray-200/50">
@@ -930,13 +769,12 @@ const InventoryInsightsPage: React.FC = () => {
                     Fast-Moving Inventory Value
                   </p>
                   <p className="text-xl font-semibold text-green-600 mt-1">
-                    {valuationSummary.fastMovingInventoryValue.toLocaleString(
-                      "en-US",
-                      {
-                        style: "currency",
-                        currency: "USD",
-                      }
-                    )}
+                    {(
+                      valuationSummary.fastMovingInventoryValue ?? 0
+                    ).toLocaleString("en-US", {
+                      style: "currency",
+                      currency: "USD",
+                    })}
                   </p>
                 </div>
               </div>
@@ -993,41 +831,48 @@ const InventoryInsightsPage: React.FC = () => {
               Recent Inventory Activity
             </h3>
             <div className="space-y-3">
-              <div className="flex items-start p-3 bg-sky-50/70 rounded-lg">
-                <div className="bg-sky-100 p-2 rounded-full mr-3">
-                  <CheckCircle className="h-4 w-4 text-sky-600" />
+              {cycleCounts.slice(0, 1).map((cc) => (
+                <div
+                  key={cc.id}
+                  className="flex items-start p-3 bg-sky-50/70 rounded-lg"
+                >
+                  <div className="bg-sky-100 p-2 rounded-full mr-3">
+                    <CheckCircle className="h-4 w-4 text-sky-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      Cycle Count "{cc.countId}" for{" "}
+                      {cc.item?.description ?? "Unknown Item"} – {cc.status}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {cc.countDate
+                        ? new Date(cc.countDate).toLocaleString()
+                        : "No date"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    Cycle Count "CC-2025-002" for Memory Modules reviewed, 100%
-                    accuracy.
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
+              ))}
+              {inventoryMovements.slice(0, 1).map((mov) => (
+                <div
+                  key={mov.id}
+                  className="flex items-start p-3 bg-sky-50/70 rounded-lg"
+                >
+                  <div className="bg-sky-100 p-2 rounded-full mr-3">
+                    <ArrowRightLeft className="h-4 w-4 text-sky-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {mov.movementType} "{mov.movementId}" for{" "}
+                      {mov.item?.description ?? "Unknown Item"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {mov.movementDate
+                        ? new Date(mov.movementDate).toLocaleString()
+                        : "Date unavailable"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start p-3 bg-sky-50/70 rounded-lg">
-                <div className="bg-sky-100 p-2 rounded-full mr-3">
-                  <ArrowRightLeft className="h-4 w-4 text-sky-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    Inventory Adjustment "MOV-003": 5 Power Supplies reduced
-                    from WH1-C-10.
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">4 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start p-3 bg-sky-50/70 rounded-lg">
-                <div className="bg-sky-100 p-2 rounded-full mr-3">
-                  <Plus className="h-4 w-4 text-sky-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    New Cycle Count "CC-2025-003" initiated for Power Supplies.
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">Yesterday</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

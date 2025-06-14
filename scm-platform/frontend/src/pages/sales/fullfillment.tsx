@@ -46,6 +46,7 @@ interface ReturnOrder {
   purchaseOrderId: number;
   reason: string;
   createdAt: string;
+  status: string;
 }
 
 interface ShippingInfo {
@@ -98,73 +99,46 @@ const Fulfillment: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [sidebarVisible, setSidebarVisible] = useState(false);
 
-  // Mock data for demonstration
+  // Fetch shipping info data
   useEffect(() => {
-    const mockShippingInfos: ShippingInfo[] = [
-      {
-        id: 1,
-        poId: 1001,
-        componentId: 201,
-        qty: 50,
-        origin: "Shenzhen, China",
-        destination: "Chicago, USA",
-        carrier: "DHL",
-        tracking_number: "DHL12345ABC",
-        estimated_arrival: "2025-06-15",
-        status: "In Transit",
-      },
-      {
-        id: 2,
-        poId: 1002,
-        componentId: 202,
-        qty: 100,
-        origin: "Tokyo, Japan",
-        destination: "Los Angeles, USA",
-        carrier: "FedEx",
-        tracking_number: "FDX98765XYZ",
-        estimated_arrival: "2025-06-10",
-        status: "Delivered",
-      },
-      {
-        id: 3,
-        poId: 1003,
-        componentId: 203,
-        qty: 75,
-        origin: "Seoul, South Korea",
-        destination: "New York, USA",
-        carrier: "UPS",
-        tracking_number: "UPS112233DEF",
-        estimated_arrival: "2025-06-20",
-        status: "Processing",
-      },
-    ];
+    const fetchShippingInfo = async () => {
+      try {
+        const response = await fetch("/api/shippinginfo");
+        if (!response.ok) {
+          throw new Error("Failed to fetch shipping info");
+        }
+        const data = await response.json();
+        setShippingInfos(data);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch shipping info"
+        );
+      }
+    };
 
-    const mockReturnOrders: ReturnOrder[] = [
-      {
-        id: 1,
-        purchaseOrderId: 1001,
-        reason: "Defective capacitors",
-        createdAt: "2025-06-01",
-      },
-      {
-        id: 2,
-        purchaseOrderId: 1002,
-        reason: "Incorrect quantity received",
-        createdAt: "2025-05-28",
-      },
-      {
-        id: 3,
-        purchaseOrderId: 1003,
-        reason: "Damaged during transit",
-        createdAt: "2025-06-05",
-      },
-    ];
+    fetchShippingInfo();
+  }, []);
 
-    setTimeout(() => {
-      setShippingInfos(mockShippingInfos);
-      setReturnOrders(mockReturnOrders);
-      setLoading(false);
-    }, 1000);
+  // Fetch return orders data
+  useEffect(() => {
+    const fetchReturnOrders = async () => {
+      try {
+        const response = await fetch("/api/returnorders");
+        if (!response.ok) {
+          throw new Error("Failed to fetch return orders");
+        }
+        const data = await response.json();
+        setReturnOrders(data);
+        setLoading(false);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch return orders"
+        );
+        setLoading(false);
+      }
+    };
+
+    fetchReturnOrders();
   }, []);
 
   // Helper functions
@@ -185,6 +159,11 @@ const Fulfillment: React.FC = () => {
           color: "bg-yellow-100 text-yellow-800",
           icon: <Clock className="h-3 w-3" />,
         };
+      case "Returned":
+        return {
+          color: "bg-red-100 text-red-800",
+          icon: <RefreshCcw className="h-3 w-3" />,
+        };
       default:
         return {
           color: "bg-gray-100 text-gray-800",
@@ -195,22 +174,22 @@ const Fulfillment: React.FC = () => {
 
   const getReturnReasonDisplay = (reason: string) => {
     switch (reason) {
-      case "Defective capacitors":
+      case "Defective":
         return {
           color: "bg-red-100 text-red-800",
           icon: <AlertCircle className="h-3 w-3" />,
         };
-      case "Incorrect quantity received":
+      case "Incorrect Quantity":
         return {
           color: "bg-yellow-100 text-yellow-800",
           icon: <Tag className="h-3 w-3" />,
         };
-      case "Damaged during transit":
+      case "Damaged":
         return {
           color: "bg-orange-100 text-orange-800",
           icon: <AlertCircle className="h-3 w-3" />,
         };
-      case "Changed order requirements":
+      case "Changed Requirements":
         return {
           color: "bg-purple-100 text-purple-800",
           icon: <RefreshCcw className="h-3 w-3" />,
@@ -294,19 +273,17 @@ const Fulfillment: React.FC = () => {
     inTransit: shippingInfos.filter((s) => s.status === "In Transit").length,
     delivered: shippingInfos.filter((s) => s.status === "Delivered").length,
     processing: shippingInfos.filter((s) => s.status === "Processing").length,
+    returned: shippingInfos.filter((s) => s.status === "Returned").length,
   };
 
   const returnStats = {
     total: returnOrders.length,
-    defective: returnOrders.filter((r) => r.reason === "Defective capacitors")
+    defective: returnOrders.filter((r) => r.reason === "Defective").length,
+    incorrectQty: returnOrders.filter((r) => r.reason === "Incorrect Quantity")
       .length,
-    incorrectQty: returnOrders.filter(
-      (r) => r.reason === "Incorrect quantity received"
-    ).length,
-    damaged: returnOrders.filter((r) => r.reason === "Damaged during transit")
-      .length,
+    damaged: returnOrders.filter((r) => r.reason === "Damaged").length,
     changedRequirements: returnOrders.filter(
-      (r) => r.reason === "Changed order requirements"
+      (r) => r.reason === "Changed Requirements"
     ).length,
   };
 
@@ -315,6 +292,7 @@ const Fulfillment: React.FC = () => {
     { name: "In Transit", value: shipmentStats.inTransit },
     { name: "Delivered", value: shipmentStats.delivered },
     { name: "Processing", value: shipmentStats.processing },
+    { name: "Returned", value: shipmentStats.returned },
   ];
 
   const returnReasonData = [
@@ -331,6 +309,14 @@ const Fulfillment: React.FC = () => {
 
   const handleReturnOrderClick = (id: number) => {
     router.push(`/fulfillment/returns/${id}`);
+  };
+
+  const handleCreateNewShipment = () => {
+    router.push("/fulfillment/shipments/new");
+  };
+
+  const handleInitiateReturn = () => {
+    router.push("/fulfillment/returns/new");
   };
 
   if (loading) {
@@ -393,9 +379,16 @@ const Fulfillment: React.FC = () => {
                   <Download className="h-4 w-4 mr-2" />
                   Export Data
                 </button>
-                <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                <button
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  onClick={
+                    activeTab === "shipments"
+                      ? handleCreateNewShipment
+                      : handleInitiateReturn
+                  }
+                >
                   <Plus className="h-4 w-4 mr-2" />
-                  New Shipment/Return
+                  {activeTab === "shipments" ? "New Shipment" : "New Return"}
                 </button>
               </div>
             </div>
@@ -473,11 +466,17 @@ const Fulfillment: React.FC = () => {
                 Quick Actions
               </h3>
               <div className="flex flex-wrap gap-3">
-                <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                <button
+                  className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={handleCreateNewShipment}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Create New Shipment
                 </button>
-                <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                <button
+                  className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={handleInitiateReturn}
+                >
                   <RefreshCcw className="h-4 w-4 mr-2" />
                   Initiate Return
                 </button>
@@ -539,6 +538,7 @@ const Fulfillment: React.FC = () => {
                   <option value="Processing">Processing</option>
                   <option value="In Transit">In Transit</option>
                   <option value="Delivered">Delivered</option>
+                  <option value="Returned">Returned</option>
                 </select>
               ) : (
                 <select
@@ -547,12 +547,10 @@ const Fulfillment: React.FC = () => {
                   className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="All">All Reasons</option>
-                  <option value="Defective capacitors">Defective</option>
-                  <option value="Incorrect quantity received">
-                    Incorrect Quantity
-                  </option>
-                  <option value="Damaged during transit">Damaged</option>
-                  <option value="Changed order requirements">
+                  <option value="Defective">Defective</option>
+                  <option value="Incorrect Quantity">Incorrect Quantity</option>
+                  <option value="Damaged">Damaged</option>
+                  <option value="Changed Requirements">
                     Changed Requirements
                   </option>
                 </select>
@@ -614,82 +612,95 @@ const Fulfillment: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredShippingInfos.map((info) => {
-                      const statusDisplay = getShipmentStatusDisplay(
-                        info.status
-                      );
-                      return (
-                        <tr
-                          key={info.id}
-                          className="hover:bg-gray-50 cursor-pointer transition-colors"
-                          onClick={() => handleShippingInfoClick(info.id)}
+                    {filteredShippingInfos.length > 0 ? (
+                      filteredShippingInfos.map((info) => {
+                        const statusDisplay = getShipmentStatusDisplay(
+                          info.status
+                        );
+                        return (
+                          <tr
+                            key={info.id}
+                            className="hover:bg-gray-50 cursor-pointer transition-colors"
+                            onClick={() => handleShippingInfoClick(info.id)}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">
+                                #{info.id}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">
+                                {info.tracking_number}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">
+                                {info.carrier}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">
+                                {info.origin}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">
+                                {info.destination}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${statusDisplay.color}`}
+                              >
+                                {statusDisplay.icon}
+                                <span>{info.status}</span>
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {info.estimated_arrival
+                                ? new Date(
+                                    info.estimated_arrival
+                                  ).toLocaleDateString()
+                                : "N/A"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleShippingInfoClick(info.id);
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800 transition-colors"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-gray-400 hover:text-red-600 transition-colors"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={8}
+                          className="px-6 py-4 text-center text-gray-500"
                         >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
-                              #{info.id}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
-                              {info.tracking_number}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-500">
-                              {info.carrier}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-500">
-                              {info.origin}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-500">
-                              {info.destination}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${statusDisplay.color}`}
-                            >
-                              {statusDisplay.icon}
-                              <span>{info.status}</span>
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(
-                              info.estimated_arrival
-                            ).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleShippingInfoClick(info.id);
-                                }}
-                                className="text-blue-600 hover:text-blue-800 transition-colors"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-gray-400 hover:text-red-600 transition-colors"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                          No shipments found
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -726,6 +737,9 @@ const Fulfillment: React.FC = () => {
                         Reason
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         <button
                           onClick={() => handleSortReturn("createdAt")}
                           className="flex items-center space-x-1 hover:text-gray-700"
@@ -742,65 +756,87 @@ const Fulfillment: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredReturnOrders.map((order) => {
-                      const reasonDisplay = getReturnReasonDisplay(
-                        order.reason
-                      );
-                      return (
-                        <tr
-                          key={order.id}
-                          className="hover:bg-gray-50 cursor-pointer transition-colors"
-                          onClick={() => handleReturnOrderClick(order.id)}
+                    {filteredReturnOrders.length > 0 ? (
+                      filteredReturnOrders.map((order) => {
+                        const reasonDisplay = getReturnReasonDisplay(
+                          order.reason
+                        );
+                        const statusDisplay = getShipmentStatusDisplay(
+                          order.status
+                        );
+                        return (
+                          <tr
+                            key={order.id}
+                            className="hover:bg-gray-50 cursor-pointer transition-colors"
+                            onClick={() => handleReturnOrderClick(order.id)}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">
+                                #{order.id}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">
+                                #{order.purchaseOrderId}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${reasonDisplay.color}`}
+                              >
+                                {reasonDisplay.icon}
+                                <span>{order.reason}</span>
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${statusDisplay.color}`}
+                              >
+                                {statusDisplay.icon}
+                                <span>{order.status}</span>
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(order.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleReturnOrderClick(order.id);
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800 transition-colors"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-gray-400 hover:text-red-600 transition-colors"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="px-6 py-4 text-center text-gray-500"
                         >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
-                              #{order.id}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
-                              #{order.purchaseOrderId}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${reasonDisplay.color}`}
-                            >
-                              {reasonDisplay.icon}
-                              <span>{order.reason}</span>
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(order.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleReturnOrderClick(order.id);
-                                }}
-                                className="text-blue-600 hover:text-blue-800 transition-colors"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-gray-400 hover:text-red-600 transition-colors"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                          No return orders found
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -886,41 +922,6 @@ const Fulfillment: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Recent Fulfillment Activity
             </h3>
-            <div className="space-y-3">
-              <div className="flex items-start p-3 bg-blue-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <Truck className="h-4 w-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    Shipment #DHL12345ABC status updated to 'Delivered'
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">1 hour ago</p>
-                </div>
-              </div>
-              <div className="flex items-start p-3 bg-blue-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <RefreshCcw className="h-4 w-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    New return order #2 created for defective items
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">3 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start p-3 bg-blue-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <Calendar className="h-4 w-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    Shipment #UPS112233DEF expected arrival today
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">Today, 8:00 AM</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </main>

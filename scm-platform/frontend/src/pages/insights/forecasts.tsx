@@ -3,19 +3,15 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import {
-  Brain, // General AI/Insights
-  Zap, // Anomaly
-  TrendingUp, // Forecasting
-  Lightbulb, // Suggestion
-  Filter,
+  Brain,
+  Zap,
+  TrendingUp,
+  Lightbulb,
   Search,
-  Plus,
   Download,
   MoreVertical,
   Eye,
-  Edit,
   AlertCircle,
-  Clock,
 } from "lucide-react";
 import {
   BarChart,
@@ -32,7 +28,6 @@ import {
   Line,
 } from "recharts";
 
-// Reuse background effect
 const BlurredBackground = () => (
   <div className="absolute inset-0 overflow-hidden z-0">
     <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
@@ -42,42 +37,41 @@ const BlurredBackground = () => (
   </div>
 );
 
-// --- Interfaces for AI Insights Data ---
 interface Anomaly {
   id: number;
-  detectedAt: string; // ISO 8601 string
-  entityType: string; // e.g., 'PurchaseOrder', 'Component', 'Warehouse'
+  detectedAt: string;
+  entityType: string;
   entityId: number;
   description: string;
   severity: "Low" | "Medium" | "High" | "Critical";
   status: "New" | "Investigating" | "Resolved" | "Ignored";
-  detectedByModel: string; // e.g., 'AI_model_v2'
+  detectedByModel: string;
 }
 
 interface Forecast {
   id: number;
-  forecastDate: string; // Date for which forecast is made
-  itemType: string; // e.g., 'Product', 'Component'
+  forecastDate: string;
+  itemType: string;
   itemId: number;
   itemName: string;
-  predictedValue: number; // e.g., predicted demand quantity
-  unit: string; // e.g., 'units', 'USD'
+  predictedValue: number;
+  unit: string;
   confidenceIntervalLow?: number;
   confidenceIntervalHigh?: number;
-  historicalData: { date: string; value: number }[]; // For chart
-  forecastModel: string; // e.g., 'Prophet', 'ARIMA'
+  historicalData: { date: string; value: number }[];
+  forecastModel: string;
 }
 
 interface Suggestion {
   id: number;
-  generatedAt: string; // ISO 8601 string
-  suggestionType: string; // e.g., 'CostReduction', 'DemandOptimization', 'RiskMitigation'
+  generatedAt: string;
+  suggestionType: string;
   description: string;
   relatedEntityType?: string;
   relatedEntityId?: number;
   priority: "Low" | "Medium" | "High";
   status: "New" | "Reviewed" | "Implemented" | "Dismissed";
-  generatedByModel: string; // e.g., 'AI_suggestion_engine'
+  generatedByModel: string;
 }
 
 const COLORS = [
@@ -108,171 +102,79 @@ const AiInsightsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- Placeholder Data Fetching Functions ---
+  // Fetch data from actual endpoints
   const fetchAnomalies = async () => {
-    console.log("Fetching anomalies...");
-    // In a real app: const response = await fetch("/api/ai/anomalies");
-    // const data = await response.json();
-    // setAnomalies(data);
+    try {
+      const response = await fetch("/api/anomalies");
+      if (!response.ok) throw new Error("Failed to fetch anomalies");
+      const data = await response.json();
+      setAnomalies(data);
+    } catch (err) {
+      console.error("Error fetching anomalies:", err);
+      setError("Failed to load anomaly data");
+    }
   };
 
   const fetchForecasts = async () => {
-    console.log("Fetching forecasts...");
-    // In a real app: const response = await fetch("/api/ai/forecasts");
-    // const data = await response.json();
-    // setForecasts(data);
+    try {
+      // Using riskpredictions endpoint for forecast data
+      const response = await fetch("/api/riskpredictions");
+      if (!response.ok) throw new Error("Failed to fetch forecasts");
+      const data = await response.json();
+
+      // Transform risk prediction data to forecast format
+      const transformed = data.map((prediction: any) => ({
+        id: prediction.id,
+        forecastDate: prediction.predictionDate,
+        itemType: prediction.itemType,
+        itemId: prediction.itemId,
+        itemName: prediction.itemName,
+        predictedValue: prediction.predictedValue,
+        unit: prediction.unit || "units",
+        confidenceIntervalLow: prediction.confidenceRange?.low,
+        confidenceIntervalHigh: prediction.confidenceRange?.high,
+        historicalData: prediction.historicalData || [],
+        forecastModel: prediction.modelName || "RiskPredictionModel",
+      }));
+
+      setForecasts(transformed);
+    } catch (err) {
+      console.error("Error fetching forecasts:", err);
+      setError("Failed to load forecast data");
+    }
   };
 
   const fetchSuggestions = async () => {
-    console.log("Fetching suggestions...");
-    // In a real app: const response = await fetch("/api/ai/suggestions");
-    // const data = await response.json();
-    // setSuggestions(data);
+    try {
+      const response = await fetch("/api/aisuggestion");
+      if (!response.ok) throw new Error("Failed to fetch suggestions");
+      const data = await response.json();
+      setSuggestions(data);
+    } catch (err) {
+      console.error("Error fetching suggestions:", err);
+      setError("Failed to load suggestion data");
+    }
   };
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       setError(null);
-      // Simulate API calls with mock data
-      await Promise.all([
-        fetchAnomalies(),
-        fetchForecasts(),
-        fetchSuggestions(),
-      ]);
-      setLoading(false);
+      try {
+        await Promise.all([
+          fetchAnomalies(),
+          fetchForecasts(),
+          fetchSuggestions(),
+        ]);
+      } catch (err) {
+        setError("Failed to load some data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
     };
     loadData();
   }, []);
 
-  // --- Mock Data for Demonstration (remove in production) ---
-  useEffect(() => {
-    const mockAnomalies: Anomaly[] = [
-      {
-        id: 1,
-        detectedAt: "2025-06-05T10:00:00",
-        entityType: "Component",
-        entityId: 123,
-        description: "Unexpected surge in demand for Component X",
-        severity: "High",
-        status: "New",
-        detectedByModel: "DemandPredictorV1",
-      },
-      {
-        id: 2,
-        detectedAt: "2025-06-04T14:30:00",
-        entityType: "Supplier",
-        entityId: 45,
-        description:
-          "Significant deviation in Supplier Y's on-time delivery rate",
-        severity: "Critical",
-        status: "Investigating",
-        detectedByModel: "SupplierRiskV2",
-      },
-      {
-        id: 3,
-        detectedAt: "2025-06-03T09:00:00",
-        entityType: "WarehouseInventory",
-        entityId: 789,
-        description:
-          "Unusual negative inventory adjustment detected in Bin C-05",
-        severity: "Medium",
-        status: "Resolved",
-        detectedByModel: "InventoryAuditV1",
-      },
-    ];
-
-    const mockForecasts: Forecast[] = [
-      {
-        id: 1,
-        forecastDate: "2025-07-01",
-        itemType: "Product",
-        itemId: 101,
-        itemName: "Smart Gadget Pro",
-        predictedValue: 1200,
-        unit: "units",
-        confidenceIntervalLow: 1100,
-        confidenceIntervalHigh: 1300,
-        historicalData: [
-          { date: "2025-01-01", value: 800 },
-          { date: "2025-02-01", value: 850 },
-          { date: "2025-03-01", value: 920 },
-          { date: "2025-04-01", value: 1000 },
-          { date: "2025-05-01", value: 1100 },
-          { date: "2025-06-01", value: 1150 },
-        ],
-        forecastModel: "Prophet",
-      },
-      {
-        id: 2,
-        forecastDate: "2025-08-01",
-        itemType: "Component",
-        itemId: 205,
-        itemName: "Chipset Z",
-        predictedValue: 5000,
-        unit: "units",
-        confidenceIntervalLow: 4800,
-        confidenceIntervalHigh: 5200,
-        historicalData: [
-          { date: "2025-01-01", value: 3500 },
-          { date: "2025-02-01", value: 3800 },
-          { date: "2025-03-01", value: 4000 },
-          { date: "2025-04-01", value: 4200 },
-          { date: "2025-05-01", value: 4500 },
-          { date: "2025-06-01", value: 4700 },
-        ],
-        forecastModel: "ARIMA",
-      },
-    ];
-
-    const mockSuggestions: Suggestion[] = [
-      {
-        id: 1,
-        generatedAt: "2025-06-05T11:00:00",
-        suggestionType: "CostReduction",
-        description:
-          "Consider alternative supplier for Component X, potential 10% cost saving.",
-        relatedEntityType: "Component",
-        relatedEntityId: 123,
-        priority: "High",
-        status: "New",
-        generatedByModel: "OptimizationEngine",
-      },
-      {
-        id: 2,
-        generatedAt: "2025-06-04T16:00:00",
-        suggestionType: "DemandOptimization",
-        description:
-          "Increase production of Smart Gadget Pro by 15% for Q3 due to forecasted demand surge.",
-        relatedEntityType: "Product",
-        relatedEntityId: 101,
-        priority: "High",
-        status: "Reviewed",
-        generatedByModel: "DemandPredictorV1",
-      },
-      {
-        id: 3,
-        generatedAt: "2025-06-03T10:15:00",
-        suggestionType: "RiskMitigation",
-        description:
-          "Diversify sourcing for critical Chipset Z components to mitigate supply chain risk.",
-        relatedEntityType: "Component",
-        relatedEntityId: 205,
-        priority: "Medium",
-        status: "New",
-        generatedByModel: "SupplierRiskV2",
-      },
-    ];
-
-    setTimeout(() => {
-      setAnomalies(mockAnomalies);
-      setForecasts(mockForecasts);
-      setSuggestions(mockSuggestions);
-      setLoading(false);
-    }, 500); // Simulate network delay
-  }, []);
-
-  // --- Helper Functions for Status/Severity Display ---
   const getSeverityDisplay = (severity: Anomaly["severity"]) => {
     switch (severity) {
       case "Low":
@@ -301,7 +203,6 @@ const AiInsightsPage: React.FC = () => {
     }
   };
 
-  // --- Filtering and Searching ---
   const filteredAnomalies = anomalies.filter((anomaly) => {
     const matchesSeverity =
       anomalySeverityFilter === "All" ||
@@ -338,7 +239,6 @@ const AiInsightsPage: React.FC = () => {
     return matchesPriority && matchesSearch;
   });
 
-  // --- Statistics for AI Insights ---
   const aiStats = {
     totalAnomalies: anomalies.length,
     criticalAnomalies: anomalies.filter((a) => a.severity === "Critical")
@@ -346,7 +246,7 @@ const AiInsightsPage: React.FC = () => {
     openSuggestions: suggestions.filter((s) => s.status === "New").length,
     totalForecasts: forecasts.length,
     recentForecastDate:
-      forecasts.length > 0 ? forecasts[0].forecastDate : "N/A", // Simplistic
+      forecasts.length > 0 ? forecasts[0].forecastDate : "N/A",
   };
 
   if (loading) {
@@ -377,14 +277,11 @@ const AiInsightsPage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
       <BlurredBackground />
-      {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
 
       <Navbar isLoggedIn={true} />
 
-      {/* Main Content */}
       <div className="p-8 pt-20 relative z-10">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -400,20 +297,24 @@ const AiInsightsPage: React.FC = () => {
                 Export AI Report
               </button>
               <button
-                // Placeholder for triggering new analysis or model retraining
-                onClick={() => console.log("Trigger New AI Analysis")}
+                onClick={() => {
+                  Promise.all([
+                    fetchAnomalies(),
+                    fetchForecasts(),
+                    fetchSuggestions(),
+                  ]);
+                }}
                 className="inline-flex items-center px-4 py-2 bg-sky-600 text-white rounded-lg text-sm font-medium hover:bg-sky-700 transition-colors"
               >
                 <Brain className="h-4 w-4 mr-2" />
-                Run New Analysis
+                Refresh Data
               </button>
             </div>
           </div>
         </div>
 
-        {/* Stats Cards for AI Insights - Updated to grid format */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Total Anomalies Detected */}
           <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
@@ -423,10 +324,6 @@ const AiInsightsPage: React.FC = () => {
                 <p className="text-2xl font-semibold text-gray-900 mt-1">
                   {aiStats.totalAnomalies}
                 </p>
-                <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
-                  <TrendingUp className="h-4 w-4 mr-1" />
-                  <span>+12% MoM</span>
-                </div>
               </div>
               <div className="p-3 rounded-lg bg-sky-50">
                 <Zap className="h-6 w-6 text-sky-600" />
@@ -434,7 +331,6 @@ const AiInsightsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Critical Anomalies */}
           <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
@@ -444,10 +340,6 @@ const AiInsightsPage: React.FC = () => {
                 <p className="text-2xl font-semibold text-red-600 mt-1">
                   {aiStats.criticalAnomalies}
                 </p>
-                <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
-                  <TrendingUp className="h-4 w-4 mr-1" />
-                  <span>+8% WoW</span>
-                </div>
               </div>
               <div className="p-3 rounded-lg bg-red-50">
                 <AlertCircle className="h-6 w-6 text-red-600" />
@@ -455,7 +347,6 @@ const AiInsightsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Open Suggestions */}
           <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
@@ -465,10 +356,6 @@ const AiInsightsPage: React.FC = () => {
                 <p className="text-2xl font-semibold text-yellow-600 mt-1">
                   {aiStats.openSuggestions}
                 </p>
-                <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
-                  <TrendingUp className="h-4 w-4 mr-1" />
-                  <span>+15% MoM</span>
-                </div>
               </div>
               <div className="p-3 rounded-lg bg-yellow-50">
                 <Lightbulb className="h-6 w-6 text-yellow-600" />
@@ -476,7 +363,6 @@ const AiInsightsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Total Active Forecasts */}
           <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
@@ -486,10 +372,6 @@ const AiInsightsPage: React.FC = () => {
                 <p className="text-2xl font-semibold text-green-600 mt-1">
                   {aiStats.totalForecasts}
                 </p>
-                <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
-                  <TrendingUp className="h-4 w-4 mr-1" />
-                  <span>+20% YoY</span>
-                </div>
               </div>
               <div className="p-3 rounded-lg bg-green-50">
                 <TrendingUp className="h-6 w-6 text-green-600" />
@@ -597,9 +479,6 @@ const AiInsightsPage: React.FC = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button className="ml-2 text-gray-400 hover:text-gray-600 transition-colors">
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
                     </td>
                   </tr>
                 ))}
@@ -641,48 +520,50 @@ const AiInsightsPage: React.FC = () => {
                     </span>
                   )}
               </div>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={[
-                      ...forecast.historicalData,
-                      {
-                        date: forecast.forecastDate,
-                        value: forecast.predictedValue,
-                      },
-                    ]}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#0ea5e9" // Sky-500
-                      name="Value"
-                      dot={{ r: 4 }}
-                      activeDot={{ r: 8 }}
-                    />
-                    <Line // For the forecast point
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#8B5CF6" // Purple
-                      name="Forecast"
-                      dot={{ r: 6 }}
-                      activeDot={{ r: 8 }}
+              {forecast.historicalData?.length > 0 && (
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
                       data={[
+                        ...forecast.historicalData,
                         {
                           date: forecast.forecastDate,
                           value: forecast.predictedValue,
                         },
                       ]}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#0ea5e9"
+                        name="Value"
+                        dot={{ r: 4 }}
+                        activeDot={{ r: 8 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#8B5CF6"
+                        name="Forecast"
+                        dot={{ r: 6 }}
+                        activeDot={{ r: 8 }}
+                        data={[
+                          {
+                            date: forecast.forecastDate,
+                            value: forecast.predictedValue,
+                          },
+                        ]}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
               <button
                 onClick={() =>
                   router.push(`/ai-insights/forecasts/${forecast.id}`)
@@ -792,9 +673,6 @@ const AiInsightsPage: React.FC = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button className="ml-2 text-gray-400 hover:text-gray-600 transition-colors">
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
                     </td>
                   </tr>
                 ))}
@@ -809,41 +687,62 @@ const AiInsightsPage: React.FC = () => {
             Recent AI Activity
           </h3>
           <div className="space-y-3">
-            {/* Combine recent activities from anomalies, forecasts, suggestions */}
-            <div className="flex items-start p-3 bg-sky-50/70 rounded-lg">
-              <div className="bg-sky-100 p-2 rounded-full mr-3">
-                <Zap className="h-4 w-4 text-sky-600" />
+            {anomalies.slice(0, 1).map((anomaly) => (
+              <div
+                key={anomaly.id}
+                className="flex items-start p-3 bg-sky-50/70 rounded-lg"
+              >
+                <div className="bg-sky-100 p-2 rounded-full mr-3">
+                  <Zap className="h-4 w-4 text-sky-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {anomaly.severity} anomaly detected: {anomaly.description}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {new Date(anomaly.detectedAt).toLocaleString()}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  Critical anomaly detected: Supplier Y's on-time delivery
-                  deviation.
-                </p>
-                <p className="text-xs text-gray-500 mt-1">1 hour ago</p>
+            ))}
+            {suggestions.slice(0, 1).map((suggestion) => (
+              <div
+                key={suggestion.id}
+                className="flex items-start p-3 bg-sky-50/70 rounded-lg"
+              >
+                <div className="bg-sky-100 p-2 rounded-full mr-3">
+                  <Lightbulb className="h-4 w-4 text-sky-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {suggestion.priority} priority suggestion:{" "}
+                    {suggestion.description}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {new Date(suggestion.generatedAt).toLocaleString()}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-start p-3 bg-sky-50/70 rounded-lg">
-              <div className="bg-sky-100 p-2 rounded-full mr-3">
-                <Lightbulb className="h-4 w-4 text-sky-600" />
+            ))}
+            {forecasts.slice(0, 1).map((forecast) => (
+              <div
+                key={forecast.id}
+                className="flex items-start p-3 bg-sky-50/70 rounded-lg"
+              >
+                <div className="bg-sky-100 p-2 rounded-full mr-3">
+                  <TrendingUp className="h-4 w-4 text-sky-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    Forecast updated for {forecast.itemName} (
+                    {forecast.forecastDate})
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Predicted value: {forecast.predictedValue} {forecast.unit}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  New high-priority suggestion: Optimize Component X sourcing.
-                </p>
-                <p className="text-xs text-gray-500 mt-1">3 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-start p-3 bg-sky-50/70 rounded-lg">
-              <div className="bg-sky-100 p-2 rounded-full mr-3">
-                <TrendingUp className="h-4 w-4 text-sky-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  Demand forecast updated for Smart Gadget Pro (July 2025).
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Yesterday</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

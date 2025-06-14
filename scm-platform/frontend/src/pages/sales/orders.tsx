@@ -49,14 +49,25 @@ interface PurchaseOrder {
   total?: number;
 }
 
-interface Supplier {
+interface PurchaseOrderStats {
+  total: number;
+  ordered: number;
+  received: number;
+  draft: number;
+  totalValue: number;
+}
+
+interface PurchaseOrderActivity {
   id: number;
-  name: string;
+  type: string;
+  message: string;
+  timestamp: string;
+  orderId?: number;
+  orderNumber?: string;
 }
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-// Reuse background effect
 const BlurredBackground = () => (
   <div className="absolute inset-0 overflow-hidden z-0">
     <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
@@ -69,80 +80,69 @@ const BlurredBackground = () => (
 const Orders: React.FC = () => {
   const router = useRouter();
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [stats, setStats] = useState<PurchaseOrderStats>({
+    total: 0,
+    ordered: 0,
+    received: 0,
+    draft: 0,
+    totalValue: 0,
+  });
+  const [recentActivity, setRecentActivity] = useState<PurchaseOrderActivity[]>(
+    []
+  );
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [sortField, setSortField] = useState<keyof PurchaseOrder>("id");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedOrders, setSelectedOrders] = useState<number[]>([]);
   const [sidebarVisible, setSidebarVisible] = useState(false);
 
-  // Mock data for demonstration
   useEffect(() => {
-    const mockOrders: PurchaseOrder[] = [
-      {
-        id: 1001,
-        supplierId: 1,
-        createdById: 1,
-        status: "Ordered",
-        date_created: "2025-06-01",
-        date_expected: "2025-06-15",
-        supplierName: "Acme Supplies Inc.",
-        total: 15420.5,
-      },
-      {
-        id: 1002,
-        supplierId: 2,
-        createdById: 1,
-        status: "Received",
-        date_created: "2025-05-28",
-        date_expected: "2025-06-10",
-        date_received: "2025-06-08",
-        supplierName: "Global Manufacturing Co.",
-        total: 8950.0,
-      },
-      {
-        id: 1003,
-        supplierId: 3,
-        createdById: 2,
-        status: "Draft",
-        date_created: "2025-06-05",
-        date_expected: "2025-06-20",
-        supplierName: "Tech Components Ltd.",
-        total: 22150.75,
-      },
-      {
-        id: 1004,
-        supplierId: 1,
-        createdById: 1,
-        status: "Ordered",
-        date_created: "2025-06-03",
-        date_expected: "2025-06-18",
-        supplierName: "Acme Supplies Inc.",
-        total: 5670.25,
-      },
-      {
-        id: 1005,
-        supplierId: 4,
-        createdById: 3,
-        status: "Received",
-        date_created: "2025-05-25",
-        date_expected: "2025-06-05",
-        date_received: "2025-06-04",
-        supplierName: "Premium Parts Co.",
-        total: 31200.0,
-      },
-    ];
-
-    setTimeout(() => {
-      setOrders(mockOrders);
-      setLoading(false);
-    }, 1);
+    fetchPurchaseOrderData();
   }, []);
 
-  // Get status color and icon
+  const fetchPurchaseOrderData = async () => {
+    try {
+      setLoading(true);
+
+const ordersRes = await fetch("/api/purchaseorder");
+if (!ordersRes.ok) throw new Error("Failed to fetch purchase orders");
+
+const ordersData = await ordersRes.json();
+
+// Client-side stats
+const statsData: PurchaseOrderStats = {
+  total: ordersData.length,
+  ordered: ordersData.filter((o: any) => o.status === "Ordered").length,
+  draft: ordersData.filter((o: any) => o.status === "Draft").length,
+  received: ordersData.filter((o: any) => o.status === "Received").length,
+  totalValue: ordersData.reduce(
+    (sum: number, o: any) => sum + (o.total || 0),
+    0
+  ),
+};
+
+
+// Client-side activity (you can customize further)
+const activityData = ordersData.slice(0, 5).map((o: any) => ({
+  id: o.id,
+  message: `PO #${o.id} was ${o.status.toLowerCase()}`,
+  timestamp: o.date_created || new Date().toISOString(),
+}));
+
+setOrders(ordersData);
+setStats(statsData);
+setRecentActivity(activityData);
+setLoading(false);
+
+    } catch (err: any) {
+      setError(`Failed to fetch purchase orders: ${err.message}`);
+      console.error("Error fetching purchase orders:", err);
+      setLoading(false);
+    }
+  };
+
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case "Ordered":
@@ -168,7 +168,19 @@ const Orders: React.FC = () => {
     }
   };
 
-  // Handle sorting
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "creation":
+        return <Plus className="h-4 w-4 text-blue-600" />;
+      case "receipt":
+        return <CheckCircle className="h-4 w-4 text-blue-600" />;
+      case "update":
+        return <Edit className="h-4 w-4 text-blue-600" />;
+      default:
+        return <Package className="h-4 w-4 text-blue-600" />;
+    }
+  };
+
   const handleSort = (field: keyof PurchaseOrder) => {
     const newSortOrder =
       sortField === field && sortOrder === "asc" ? "desc" : "asc";
@@ -187,7 +199,6 @@ const Orders: React.FC = () => {
     setOrders(sortedOrders);
   };
 
-  // Handle filtering and searching
   const filteredOrders = orders.filter((order) => {
     const matchesStatus =
       statusFilter === "All" || order.status === statusFilter;
@@ -198,16 +209,6 @@ const Orders: React.FC = () => {
     return matchesStatus && matchesSearch;
   });
 
-  // Calculate stats
-  const stats = {
-    total: orders.length,
-    ordered: orders.filter((o) => o.status === "Ordered").length,
-    received: orders.filter((o) => o.status === "Received").length,
-    draft: orders.filter((o) => o.status === "Draft").length,
-    totalValue: orders.reduce((sum, order) => sum + (order.total || 0), 0),
-  };
-
-  // Prepare data for charts
   const statusData = [
     { name: "Ordered", value: stats.ordered },
     { name: "Received", value: stats.received },
@@ -227,7 +228,6 @@ const Orders: React.FC = () => {
     return acc;
   }, [] as { name: string; value: number }[]);
 
-  // Handle row click
   const handleRowClick = (id: number) => {
     router.push(`/orders/${id}`);
   };
@@ -254,7 +254,6 @@ const Orders: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
       <BlurredBackground />
-      {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
 
       <Navbar isLoggedIn={true} />
@@ -282,7 +281,10 @@ const Orders: React.FC = () => {
                   <Download className="h-4 w-4 mr-2" />
                   Export
                 </button>
-                <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                <button
+                  onClick={() => router.push("/orders/new")}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   New Order
                 </button>
@@ -362,7 +364,10 @@ const Orders: React.FC = () => {
                 Quick Actions
               </h3>
               <div className="flex flex-wrap gap-3">
-                <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                <button
+                  onClick={() => router.push("/orders/new")}
+                  className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   New Order
                 </button>
@@ -613,28 +618,24 @@ const Orders: React.FC = () => {
               Recent Activity
             </h3>
             <div className="space-y-3">
-              <div className="flex items-start p-3 bg-gray-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <CheckCircle className="h-4 w-4 text-blue-600" />
+              {recentActivity.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start p-3 bg-blue-50 rounded-lg"
+                >
+                  <div className="bg-blue-100 p-2 rounded-full mr-3">
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {activity.message}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(activity.timestamp).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    Order #1005 received
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start p-3 bg-gray-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <Plus className="h-4 w-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    New order #1004 created
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">1 day ago</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

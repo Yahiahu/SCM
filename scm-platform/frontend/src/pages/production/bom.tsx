@@ -21,7 +21,6 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
-
 import {
   BarChart,
   PieChart as RechartsPieChart,
@@ -60,9 +59,32 @@ interface BomItem {
   costPerUnit: number;
 }
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AF19FF", "#8A2BE2"];
+interface BomStats {
+  totalBoms: number;
+  activeBoms: number;
+  draftBoms: number;
+  archivedBoms: number;
+  totalComponents: number;
+  totalBOMValue: number;
+}
 
-// Reuse background effect
+interface BomActivity {
+  id: number;
+  type: string;
+  message: string;
+  timestamp: string;
+  bomId?: number;
+}
+
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#AF19FF",
+  "#8A2BE2",
+];
+
 const BlurredBackground = () => (
   <div className="absolute inset-0 overflow-hidden z-0">
     <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
@@ -76,6 +98,15 @@ const BomPage: React.FC = () => {
   const router = useRouter();
   const [boms, setBoms] = useState<BillOfMaterial[]>([]);
   const [bomItems, setBomItems] = useState<BomItem[]>([]);
+  const [bomStats, setBomStats] = useState<BomStats>({
+    totalBoms: 0,
+    activeBoms: 0,
+    draftBoms: 0,
+    archivedBoms: 0,
+    totalComponents: 0,
+    totalBOMValue: 0,
+  });
+  const [recentActivity, setRecentActivity] = useState<BomActivity[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [sortField, setSortField] = useState<keyof BillOfMaterial>("id");
@@ -84,132 +115,53 @@ const BomPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [sidebarVisible, setSidebarVisible] = useState(false);
 
-  // Mock data for demonstration
   useEffect(() => {
-    const mockBoms: BillOfMaterial[] = [
-      {
-        id: 1,
-        productId: 101,
-        productName: "Smartphone X v1.0",
-        version: "1.0",
-        status: "Active",
-        createdAt: "2024-01-15",
-        lastUpdated: "2024-05-20",
-        totalCost: 250.75,
-      },
-      {
-        id: 2,
-        productId: 102,
-        productName: "Smartwatch Alpha",
-        version: "1.2",
-        status: "Active",
-        createdAt: "2024-02-01",
-        lastUpdated: "2024-04-10",
-        totalCost: 85.2,
-      },
-      {
-        id: 3,
-        productId: 103,
-        productName: "Wireless Earbuds Pro",
-        version: "2.0",
-        status: "Draft",
-        createdAt: "2024-05-10",
-        lastUpdated: "2024-06-01",
-        totalCost: 45.0,
-      },
-      {
-        id: 4,
-        productId: 101,
-        productName: "Smartphone X v1.1",
-        version: "1.1",
-        status: "Archived",
-        createdAt: "2024-03-01",
-        lastUpdated: "2024-03-15",
-        totalCost: 245.5,
-      },
-    ];
-
-    const mockBomItems: BomItem[] = [
-      {
-        id: 101,
-        bomId: 1,
-        componentId: 1001,
-        componentName: "Processor A",
-        quantity: 1,
-        unitOfMeasure: "unit",
-        costPerUnit: 100,
-      },
-      {
-        id: 102,
-        bomId: 1,
-        componentId: 1002,
-        componentName: "Display Panel",
-        quantity: 1,
-        unitOfMeasure: "unit",
-        costPerUnit: 50,
-      },
-      {
-        id: 103,
-        bomId: 1,
-        componentId: 1003,
-        componentName: "Battery Pack",
-        quantity: 1,
-        unitOfMeasure: "unit",
-        costPerUnit: 20,
-      },
-      {
-        id: 104,
-        bomId: 2,
-        componentId: 1004,
-        componentName: "Microcontroller B",
-        quantity: 1,
-        unitOfMeasure: "unit",
-        costPerUnit: 30,
-      },
-      {
-        id: 105,
-        bomId: 2,
-        componentId: 1005,
-        componentName: "OLED Screen",
-        quantity: 1,
-        unitOfMeasure: "unit",
-        costPerUnit: 25,
-      },
-      {
-        id: 106,
-        bomId: 3,
-        componentId: 1006,
-        componentName: "Audio Chip C",
-        quantity: 2,
-        unitOfMeasure: "unit",
-        costPerUnit: 10,
-      },
-      {
-        id: 107,
-        bomId: 3,
-        componentId: 1007,
-        componentName: "Plastic Casing",
-        quantity: 1,
-        unitOfMeasure: "unit",
-        costPerUnit: 5,
-      },
-      {
-        id: 108,
-        bomId: 1,
-        componentId: 1008,
-        componentName: "Camera Module",
-        quantity: 1,
-        unitOfMeasure: "unit",
-        costPerUnit: 40,
-      },
-    ];
-
-    setTimeout(() => {
-      setBoms(mockBoms);
-      setBomItems(mockBomItems);
-      setLoading(false);
-    }, 500);
+    fetchBomData();
   }, []);
+
+  const fetchBomData = async () => {
+    try {
+      setLoading(true);
+
+      const bomsRes = await fetch("/api/bom");
+
+      if (!bomsRes.ok) throw new Error("Failed to fetch BOM data");
+
+      const bomsData = await bomsRes.json();
+
+      // You can generate stats/activity client-side from bomsData
+      const statsData: BomStats = {
+        totalBoms: bomsData.length,
+        activeBoms: bomsData.filter((b: any) => b.status === "Active").length,
+        draftBoms: bomsData.filter((b: any) => b.status === "Draft").length,
+        archivedBoms: bomsData.filter((b: any) => b.status === "Archived").length,
+        totalComponents: bomsData.length, // or count unique components if needed
+        totalBOMValue: bomsData.reduce(
+          (sum: number, b: any) => sum + (b.totalCost || 0),
+          0
+        ),
+      };
+
+
+      const activityData = bomsData.slice(0, 5).map((b: any, i: number) => ({
+        id: i,
+        type: "creation",
+        message: `Component ${b.component.num} added to ${b.product.name}`,
+        timestamp: b.created_at ?? new Date().toISOString(),
+      }));
+
+      setBoms(bomsData);
+      setBomItems(bomsData); // or split if needed
+      setBomStats(statsData);
+      setRecentActivity(activityData);
+      setLoading(false);
+    } catch (err: any) {
+      setError(`Failed to fetch BOM data: ${err.message}`);
+      console.error("Error fetching BOM data:", err);
+      setLoading(false);
+    }
+  };
+
 
   const getStatusDisplay = (status: BillOfMaterial["status"]) => {
     switch (status) {
@@ -236,8 +188,22 @@ const BomPage: React.FC = () => {
     }
   };
 
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "creation":
+        return <Plus className="h-4 w-4 text-blue-600" />;
+      case "update":
+        return <Edit className="h-4 w-4 text-blue-600" />;
+      case "status-change":
+        return <CheckCircle className="h-4 w-4 text-blue-600" />;
+      default:
+        return <Layers className="h-4 w-4 text-blue-600" />;
+    }
+  };
+
   const handleSort = (field: keyof BillOfMaterial) => {
-    const newSortOrder = sortField === field && sortOrder === "asc" ? "desc" : "asc";
+    const newSortOrder =
+      sortField === field && sortOrder === "asc" ? "desc" : "asc";
     setSortField(field);
     setSortOrder(newSortOrder);
 
@@ -246,7 +212,9 @@ const BomPage: React.FC = () => {
       const bValue = b[field] as any;
 
       if (typeof aValue === "string" && typeof bValue === "string") {
-        return newSortOrder === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        return newSortOrder === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
       }
       return newSortOrder === "asc" ? aValue - bValue : bValue - aValue;
     });
@@ -263,15 +231,6 @@ const BomPage: React.FC = () => {
       bom.productId.toString().includes(searchTerm);
     return matchesStatus && matchesSearch;
   });
-
-  const bomStats = {
-    totalBoms: boms.length,
-    activeBoms: boms.filter((b) => b.status === "Active").length,
-    draftBoms: boms.filter((b) => b.status === "Draft").length,
-    archivedBoms: boms.filter((b) => b.status === "Archived").length,
-    totalComponents: bomItems.length,
-    totalBOMValue: boms.reduce((sum, bom) => sum + (bom.totalCost || 0), 0),
-  };
 
   const bomStatusData = [
     { name: "Active", value: bomStats.activeBoms },
@@ -325,20 +284,27 @@ const BomPage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
       <BlurredBackground />
-      {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
 
       <Navbar isLoggedIn={true} />
       <Sidebar visible={sidebarVisible} setVisible={setSidebarVisible} />
 
-      <main className={`transition-all duration-300 pt-20 relative z-10 ${sidebarVisible ? "ml-[180px]" : "ml-0"}`}>
+      <main
+        className={`transition-all duration-300 pt-20 relative z-10 ${
+          sidebarVisible ? "ml-[180px]" : "ml-0"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Header Section */}
           <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200 mb-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Bill of Materials (BOMs)</h1>
-                <p className="text-gray-600 mt-1">Manage and track product compositions and costs</p>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Bill of Materials (BOMs)
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Manage and track product compositions and costs
+                </p>
               </div>
               <div className="flex items-center space-x-3">
                 <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
@@ -361,8 +327,12 @@ const BomPage: React.FC = () => {
             <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Total BOMs</p>
-                  <p className="text-2xl font-semibold text-gray-900 mt-1">{bomStats.totalBoms}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total BOMs
+                  </p>
+                  <p className="text-2xl font-semibold text-gray-900 mt-1">
+                    {bomStats.totalBoms}
+                  </p>
                 </div>
                 <div className="p-3 rounded-lg bg-blue-50">
                   <Layers className="h-6 w-6 text-blue-600" />
@@ -373,8 +343,12 @@ const BomPage: React.FC = () => {
             <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Active BOMs</p>
-                  <p className="text-2xl font-semibold text-green-600 mt-1">{bomStats.activeBoms}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Active BOMs
+                  </p>
+                  <p className="text-2xl font-semibold text-green-600 mt-1">
+                    {bomStats.activeBoms}
+                  </p>
                 </div>
                 <div className="p-3 rounded-lg bg-green-50">
                   <CheckCircle className="h-6 w-6 text-green-600" />
@@ -385,8 +359,12 @@ const BomPage: React.FC = () => {
             <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Draft BOMs</p>
-                  <p className="text-2xl font-semibold text-yellow-600 mt-1">{bomStats.draftBoms}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Draft BOMs
+                  </p>
+                  <p className="text-2xl font-semibold text-yellow-600 mt-1">
+                    {bomStats.draftBoms}
+                  </p>
                 </div>
                 <div className="p-3 rounded-lg bg-yellow-50">
                   <AlertCircle className="h-6 w-6 text-yellow-600" />
@@ -397,7 +375,9 @@ const BomPage: React.FC = () => {
             <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Total BOM Value</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total BOM Value
+                  </p>
                   <p className="text-2xl font-semibold text-gray-900 mt-1">
                     ${bomStats.totalBOMValue.toLocaleString()}
                   </p>
@@ -412,7 +392,9 @@ const BomPage: React.FC = () => {
           {/* Quick Actions */}
           <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200 mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Quick Actions
+              </h3>
               <div className="flex flex-wrap gap-3">
                 <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                   <Plus className="h-4 w-4 mr-2" />
@@ -469,7 +451,9 @@ const BomPage: React.FC = () => {
                         className="flex items-center space-x-1 hover:text-gray-700"
                       >
                         <span>BOM ID</span>
-                        {sortField === "id" && <span>{sortOrder === "asc" ? "↑" : "↓"}</span>}
+                        {sortField === "id" && (
+                          <span>{sortOrder === "asc" ? "↑" : "↓"}</span>
+                        )}
                       </button>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -478,7 +462,9 @@ const BomPage: React.FC = () => {
                         className="flex items-center space-x-1 hover:text-gray-700"
                       >
                         <span>Product Name</span>
-                        {sortField === "productName" && <span>{sortOrder === "asc" ? "↑" : "↓"}</span>}
+                        {sortField === "productName" && (
+                          <span>{sortOrder === "asc" ? "↑" : "↓"}</span>
+                        )}
                       </button>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -508,18 +494,24 @@ const BomPage: React.FC = () => {
                         onClick={() => handleBomClick(bom.id)}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">#{bom.id}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            #{bom.id}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                               <Layers className="h-4 w-4 text-blue-600" />
                             </div>
-                            <div className="text-sm font-medium text-gray-900">{bom.productName}</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {bom.productName}
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">{bom.version}</div>
+                          <div className="text-sm text-gray-500">
+                            {bom.version}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
@@ -575,7 +567,8 @@ const BomPage: React.FC = () => {
             </div>
             <div className="flex items-center space-x-4">
               <span>
-                Total Value Across All BOMs: ${bomStats.totalBOMValue.toLocaleString()}
+                Total Value Across All BOMs: $
+                {bomStats.totalBOMValue.toLocaleString()}
               </span>
             </div>
           </div>
@@ -584,7 +577,9 @@ const BomPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* BOM Status Pie Chart */}
             <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">BOM Status Distribution</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                BOM Status Distribution
+              </h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -596,10 +591,15 @@ const BomPage: React.FC = () => {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) =>
+                        `${name}: ${(percent * 100).toFixed(0)}%`
+                      }
                     >
                       {bomStatusData.map((entry, index) => (
-                        <Cell key={`cell-bom-status-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-bom-status-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -610,7 +610,9 @@ const BomPage: React.FC = () => {
 
             {/* Top Components by Usage (Bar Chart) */}
             <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Component Usage Across BOMs</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Component Usage Across BOMs
+              </h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -636,41 +638,28 @@ const BomPage: React.FC = () => {
 
           {/* Recent Activity */}
           <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent BOM Activity</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Recent BOM Activity
+            </h3>
             <div className="space-y-3">
-              <div className="flex items-start p-3 bg-blue-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <Plus className="h-4 w-4 text-blue-600" />
+              {recentActivity.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start p-3 bg-blue-50 rounded-lg"
+                >
+                  <div className="bg-blue-100 p-2 rounded-full mr-3">
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {activity.message}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(activity.timestamp).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    New BOM #3 for "Wireless Earbuds Pro" created (Draft)
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">1 day ago</p>
-                </div>
-              </div>
-              <div className="flex items-start p-3 bg-blue-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <Edit className="h-4 w-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    BOM #1 for "Smartphone X v1.0" updated (added Camera Module)
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">3 days ago</p>
-                </div>
-              </div>
-              <div className="flex items-start p-3 bg-blue-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <CheckCircle className="h-4 w-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    BOM #2 for "Smartwatch Alpha" status changed to Active
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">1 week ago</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
