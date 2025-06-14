@@ -81,4 +81,17 @@ export const WarehouseInventoryController = {
     await WarehouseInventoryRepository.remove(record);
     res.status(204).send();
   }) as RequestHandler,
+
+  getCycleCounts: (async (req: Request, res: Response) => {
+    try {
+      const records = await WarehouseInventoryRepository.find({
+        relations: ["warehouse", "component"],
+      });
+      res.json(records);
+    } catch (err) {
+      console.error("Error in getCycleCounts:", err);
+      res.status(500).json({ error: "Failed to fetch cycle count records" });
+    }
+  }) as RequestHandler,
 };
+

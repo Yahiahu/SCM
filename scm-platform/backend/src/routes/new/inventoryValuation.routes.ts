@@ -4,6 +4,7 @@ import { InventoryValuationController } from "../../controllers/new/InventoryVal
 
 const router = Router();
 
+router.get("/latest", InventoryValuationController.getLatest);
 router.get("/", InventoryValuationController.getAll);
 router.get("/:id", InventoryValuationController.getById);
 router.post("/", InventoryValuationController.create);

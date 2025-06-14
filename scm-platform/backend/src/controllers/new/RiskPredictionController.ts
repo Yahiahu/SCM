@@ -3,6 +3,7 @@ import { Request, Response, RequestHandler } from "express";
 import { AppDataSource } from "../../data-source";
 import { RiskPrediction } from "../../entities/new/RiskPrediction";
 import { User } from "../../entities/User";
+import { CycleCountRepository } from "../../repositories/CycleCountRepository";
 
 export const RiskPredictionController = {
   getAll: (async (req, res) => {
@@ -21,8 +22,14 @@ export const RiskPredictionController = {
       });
 
       res.json(predictions);
-    } catch {
-      res.status(500).json({ error: "Failed to fetch risk predictions" });
+    } catch (err: any) {
+      console.error("Error in getAll:", err);
+      res
+        .status(500)
+        .json({
+          error: "Failed to fetch risk predictions",
+          details: err.message,
+        });
     }
   }) as RequestHandler,
 
@@ -37,8 +44,11 @@ export const RiskPredictionController = {
 
       if (!prediction) return res.status(404).json({ error: "Not found" });
       res.json(prediction);
-    } catch {
-      res.status(500).json({ error: "Failed to fetch prediction" });
+    } catch (err: any) {
+      console.error("Error in getById:", err);
+      res
+        .status(500)
+        .json({ error: "Failed to fetch prediction", details: err.message });
     }
   }) as RequestHandler,
 
@@ -67,8 +77,11 @@ export const RiskPredictionController = {
 
       const saved = await predictionRepo.save(prediction);
       res.status(201).json(saved);
-    } catch {
-      res.status(500).json({ error: "Failed to create prediction" });
+    } catch (err: any) {
+      console.error("Error in create:", err);
+      res
+        .status(500)
+        .json({ error: "Failed to create prediction", details: err.message });
     }
   }) as RequestHandler,
 
@@ -91,8 +104,11 @@ export const RiskPredictionController = {
 
       const updated = await predictionRepo.save(prediction);
       res.json(updated);
-    } catch {
-      res.status(500).json({ error: "Failed to update prediction" });
+    } catch (err: any) {
+      console.error("Error in update:", err);
+      res
+        .status(500)
+        .json({ error: "Failed to update prediction", details: err.message });
     }
   }) as RequestHandler,
 
@@ -105,8 +121,22 @@ export const RiskPredictionController = {
         return res.status(404).json({ error: "Not found" });
 
       res.sendStatus(204);
-    } catch {
-      res.status(500).json({ error: "Failed to delete prediction" });
+    } catch (err: any) {
+      console.error("Error in delete:", err);
+      res
+        .status(500)
+        .json({ error: "Failed to delete prediction", details: err.message });
     }
   }) as RequestHandler,
+
+  getCycleCounts: (async (_req, res) => {
+    try {
+      const counts = await CycleCountRepository.find({ relations: ["component"] });
+      res.json(counts);
+    } catch (err) {
+      console.error("Error in getCycleCounts:", err);
+      res.status(500).json({ error: "Failed to fetch cycle count records" });
+    }
+  }) as RequestHandler,
+
 };

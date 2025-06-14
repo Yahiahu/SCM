@@ -153,4 +153,28 @@ export const InventoryValuationController = {
       res.status(500).json({ error: "Failed to delete valuation" });
     }
   }) as RequestHandler,
+  
+  getLatest: (async (req: Request, res: Response) => {
+    try {
+      const repo = AppDataSource.getRepository(InventoryValuation);
+
+      const latest = await repo.find({
+        relations: ["component", "warehouse"],
+        order: { valuation_date: "DESC" },
+        take: 1,
+      });
+
+      if (!latest.length) {
+        return res.status(404).json({ error: "No valuation found" });
+      }
+
+      res.json(latest[0]);
+    } catch (err: any) {
+      console.error("Error in getLatest:", err);
+      res.status(500).json({
+        error: "Failed to fetch valuation",
+        details: err.message,
+      });
+    }
+  }) as RequestHandler,
 };

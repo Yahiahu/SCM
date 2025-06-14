@@ -13,32 +13,35 @@ export class RiskPrediction {
   id!: number;
 
   @Column()
-  entity_type!: string; // e.g., "Supplier", "PurchaseOrder", "Component", "Product"
+  entity_type!: string;
 
   @Column()
   entity_id!: number;
 
   @Column()
-  risk_type!: string; // e.g., "late_shipment", "supplier_failure", "demand_spike"
+  risk_type!: string;
 
   @Column({ type: "float" })
-  risk_score!: number; // 0–1 probability or score
+  risk_score!: number;
 
   @Column({ type: "text", nullable: true })
-  rationale!: string; // Model explanation or notes
+  rationale!: string;
 
   @Column({ nullable: true })
-  predicted_by!: string; // e.g., "AI_model_v2", "manual"
+  predicted_by!: string;
 
   @CreateDateColumn()
   predicted_at!: Date;
 
   @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
   reviewed_by!: User | null;
-    type: any;
-    target_entity: any;
-    target_id: any;
-    score: any;
-    description: any;
-    user: User | undefined;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  user!: User | null;
+  type: any;
+  target_entity: any;
+  target_id: any;
+  score: any;
+  description: any;
 }
+
