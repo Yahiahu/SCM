@@ -231,10 +231,13 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
                 <div
                   key={index}
                   onMouseLeave={(e) => {
-                    const relatedTarget = e.relatedTarget as HTMLElement;
+                    const relatedTarget = e.relatedTarget;
                     const parent = e.currentTarget as HTMLElement;
 
-                    if (!parent.contains(relatedTarget)) {
+                    if (
+                      !(relatedTarget instanceof HTMLElement) ||
+                      !parent.contains(relatedTarget)
+                    ) {
                       clearTimeout(hoverTimeoutRef.current!);
                       hoverTimeoutRef.current = setTimeout(() => {
                         setOpenDropdown(null);

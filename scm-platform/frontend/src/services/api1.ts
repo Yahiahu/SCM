@@ -11,6 +11,7 @@ import {
   Product as BackendProduct,
   BOM as BackendBOM,
 } from "../../../backend/src/interfaces/index"; // Adjust path as needed
+import { Supplier as BackendSupplier } from "../../../backend/src/interfaces"; // Adjust if needed
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001/api";
@@ -142,3 +143,87 @@ export const fetchComponent = async (
   const response = await authAxios.get(`/component/${id}`);
   return response.data;
 };
+
+export const fetchSuppliers = async (): Promise<BackendSupplier[]> => {
+  const response = await authAxios.get("/supplier");
+  return response.data;
+};
+
+export const createSupplier = async (
+  supplierData: Partial<BackendSupplier>
+): Promise<BackendSupplier> => {
+  const response = await authAxios.post("/supplier", supplierData);
+  return response.data;
+};
+
+export const updateSupplier = async (
+  id: string,
+  updatedData: Partial<BackendSupplier>
+): Promise<BackendSupplier> => {
+  const response = await authAxios.put(`/supplier/${id}`, updatedData);
+  return response.data;
+};
+
+export const deleteSupplier = async (id: string): Promise<void> => {
+  await authAxios.delete(`/supplier/${id}`);
+};
+
+// NEW: Fetch a single supplier by ID
+export const fetchSupplier = async (id: string): Promise<BackendSupplier> => {
+  const response = await authAxios.get(`/supplier/${id}`);
+  return response.data;
+};
+
+// NEW: Fetch supplier performance data
+export const fetchSupplierPerformance = async (id: string): Promise<any> => {
+  // Adjust the endpoint path and return type as needed.
+  const response = await authAxios.get(`/supplier/${id}/performance`);
+  return response.data;
+};
+
+// NEW: Fetch components for a specific supplier
+export const fetchSupplierComponents = async (id: string): Promise<BackendComponent[]> => {
+  const response = await authAxios.get(`/supplier/${id}/components`);
+  return response.data;
+};
+
+// NEW: Fetch purchase orders for a specific supplier
+export const fetchSupplierPurchaseOrders = async (id: string): Promise<BackendPurchaseOrder[]> => {
+  const response = await authAxios.get(`/supplier/${id}/purchaseorders`);
+  return response.data;
+};
+
+// NEW: Fetch a shipment by ID
+export const fetchShipment = async (id: string): Promise<any> => {
+  const response = await authAxios.get(`/shipment/${id}`);
+  return response.data;
+};
+
+// NEW: Fetch historical shipment data
+export const fetchShipmentHistory = async (shipmentId: string): Promise<any[]> => {
+  const response = await authAxios.get("/shipment/history");
+  return response.data;
+};
+
+// NEW: Fetch events associated with a specific shipment
+export const fetchShipmentEvents = async (shipmentId: string): Promise<any[]> => {
+  const response = await authAxios.get(`/shipment/${shipmentId}/events`);
+  return response.data;
+};
+
+// NEW: Fetch a single purchase order by ID
+export const fetchPurchaseOrder = async (
+  id: string
+): Promise<BackendPurchaseOrder> => {
+  const response = await authAxios.get(`/purchaseorder/${id}`);
+  return response.data;
+};
+
+// NEW: Fetch activity log / events for a specific purchase order
+export const fetchPOActivities = async (
+  purchaseOrderId: string
+): Promise<any[]> => {
+  const response = await authAxios.get(`/purchaseorder/${purchaseOrderId}/activities`);
+  return response.data;
+};
+

@@ -28,21 +28,23 @@ export default function Footer() {
           {/* Company Links */}
           <div className="space-y-4">
             <FooterHeading>Company</FooterHeading>
-            <FooterLink href="#">About us</FooterLink>
-            <FooterLink href="#">Blog</FooterLink>
-            <FooterLink href="#">Contact us</FooterLink>
-            <FooterLink href="#">Pricing</FooterLink>
-            <FooterLink href="#">Testimonials</FooterLink>
+            <FooterLink href="/aboutus">About us</FooterLink>
+            <FooterLink href="/footer/blog">Blog</FooterLink>
+            <FooterLink href="/footer/contactUs">Contact us</FooterLink>
+            <FooterLink href="/footer/pricing">Pricing</FooterLink>
+            <FooterLink href="/footer/testimonials">Testimonials</FooterLink>
           </div>
 
           {/* Support Links */}
           <div className="space-y-4">
             <FooterHeading>Support</FooterHeading>
-            <FooterLink href="#">Help Center</FooterLink>
-            <FooterLink href="#">Terms of Service</FooterLink>
-            <FooterLink href="#">Legal</FooterLink>
-            <FooterLink href="#">Privacy Policy</FooterLink>
-            <FooterLink href="#">Status</FooterLink>
+            <FooterLink href="/footer/helpCenter">Help Center</FooterLink>
+            <FooterLink href="/footer/termsofservice">
+              Terms of Service
+            </FooterLink>
+            <FooterLink href="/footer/legal">Legal</FooterLink>
+            <FooterLink href="/footer/privacyPolicy">Privacy Policy</FooterLink>
+            <FooterLink href="/footer/status">Status</FooterLink>
           </div>
 
           {/* Newsletter */}
