@@ -1,5 +1,9 @@
 import { Request, Response, RequestHandler } from "express";
 import { SupplierRepository } from "../repositories/SupplierRepository";
+import { AppDataSource } from "../data-source"; // Or wherever your data source is
+import { Component } from "../entities/Component"; // Adjust path
+import { PurchaseOrder } from "../entities/PurchaseOrder"; // Adjust path
+import { SupplierPerformance } from "../entities/new/SupplierPerformance";
 
 export const SupplierController = {
   getAll: (async (req: Request, res: Response) => {
@@ -61,7 +65,6 @@ export const SupplierController = {
     }
   }) as RequestHandler,
 
-  
   update: (async (req: Request, res: Response) => {
     const supplier = await SupplierRepository.findOne({
       where: { id: Number(req.params.id) },
@@ -106,5 +109,54 @@ export const SupplierController = {
 
     await SupplierRepository.remove(supplier);
     res.status(204).send();
+  }) as RequestHandler,
+
+  // Add inside SupplierController
+
+  getComponentsBySupplier: (async (req: Request, res: Response) => {
+    const supplierId = Number(req.params.id);
+
+    try {
+      const components = await AppDataSource.getRepository(Component).find({
+        where: { supplier: { id: supplierId } },
+        relations: ["supplier"],
+      });
+      res.json(components);
+    } catch (err) {
+      console.error("Failed to fetch components for supplier:", err);
+      res.status(500).json({ message: "Error fetching components." });
+    }
+  }) as RequestHandler,
+
+  getPurchaseOrdersBySupplier: (async (req: Request, res: Response) => {
+    const supplierId = Number(req.params.id);
+
+    try {
+      const orders = await AppDataSource.getRepository(PurchaseOrder).find({
+        where: { supplier: { id: supplierId } },
+        relations: ["supplier"],
+      });
+      res.json(orders);
+    } catch (err) {
+      console.error("Failed to fetch purchase orders for supplier:", err);
+      res.status(500).json({ message: "Error fetching purchase orders." });
+    }
+  }) as RequestHandler,
+
+  getPerformanceBySupplier: (async (req: Request, res: Response) => {
+    const supplierId = Number(req.params.id);
+
+    try {
+      const data = await AppDataSource.getRepository(SupplierPerformance).find({
+        where: { supplier: { id: supplierId } },
+        relations: ["supplier"],
+        order: { month: "DESC" },
+      });
+
+      res.json(data);
+    } catch (err) {
+      console.error("Error fetching supplier performance:", err);
+      res.status(500).json({ message: "Failed to load performance data." });
+    }
   }) as RequestHandler,
 };

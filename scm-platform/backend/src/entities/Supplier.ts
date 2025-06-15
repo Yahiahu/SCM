@@ -48,6 +48,7 @@ export class Supplier {
   @OneToMany(() => SupplierScore, (score) => score.supplier)
   scores!: SupplierScore[];
   rfqs: any;
+    performances: any;
 }
 
 

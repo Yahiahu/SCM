@@ -15,6 +15,7 @@ export interface User {
 }
 
 export interface Supplier {
+  avg_lead_time_days: any;
   id: number;
   name: string;
   rating: number;
@@ -28,6 +29,9 @@ export interface Supplier {
 }
 
 export interface Component {
+  last_order_date: string;
+  current_stock: number;
+  sku: string;
   preferred_supplier: any;
   lead_time_days: any;
   last_purchase_price: any;
@@ -96,6 +100,7 @@ export interface POItem {
 }
 
 export interface PurchaseOrder {
+  total_amount: any;
   product_id: number;
   id: number;
   supplierId: number;
@@ -219,4 +224,11 @@ export interface WarehouseLayout {
   warehouse?: Warehouse; // Optional
 }
 
+export interface SupplierPerformance {
+  id: number;
+  supplier_id: number;
+  month: string; // ISO string or Date
+  on_time_delivery_rate: number; // e.g., 0.95
+  quality_rating: number; // e.g., 0.98
+}
 

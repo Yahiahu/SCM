@@ -39,7 +39,7 @@ export { ScenarioModel } from "./new/ScenarioModel";
 export { SupplierScore } from "./new/SupplierScorecard";
 export { Task } from "./new/Task";
 export { PurchaseGroup } from "./new/PurchaseGroup";
-
+export { SupplierPerformance } from "./new/SupplierPerformance";
 
 export { Invoice } from "./new/invoice";
 export { Payment } from "./new/payments";
