@@ -200,7 +200,12 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
               className="flex items-center space-x-4 group cursor-pointer"
               onMouseEnter={() => setSidebarVisible(true)}
               onMouseLeave={(e) => {
-                if (!sidebarRef.current?.contains(e.relatedTarget as Node)) {
+                const related = e.relatedTarget;
+                if (
+                  related instanceof Node &&
+                  !sidebarRef.current?.contains(related) &&
+                  !logoRef.current?.contains(related)
+                ) {
                   setSidebarVisible(false);
                 }
               }}

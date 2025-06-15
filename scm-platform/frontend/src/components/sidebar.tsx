@@ -12,6 +12,7 @@ import {
   FiShoppingBag,
   FiSettings,
   FiArrowDownRight,
+  FiArrowDown,
 } from "react-icons/fi";
 import { IconType } from "react-icons";
 import Link from "next/link";
@@ -33,6 +34,7 @@ const LinkItems: Array<LinkItemProps> = [
   { name: "Marketplace", icon: FiShoppingBag, path: "/marketplace" },
   { name: "Product Orders", icon: FiShoppingCart, path: "/productOrder" },
   { name: "Warehouse", icon: FiTruck, path: "/warehouse" },
+  { name: "Imports", icon: FiArrowDown, path: "/imports" },
   { name: "Settings", icon: FiSettings, path: "/settings" },
 ];
 
