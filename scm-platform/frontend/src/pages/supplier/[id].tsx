@@ -202,24 +202,26 @@ export default function SupplierDetailDashboard() {
 
         // Process components
         const processedComponents = components.slice(0, 5).map((c) => ({
-          id: c.id.toString(), // ✅ convert number to string
+          id: c.id.toString(),
           name: c.name,
           quantity: c.quantity,
-          lastOrderDate: new Date(c.last_order_date)
-            .toISOString()
-            .split("T")[0],
+          lastOrderDate: c.last_order_date
+            ? new Date(c.last_order_date).toISOString().split("T")[0]
+            : "N/A",
         }));
+
         setComponents(processedComponents);
 
         // Process purchase orders
-        const processedOrders = orders.slice(0, 5).map((o) => ({
-          id: `#${o.id.toString().padStart(3, "0")}`,
-          component: o.componentName,
-          status: o.status,
-          date: new Date(o.date).toISOString().split("T")[0],
-          quantity: o.quantity,
-          unitPrice: o.unitPrice,
-        }));
+const processedOrders = orders.slice(0, 5).map((o) => ({
+  id: `#${o.id.toString().padStart(3, "0")}`,
+  component: o.componentName,
+  status: o.status,
+  date: o.date ? new Date(o.date).toISOString().split("T")[0] : "N/A",
+  quantity: o.quantity,
+  unitPrice: o.unitPrice,
+}));
+
         setPurchaseOrders(processedOrders);
       } catch (error) {
         console.error(`Failed to load data for supplier ${supplierId}:`, error);

@@ -195,19 +195,21 @@ export const fetchSupplierPurchaseOrders = async (id: string): Promise<BackendPu
 
 // NEW: Fetch a shipment by ID
 export const fetchShipment = async (id: string): Promise<any> => {
-  const response = await authAxios.get(`/shipment/${id}`);
+  const response = await authAxios.get(`/shippinginfo/${id}`);
   return response.data;
 };
 
 // NEW: Fetch historical shipment data
-export const fetchShipmentHistory = async (shipmentId: string): Promise<any[]> => {
-  const response = await authAxios.get("/shipment/history");
+export const fetchShipmentHistory = async (
+  shipmentId: string
+): Promise<any[]> => {
+  const response = await authAxios.get(`/shippinginfo/${shipmentId}/history`);
   return response.data;
 };
 
 // NEW: Fetch events associated with a specific shipment
 export const fetchShipmentEvents = async (shipmentId: string): Promise<any[]> => {
-  const response = await authAxios.get(`/shipment/${shipmentId}/events`);
+  const response = await authAxios.get(`/shippinginfo/${shipmentId}/events`);
   return response.data;
 };
 
