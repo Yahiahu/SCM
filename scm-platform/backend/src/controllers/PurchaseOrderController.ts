@@ -81,4 +81,16 @@ export const PurchaseOrderController = {
     await PurchaseOrderRepository.remove(order);
     res.status(204).send();
   }) as RequestHandler,
+
+  getActivities: (async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+
+    // Simulated logic for now
+    const activities = [
+      { timestamp: new Date(), action: "Created", by: "System" },
+      { timestamp: new Date(), action: "Approved", by: "Manager" },
+    ];
+
+    res.json(activities);
+  }) as RequestHandler,
 };

@@ -29,6 +29,8 @@ export interface Supplier {
 }
 
 export interface Component {
+  quantity: any;
+  name: any;
   last_order_date: string;
   current_stock: number;
   sku: string;
@@ -100,6 +102,19 @@ export interface POItem {
 }
 
 export interface PurchaseOrder {
+  unitPrice: any;
+  quantity: any;
+  date: string | number | Date;
+  componentName: any;
+  due_date: any;
+  due_date: string | number | Date;
+  approved: any;
+  currency: string;
+  priority: any;
+  priority: any;
+  last_updated: string;
+  due_date: string | number | Date;
+  due_date: any;
   total_amount: any;
   product_id: number;
   id: number;

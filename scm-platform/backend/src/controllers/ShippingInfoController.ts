@@ -102,4 +102,54 @@ export const ShippingInfoController = {
     await ShippingInfoRepository.remove(record);
     res.status(204).send();
   }) as RequestHandler,
+
+  getHistory: (async (req: Request, res: Response) => {
+    const shipmentId = Number(req.params.id);
+    // Replace with your own historical logic or dummy/mock for now
+    const history = await ShippingInfoRepository.find({
+      where: { id: shipmentId },
+      relations: ["po", "component"],
+    });
+
+    // For example purposes: return an array of status/location changes
+    const mockedHistory = [
+      {
+        timestamp: "2025-06-01T08:00:00Z",
+        status: "dispatched",
+        location: "Warehouse A",
+      },
+      {
+        timestamp: "2025-06-03T14:00:00Z",
+        status: "in transit",
+        location: "City B",
+      },
+      {
+        timestamp: "2025-06-05T10:00:00Z",
+        status: "delivered",
+        location: "Final Destination",
+      },
+    ];
+
+    res.json(mockedHistory); // Replace this with actual history data if you have it
+  }) as RequestHandler,
+
+  getEvents: (async (req: Request, res: Response) => {
+    const shipmentId = Number(req.params.id);
+
+    // Replace with actual event fetching logic from a table if available
+    const events = [
+      {
+        type: "status_update",
+        status: "in transit",
+        timestamp: "2025-06-03T12:00:00Z",
+      },
+      {
+        type: "location_update",
+        location: "City C",
+        timestamp: "2025-06-03T16:00:00Z",
+      },
+    ];
+
+    res.json(events);
+  }) as RequestHandler,
 };
