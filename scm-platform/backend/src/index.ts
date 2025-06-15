@@ -18,9 +18,10 @@ app.use("/api", routes);
 AppDataSource.initialize()
   .then(() => {
     console.log("✅ Data source initialized");
-    app.listen(5001, () => {
-      console.log("🚀 Server running on http://localhost:5001");
-    });
+    const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
   })
   .catch((err) => {
     console.error("❌ Failed to initialize DB:", err);
