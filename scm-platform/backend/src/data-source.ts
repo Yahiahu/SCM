@@ -1,6 +1,6 @@
 import { DataSource } from "typeorm";
 import dotenv from "dotenv";
-import * as Entities from "./entities"; // ⬅️ Import all from your new index.ts
+import * as Entities from "./entities";
 
 dotenv.config();
 
@@ -15,7 +15,10 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || "postgres",
   synchronize: true,
   logging: true,
-  entities: Object.values(Entities), // ⬅️ Load all entities dynamically
+  ssl: {
+    rejectUnauthorized: false,
+  },
+  entities: Object.values(Entities),
 });
 
 console.log("✅ data-source.ts loaded");
