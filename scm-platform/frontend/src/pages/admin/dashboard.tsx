@@ -128,36 +128,44 @@ const loadData = async () => {
 
 
   const fetchDashboardSummary = async () => {
-    try {
-      const response = await fetch("/api/admin/dashboard-summary", {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard-summary`,
+      {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-      });
-      return response;
-    } catch (error) {
-      console.error("Error fetching dashboard summary:", error);
-      throw error;
-    }
-  };
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error("Error fetching dashboard summary:", error);
+    throw error;
+  }
+};
 
-  const fetchRecentAuditLogs = async () => {
-    try {
-      const response = await fetch("/api/auditlog", {
+
+const fetchRecentAuditLogs = async () => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/auditlog`,
+      {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-      });
-      return response;
-    } catch (error) {
-      console.error("Error fetching recent audit logs:", error);
-      throw error;
-    }
-  };
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error("Error fetching recent audit logs:", error);
+    throw error;
+  }
+};
+
 
   const orderStatusData = dashboardSummary
     ? [

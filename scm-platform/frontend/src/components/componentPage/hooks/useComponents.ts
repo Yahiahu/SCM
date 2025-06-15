@@ -11,7 +11,7 @@ export const useComponents = () => {
   const fetchComponents = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/component");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/component`);
       if (!response.ok) throw new Error("Failed to load components");
       const data = await response.json();
 

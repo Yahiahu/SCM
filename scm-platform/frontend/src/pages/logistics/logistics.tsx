@@ -99,7 +99,7 @@ const LogisticsPage: React.FC = () => {
 
     try {
       // Fetch all shipments from shipping info endpoint
-      const response = await fetch("/api/shippinginfo");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shippinginfo`);
       if (!response.ok) throw new Error("Failed to fetch shipments");
       const data = await response.json();
 

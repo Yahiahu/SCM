@@ -153,16 +153,27 @@ export default function ComponentsPage() {
       Inventory Report - ${new Date().toLocaleDateString()}
       ====================================
       Total Components: ${components.length}
-      In Stock: ${components.filter((c) => c.status === "In Stock").length}
-      Low Stock: ${components.filter((c) => c.status === "Low Stock").length}
+      In Stock: ${
+        components.filter((c) => c.status === "In Stock")
+          .length
+      }
+      Low Stock: ${
+        components.filter((c) => c.status === "Low Stock")
+          .length
+      }
       Out of Stock: ${
-        components.filter((c) => c.status === "Out of Stock").length
+        components.filter(
+          (c)  => c.status === "Out of Stock"
+        ).length
       }
 
       Low Stock Items:
       ${components
         .filter((c) => c.status === "Low Stock")
-        .map((c) => `- ${c.num}: ${c.description} (${c.currentQty} remaining)`)
+        .map(
+          (c: { num: any; description: any; currentQty: any }) =>
+            `- ${c.num}: ${c.description} (${c.currentQty} remaining)`
+        )
         .join("\n      ")}
     `;
 

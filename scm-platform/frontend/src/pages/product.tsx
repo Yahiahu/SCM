@@ -40,7 +40,10 @@ export default function HomePage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("/api/product");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/product`
+      );
+
       const data = await response.json();
       setProducts(data);
     } catch (error) {

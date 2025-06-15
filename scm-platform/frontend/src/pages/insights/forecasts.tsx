@@ -105,7 +105,7 @@ const AiInsightsPage: React.FC = () => {
   // Fetch data from actual endpoints
   const fetchAnomalies = async () => {
     try {
-      const response = await fetch("/api/anomalies");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/anomalies`);
       if (!response.ok) throw new Error("Failed to fetch anomalies");
       const data = await response.json();
       setAnomalies(data);
@@ -118,7 +118,7 @@ const AiInsightsPage: React.FC = () => {
   const fetchForecasts = async () => {
     try {
       // Using riskpredictions endpoint for forecast data
-      const response = await fetch("/api/riskpredictions");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/riskpredictions`);
       if (!response.ok) throw new Error("Failed to fetch forecasts");
       const data = await response.json();
 
@@ -146,7 +146,7 @@ const AiInsightsPage: React.FC = () => {
 
   const fetchSuggestions = async () => {
     try {
-      const response = await fetch("/api/aisuggestion");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/aisuggestion`);
       if (!response.ok) throw new Error("Failed to fetch suggestions");
       const data = await response.json();
       setSuggestions(data);

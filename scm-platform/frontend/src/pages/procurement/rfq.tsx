@@ -128,7 +128,7 @@ const RfqPage: React.FC = () => {
     try {
       setLoading(true);
 
-  const rfqsRes = await fetch("/api/rfqs");
+  const rfqsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rfqs`);
 
   if (!rfqsRes.ok) {
     throw new Error("Failed to fetch RFQs");

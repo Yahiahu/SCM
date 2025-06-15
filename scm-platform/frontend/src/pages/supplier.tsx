@@ -48,7 +48,7 @@ export default function SuppliersPage() {
     const fetchSuppliers = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("/api/supplier");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/supplier`);
         if (!response.ok) {
           throw new Error("Failed to load suppliers");
         }
@@ -135,7 +135,7 @@ export default function SuppliersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/supplier", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/supplier`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -396,7 +396,7 @@ export default function SuppliersPage() {
 
         importedSuppliers.forEach(async (supplier: any) => {
           try {
-            const response = await fetch("/api/supplier", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/supplier`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

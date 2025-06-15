@@ -106,7 +106,7 @@ const Orders: React.FC = () => {
     try {
       setLoading(true);
 
-const ordersRes = await fetch("/api/purchaseorder");
+const ordersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/purchaseorder`);
 if (!ordersRes.ok) throw new Error("Failed to fetch purchase orders");
 
 const ordersData = await ordersRes.json();

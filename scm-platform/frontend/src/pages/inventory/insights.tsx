@@ -124,19 +124,19 @@ const InventoryInsightsPage: React.FC = () => {
     
     try {
       // Fetch cycle counts from warehouse inventory endpoint
-      const countsResponse = await fetch("/api/warehouseinventory/cycle-counts");
+      const countsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/warehouseinventory/cycle-counts`);
       if (!countsResponse.ok) throw new Error("Failed to fetch cycle counts");
       const countsData = await countsResponse.json();
       setCycleCounts(countsData);
 
       // Fetch movements from inventory transactions endpoint
-      const movementsResponse = await fetch("/api/inventorytransactions");
+      const movementsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/inventorytransactions`);
       if (!movementsResponse.ok) throw new Error("Failed to fetch inventory movements");
       const movementsData = await movementsResponse.json();
       setInventoryMovements(movementsData);
 
       // Fetch valuation from inventory valuation endpoint
-      const valuationResponse = await fetch("/api/inventoryvaluations/latest");
+      const valuationResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/inventoryvaluations/latest`);
       if (!valuationResponse.ok) throw new Error("Failed to fetch valuation data");
       const valuationData = await valuationResponse.json();
       setValuationSummary(valuationData);

@@ -210,9 +210,9 @@ export default function LogisticsPage() {
       try {
         const [poResponse, shippingResponse, inventoryResponse] =
           await Promise.all([
-            fetch("/api/purchaseorder"),
-            fetch("/api/shippinginfo"),
-            fetch("/api/warehouseinventory"),
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/purchaseorder`),
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shippinginfo`),
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/warehouseinventory`),
           ]);
 
         if (!poResponse.ok) throw new Error("Failed to load purchase orders");
@@ -242,7 +242,7 @@ export default function LogisticsPage() {
   const handleAddItem = async (formData: any) => {
     try {
       if (formData.type === "order") {
-        const response = await fetch("/api/purchase_order", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/purchase_order`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -262,7 +262,7 @@ export default function LogisticsPage() {
         const newOrder = await response.json();
         setPurchaseOrders((prev) => [...prev, newOrder]);
       } else if (formData.type === "shipment") {
-        const response = await fetch("/api/shipping_info", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shipping_info`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -290,9 +290,9 @@ export default function LogisticsPage() {
       // Re-fetch data after successful add to ensure all tables are updated
       const [poResponse, shippingResponse, inventoryResponse] =
         await Promise.all([
-          fetch("/api/purchaseorder"),
-          fetch("/api/shippinginfo"),
-          fetch("/api/warehouseinventory"),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/purchaseorder`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shippinginfo`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/warehouseinventory`),
         ]);
       setPurchaseOrders(await poResponse.json());
       setShipments(await shippingResponse.json());

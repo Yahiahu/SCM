@@ -161,7 +161,7 @@ export default function MessageBoardPage() {
   useEffect(() => {
     const fetchThreads = async () => {
       try {
-        const response = await fetch("/api/poconversationthread");;
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/poconversationthread`);;
         if (!response.ok)
           throw new Error("Failed to load conversation threads");
         const threads = await response.json();
@@ -262,7 +262,7 @@ export default function MessageBoardPage() {
         receiverId: 2, // Would be dynamic in a real app
       };
 
-      const response = await fetch("/api/chatmessage", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chatmessage`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -280,7 +280,7 @@ export default function MessageBoardPage() {
         formData.append("file", selectedFile);
         formData.append("messageId", createdMessage.id.toString());
 
-        const uploadResponse = await fetch("/api/message_attachment", {
+        const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/message_attachment`, {
           method: "POST",
           body: formData,
         });

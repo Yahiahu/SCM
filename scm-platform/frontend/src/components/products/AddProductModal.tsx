@@ -40,7 +40,7 @@ export function AddProductModal({ isOpen, onClose }: AddProductModalProps) {
     if (e) e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/product", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/product`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

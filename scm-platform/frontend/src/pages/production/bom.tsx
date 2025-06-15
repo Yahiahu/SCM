@@ -123,7 +123,7 @@ const BomPage: React.FC = () => {
     try {
       setLoading(true);
 
-      const bomsRes = await fetch("/api/bom");
+      const bomsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bom`);
 
       if (!bomsRes.ok) throw new Error("Failed to fetch BOM data");
 

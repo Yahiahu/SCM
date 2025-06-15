@@ -103,7 +103,7 @@ const Fulfillment: React.FC = () => {
   useEffect(() => {
     const fetchShippingInfo = async () => {
       try {
-        const response = await fetch("/api/shippinginfo");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shippinginfo`);
         if (!response.ok) {
           throw new Error("Failed to fetch shipping info");
         }
@@ -123,7 +123,7 @@ const Fulfillment: React.FC = () => {
   useEffect(() => {
     const fetchReturnOrders = async () => {
       try {
-        const response = await fetch("/api/returnorders");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/returnorders`);
         if (!response.ok) {
           throw new Error("Failed to fetch return orders");
         }
