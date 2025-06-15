@@ -107,14 +107,10 @@ export interface PurchaseOrder {
   date: string | number | Date;
   componentName: any;
   due_date: any;
-  due_date: string | number | Date;
   approved: any;
   currency: string;
   priority: any;
-  priority: any;
   last_updated: string;
-  due_date: string | number | Date;
-  due_date: any;
   total_amount: any;
   product_id: number;
   id: number;
