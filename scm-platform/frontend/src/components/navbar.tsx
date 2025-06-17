@@ -210,7 +210,10 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
                 }
               }}
             >
-              <Link href="/" className="flex items-center space-x-4">
+              <div
+                className="flex items-center space-x-4"
+                onClick={() => setSidebarVisible((prev) => !prev)}
+              >
                 <div className="relative">
                   <div className="absolute inset-0 w-12 h-12 bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-all duration-700 transform group-hover:scale-150"></div>
                   <div className="relative w-12 h-12 flex items-center justify-center rounded-2xl bg-gradient-to-br from-sky-100 via-white to-blue-100 border border-sky-200/60 group-hover:border-sky-300/80 transition-all duration-500 group-hover:scale-110 group-hover:shadow-2xl group-hover:shadow-sky-500/25 transform-gpu">
@@ -228,7 +231,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
                   </h1>
                   <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-sky-500 to-blue-500 group-hover:w-full transition-all duration-500 ease-out"></div>
                 </div>
-              </Link>
+              </div>
             </div>
 
             <div className="hidden lg:flex items-center space-x-1">
