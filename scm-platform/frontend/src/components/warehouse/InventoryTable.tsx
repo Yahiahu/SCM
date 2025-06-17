@@ -10,6 +10,7 @@ import {
   FiCheckCircle,
 } from "react-icons/fi";
 import { InventoryItem } from "./types";
+import { useRouter } from "next/navigation";
 
 interface InventoryTableProps {
   isLoading: boolean;
@@ -22,8 +23,10 @@ interface InventoryTableProps {
   updateItemQuantity: (id: number, newQuantity: number) => void;
   deleteItem: (id: number) => void;
   handleViewLocation: (locationId: number) => void;
-  router: any;
+  router: any; // optional, unless still needed elsewhere
+  onRowClick?: (id: number) => void; // ✅ Add this line
 }
+
 
 export const InventoryTable = ({
   isLoading,
@@ -36,8 +39,10 @@ export const InventoryTable = ({
   updateItemQuantity,
   deleteItem,
   handleViewLocation,
-  router,
+  onRowClick, // ✅ include this
 }: InventoryTableProps) => {
+  const router = useRouter();
+
   const getInventoryStatus = (item: InventoryItem) => {
     if (item.currentQty <= 0) return "Out of Stock";
     if (item.currentQty < 10) return "Low Stock";
@@ -142,10 +147,9 @@ export const InventoryTable = ({
                   return (
                     <tr
                       key={item.id}
-                      className={`hover:bg-sky-50/50 transition-colors duration-150 
-                                ${
-                                  index % 2 === 0 ? "bg-white" : "bg-sky-50/20"
-                                }`}
+                      onClick={() => onRowClick?.(item.id)} // ✅ trigger navigation
+                      className={`cursor-pointer hover:bg-sky-50/50 transition-colors duration-150 
+    ${index % 2 === 0 ? "bg-white" : "bg-sky-50/20"}`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">

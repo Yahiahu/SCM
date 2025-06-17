@@ -1,5 +1,6 @@
 import { Product } from "./theme";
 import { Download, TrendingUp, Package } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface TopProductsTableProps {
   products: Product[];
@@ -14,6 +15,7 @@ export function TopProductsTable({
 }: TopProductsTableProps) {
   // Sort products by stock level for "top performing" logic
   const topProducts = products.sort((a, b) => b.stock - a.stock).slice(0, 10);
+  const router = useRouter();
 
   const getStockStatus = (stock: number) => {
     if (stock > 50)
@@ -101,7 +103,8 @@ export function TopProductsTable({
                 return (
                   <tr
                     key={product.id}
-                    className="hover:bg-sky-50/50 dark:hover:bg-gray-800/50 transition-colors"
+                    onClick={() => router.push(`/product/${product.id}`)}
+                    className="cursor-pointer hover:bg-sky-50/50 dark:hover:bg-gray-800/50 transition-colors"
                   >
                     {/* Rank */}
                     <td className="py-4 px-6">
@@ -110,7 +113,7 @@ export function TopProductsTable({
                           className={`
                           w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
                           ${
-                            index < 3
+                            index < 10000000
                               ? "bg-gradient-to-r from-sky-400 to-sky-600 text-white"
                               : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
                           }
@@ -147,8 +150,7 @@ export function TopProductsTable({
 
                     {/* Stock Level */}
                     <td className="py-4 px-6">
-                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      </div>
+                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100"></div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
                         units
                       </div>

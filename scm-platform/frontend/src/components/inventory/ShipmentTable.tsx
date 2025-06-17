@@ -3,6 +3,7 @@ import { ShippingInfo } from "./types";
 // Assuming getStatusColor and getStatusIcon are now pure JS/TS functions
 // that return color strings (e.g., "green", "orange") and JSX.Element for icons.
 import { getStatusColor, getStatusIcon } from "./utils";
+import { useRouter } from "next/navigation";
 
 interface ShipmentsTableProps {
   shipments: ShippingInfo[];
@@ -16,6 +17,8 @@ export const ShipmentsTable = ({
   shipments,
   isLoading,
 }: ShipmentsTableProps) => {
+  const router = useRouter();
+
   return (
     <div className="rounded-2xl shadow-xl shadow-sky-500/10 border border-sky-200/30 bg-white/50 backdrop-blur-sm overflow-hidden">
       {/* Card Header */}
@@ -62,7 +65,8 @@ export const ShipmentsTable = ({
                 {shipments.slice(0, 5).map((shipment) => (
                   <tr
                     key={shipment.id}
-                    className="hover:bg-sky-50/50 transition-colors duration-150"
+                    onClick={() => router.push(`/shipment/${shipment.id}`)}
+                    className="cursor-pointer hover:bg-sky-50/50 transition-colors duration-150"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-sky-900">
                       {shipment.component?.num || "N/A"}
@@ -100,8 +104,11 @@ export const ShipmentsTable = ({
 
       {/* Card Footer */}
       <div className="p-6 border-t border-sky-200/50 flex justify-end">
-        <button className="text-sky-600 font-medium hover:text-sky-700 hover:underline transition-colors duration-200">
-          Track all shipments
+        <button
+          onClick={() => router.push("/shipments")}
+          className="text-sky-600 font-medium hover:text-sky-700 hover:underline transition-colors duration-200"
+        >
+          Track All Shipments
         </button>
       </div>
     </div>

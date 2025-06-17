@@ -1,6 +1,7 @@
 import { FiHome } from "react-icons/fi";
 import { WarehouseInventory } from "./types";
 import { getStatusIcon } from "./utils"; // Assuming getStatusIcon is now a pure JS/TS function
+import { useRouter } from "next/navigation";
 
 interface WarehouseTableProps {
   inventory: WarehouseInventory[];
@@ -19,6 +20,7 @@ export const WarehouseTable = ({
     if (qty > 0) return "Low Stock";
     return "Out of Stock";
   };
+const router = useRouter();
 
   // Helper to determine Tailwind color classes based on quantity
   const getInventoryStatusColorClass = (qty: number) => {
@@ -77,7 +79,8 @@ export const WarehouseTable = ({
                   return (
                     <tr
                       key={item.id}
-                      className="hover:bg-sky-50/50 transition-colors duration-150"
+                      onClick={() => router.push(`/inventory/${item.id}`)}
+                      className="cursor-pointer hover:bg-sky-50/50 transition-colors duration-150"
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-sky-900">
                         {item.component?.num || "N/A"}
@@ -107,7 +110,10 @@ export const WarehouseTable = ({
 
       {/* Card Footer */}
       <div className="p-6 border-t border-sky-200/50 flex justify-end">
-        <button className="text-sky-600 font-medium hover:text-sky-700 hover:underline transition-colors duration-200">
+        <button
+          onClick={() => router.push("/warehouse")}
+          className="text-sky-600 font-medium hover:text-sky-700 hover:underline transition-colors duration-200"
+        >
           View full inventory
         </button>
       </div>

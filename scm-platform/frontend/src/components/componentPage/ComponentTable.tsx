@@ -15,6 +15,7 @@ import {
 import { Component } from "./types";
 import { getStatusIcon, getStatusColor } from "./utils";
 import { Skeleton } from "@radix-ui/themes";
+import { useRouter } from "next/navigation";
 
 interface ComponentsTableProps {
   components: Component[];
@@ -62,6 +63,7 @@ export const ComponentsTable = ({
       </div>
     );
   }
+const router = useRouter();
 
   return (
     <div className="overflow-hidden rounded-2xl shadow-xl shadow-sky-500/10 border border-sky-200/30 bg-white/50 backdrop-blur-sm">
@@ -117,7 +119,8 @@ export const ComponentsTable = ({
             {components.map((component, index) => (
               <tr
                 key={component.id}
-                className={`group hover:bg-gradient-to-r hover:from-sky-50/50 hover:via-blue-50/30 hover:to-sky-50/50 transition-all duration-300 ${
+                onClick={() => router.push(`/component/${component.id}`)}
+                className={`cursor-pointer group hover:bg-gradient-to-r hover:from-sky-50/50 hover:via-blue-50/30 hover:to-sky-50/50 transition-all duration-300 ${
                   index % 2 === 0 ? "bg-white/30" : "bg-sky-50/20"
                 }`}
               >
@@ -197,7 +200,7 @@ export const ComponentsTable = ({
                   </span>
                 </td>
 
-                <td className="px-6 py-4">
+                <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button className="relative p-2 rounded-xl hover:bg-sky-100/50 border border-transparent hover:border-sky-200/50 transition-all duration-300 group/btn hover:shadow-md hover:shadow-sky-500/10">

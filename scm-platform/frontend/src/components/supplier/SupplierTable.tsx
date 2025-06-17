@@ -19,6 +19,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Supplier } from "./types";
+import { useRouter } from "next/navigation";
 
 interface SupplierTableProps {
   suppliers: Supplier[];
@@ -60,6 +61,8 @@ export const SupplierTable = ({
     );
   }
 
+  const router = useRouter();
+
   return (
     <div className="overflow-x-auto bg-white rounded-xl shadow-sm">
       <table className="w-full table-auto text-sm text-left border-separate border-spacing-y-2">
@@ -83,9 +86,10 @@ export const SupplierTable = ({
           {suppliers.map((supplier) => (
             <tr
               key={supplier.id}
-              className="bg-white border rounded-lg shadow-sm hover:bg-sky-50"
+              onClick={() => router.push(`/supplier/${supplier.id}`)}
+              className="cursor-pointer bg-white border rounded-lg shadow-sm hover:bg-sky-50 transition-colors"
             >
-              <td className="px-4 py-3">
+              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center gap-3">
                   <div className="h-8 w-8 bg-sky-100 rounded-full flex items-center justify-center font-bold text-sm">
                     {supplier.name.charAt(0)}

@@ -267,6 +267,7 @@ export default function WarehousePage() {
                   deleteItem={deleteItem}
                   handleViewLocation={handleViewLocation}
                   router={router}
+                  onRowClick={(id) => router.push(`/inventory/${id}`)} // ✅ This enables the row click
                 />
               </div>
             </div>

@@ -8,6 +8,7 @@ import { PurchaseOrder } from "./types"; // Assuming this type is correctly defi
 // Import your existing Card and Button components
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface OverduePOsCardProps {
   purchaseOrders: PurchaseOrder[];
@@ -16,6 +17,8 @@ interface OverduePOsCardProps {
 export default function OverduePOsCard({
   purchaseOrders,
 }: OverduePOsCardProps) {
+  const router = useRouter();
+
   const overduePOs = purchaseOrders.filter(
     (po) =>
       new Date(po.dateDue) < new Date() &&
@@ -69,7 +72,11 @@ export default function OverduePOsCard({
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {overduePOs.map((po) => (
-                  <tr key={po.id} className="hover:bg-blue-50/50">
+                  <tr
+                    key={po.id}
+                    onClick={() => router.push(`/purchase-order/${po.id}`)}
+                    className="cursor-pointer hover:bg-blue-50/50 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {po.poNumber}
                     </td>

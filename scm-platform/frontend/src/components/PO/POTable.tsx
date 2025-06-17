@@ -31,6 +31,7 @@ import PaymentStatusBadge from "./PaymentStatusBadge"; // Your converted badge
 import POFilterBar from "./POFilterBar"; // Your converted filter bar
 
 import { PurchaseOrder } from "./types"; // Assuming this type is correctly defined
+import { useRouter } from "next/navigation";
 
 interface POTableProps {
   purchaseOrders: PurchaseOrder[];
@@ -41,6 +42,7 @@ interface POTableProps {
   onDeletePO?: (id: number) => void;
   onUpdatePOStatus?: (id: number, status: PurchaseOrder["status"]) => void;
 }
+
 
 // Helper to determine the tab icon
 const getTabIcon = (tabIndex: number) => {
@@ -72,6 +74,7 @@ export default function POTable({
   onDeletePO,
   onUpdatePOStatus,
 }: POTableProps) {
+  const router = useRouter();
   const filteredPOs = purchaseOrders
     .filter((po) => {
       const matchesSearch =
@@ -218,7 +221,13 @@ export default function POTable({
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredPOs.length > 0 ? (
                       filteredPOs.map((po) => (
-                        <tr key={po.id} className="hover:bg-blue-50/50">
+                        <tr
+                          key={po.id}
+                          onClick={() =>
+                            router.push(`/purchase-order/${po.id}`)
+                          }
+                          className="cursor-pointer hover:bg-sky-50/50 transition-colors duration-150"
+                        >
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             <a
                               href={`/purchase-orders/${po.id}`} // Using standard <a> for navigation

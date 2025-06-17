@@ -882,27 +882,27 @@ export default function LandingPage() {
             opacity: 0;
           }
           10% {
-            transform: translateX(10vw) translateY(-100px) rotate(-20deg);
+            transform: translateX(10vw) translateY(-50px) rotate(-20deg);
             opacity: 0.6;
           }
           20% {
-            transform: translateX(20vw) translateY(-170px) rotate(-30deg);
+            transform: translateX(20vw) translateY(-60px) rotate(-10deg);
             opacity: 0.8;
           }
           40% {
-            transform: translateX(40vw) translateY(-210px) rotate(-5deg);
+            transform: translateX(40vw) translateY(-80px) rotate(0deg);
             opacity: 1;
           }
           60% {
-            transform: translateX(60vw) translateY(-210px) rotate(5deg);
+            transform: translateX(60vw) translateY(-80px) rotate(0deg);
             opacity: 1;
           }
           80% {
-            transform: translateX(80vw) translateY(-170px) rotate(30deg);
+            transform: translateX(80vw) translateY(-60px) rotate(10deg);
             opacity: 0.8;
           }
           90% {
-            transform: translateX(90vw) translateY(-100px) rotate(20deg);
+            transform: translateX(90vw) translateY(-50px) rotate(10deg);
             opacity: 0.6;
           }
           100% {
@@ -929,18 +929,43 @@ export default function LandingPage() {
         .animate-pulse-glow {
           animation: pulse-glow 1.5s infinite;
         }
+        /* Default for large screens */
         @keyframes truck-drive {
           0% {
             transform: translateX(-10%);
             opacity: 0;
           }
-          50% {
-            transform: translateX(50vw);
+          10% {
             opacity: 1;
           }
+          90% {
+            transform: translateX(85vw);
+            opacity: 0.5;
+          }
           100% {
-            transform: translateX(100vw);
+            transform: translateX(90vw); /* for full screen */
             opacity: 0;
+          }
+        }
+
+        /* Override for smaller screens */
+        @media (max-width: 768px) {
+          @keyframes truck-drive {
+            0% {
+              transform: translateX(-10%);
+              opacity: 0;
+            }
+            10% {
+              opacity: 1;
+            }
+            90% {
+              transform: translateX(70vw);
+              opacity: 0.5;
+            }
+            100% {
+              transform: translateX(80vw); /* for small screens */
+              opacity: 0;
+            }
           }
         }
       `}</style>

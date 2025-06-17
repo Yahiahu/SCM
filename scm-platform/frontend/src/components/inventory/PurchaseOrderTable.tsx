@@ -1,6 +1,7 @@
 import { FiPackage } from "react-icons/fi";
 import { PurchaseOrder } from "./types";
 import { getStatusColor, getStatusIcon } from "./utils"; // Assuming these utils are already Tailwind/React-icon friendly
+import { useRouter } from "next/navigation";
 
 interface PurchaseOrdersTableProps {
   purchaseOrders: PurchaseOrder[];
@@ -11,6 +12,8 @@ export const PurchaseOrdersTable = ({
   purchaseOrders,
   isLoading,
 }: PurchaseOrdersTableProps) => {
+  const router = useRouter();
+
   return (
     <div className="rounded-2xl shadow-xl shadow-sky-500/10 border border-sky-200/30 bg-white/50 backdrop-blur-sm overflow-hidden">
       {/* Card Header */}
@@ -57,7 +60,8 @@ export const PurchaseOrdersTable = ({
                 {purchaseOrders.slice(0, 5).map((po) => (
                   <tr
                     key={po.id}
-                    className="hover:bg-sky-50/50 transition-colors duration-150"
+                    onClick={() => router.push(`/purchase-order/${po.id}`)}
+                    className="cursor-pointer hover:bg-sky-50/50 transition-colors duration-150"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-sky-900">
                       {po.id}
@@ -95,8 +99,11 @@ export const PurchaseOrdersTable = ({
 
       {/* Card Footer */}
       <div className="p-6 border-t border-sky-200/50 flex justify-end">
-        <button className="text-sky-600 font-medium hover:text-sky-700 hover:underline transition-colors duration-200">
-          View all orders
+        <button
+          onClick={() => router.push("/productOrder")}
+          className="text-sky-600 font-medium hover:text-sky-700 hover:underline transition-colors duration-200"
+        >
+          View All Orders
         </button>
       </div>
     </div>
