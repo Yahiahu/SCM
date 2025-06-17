@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -168,6 +168,7 @@ const SupplyChainNetwork = () => {
     { icon: FaTruck, label: "Distribution" },
     { icon: GiDeliveryDrone, label: "Last Mile" },
   ];
+
 
   return (
     <div
@@ -412,6 +413,21 @@ export default function LandingPage() {
     type: "success" | "error";
   } | null>(null);
 
+  // Top of your component
+const floatingClouds = useMemo(
+  () =>
+    Array.from({ length: 6 }, (_, i) => ({
+      id: i,
+      top: 5 + (i % 2) * 5, // alternate between 5% and 10% vertically
+      left: -1 + i * 17, // space them horizontally: 10%, 25%, 40%, etc.
+      delay: i * 0.5, // staggered animation delay
+      size: 264, // consistent large size (you can change this)
+    })),
+  []
+);
+
+
+
   const handleSendEmail = () => {
     const name = (document.getElementById("name") as HTMLInputElement)?.value;
     const email = (document.getElementById("email") as HTMLInputElement)?.value;
@@ -481,6 +497,26 @@ export default function LandingPage() {
 
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
         <PlaneAnimation />
+        {/* Floating Circles */}
+        {floatingClouds.map((cloud) => (
+          <div
+            key={cloud.id}
+            className="absolute opacity-50"
+            style={{
+              top: `${cloud.top}%`,
+              left: `${cloud.left}%`,
+              animation: `float-bounce 6s ease-in-out ${cloud.delay}s infinite`,
+            }}
+          >
+            <FaCloud
+              style={{
+                width: `${cloud.size}px`,
+                height: `${cloud.size}px`,
+              }}
+              className="text-white drop-shadow-lg"
+            />
+          </div>
+        ))}
 
         {/* Animated Factory to Warehouse Supply Path */}
         <div className="absolute bottom-0 left-0 right-0 h-24 z-10 pointer-events-none">
@@ -498,7 +534,7 @@ export default function LandingPage() {
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
-              className="absolute bottom-2 left-20"
+              className="hidden md:block absolute bottom-2 left-20"
               style={{
                 animation: `truck-drive 14s linear ${i * 2}s infinite`,
               }}
@@ -804,6 +840,23 @@ export default function LandingPage() {
 
       {/* Animations */}
       <style jsx global>{`
+        @keyframes cloud-drift {
+          0% {
+            transform: translateX(-20vw); /* start offscreen left */
+            opacity: 0;
+          }
+          10% {
+            opacity: 1;
+          }
+          90% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateX(120vw); /* drift offscreen right */
+            opacity: 0;
+          }
+        }
+
         @keyframes fade-in {
           from {
             opacity: 0;
@@ -945,27 +998,6 @@ export default function LandingPage() {
           100% {
             transform: translateX(90vw); /* for full screen */
             opacity: 0;
-          }
-        }
-
-        /* Override for smaller screens */
-        @media (max-width: 768px) {
-          @keyframes truck-drive {
-            0% {
-              transform: translateX(-10%);
-              opacity: 0;
-            }
-            10% {
-              opacity: 1;
-            }
-            90% {
-              transform: translateX(70vw);
-              opacity: 0.5;
-            }
-            100% {
-              transform: translateX(80vw); /* for small screens */
-              opacity: 0;
-            }
           }
         }
       `}</style>

@@ -79,7 +79,7 @@ const router = useRouter();
                   return (
                     <tr
                       key={item.id}
-                      onClick={() => router.push(`/inventory/${item.id}`)}
+                      onClick={() => router.push(`/inventoryItem/${item.id}`)}
                       className="cursor-pointer hover:bg-sky-50/50 transition-colors duration-150"
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-sky-900">

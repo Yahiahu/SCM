@@ -60,7 +60,7 @@ export const PurchaseOrdersTable = ({
                 {purchaseOrders.slice(0, 5).map((po) => (
                   <tr
                     key={po.id}
-                    onClick={() => router.push(`/purchase-order/${po.id}`)}
+                    onClick={() => router.push(`/PurchaseOrders/${po.id}`)}
                     className="cursor-pointer hover:bg-sky-50/50 transition-colors duration-150"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-sky-900">

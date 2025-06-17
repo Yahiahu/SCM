@@ -224,13 +224,13 @@ export default function POTable({
                         <tr
                           key={po.id}
                           onClick={() =>
-                            router.push(`/purchase-order/${po.id}`)
+                            router.push(`/PurchaseOrders/${po.id}`)
                           }
                           className="cursor-pointer hover:bg-sky-50/50 transition-colors duration-150"
                         >
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             <a
-                              href={`/purchase-orders/${po.id}`} // Using standard <a> for navigation
+                              href={`/PurchaseOrders/${po.id}`} // Using standard <a> for navigation
                               className="text-blue-600 hover:underline"
                             >
                               {po.poNumber}

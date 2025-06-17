@@ -15,7 +15,7 @@ export const QuickActionsCard = () => (
       <h2 className="text-lg font-semibold text-gray-800">Quick Actions</h2>
     </CardHeader>
     <CardContent>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 pt-5">
         <Button variant="secondary" className="flex items-center gap-2 text-sm">
           <ShoppingCart className="h-4 w-4" />
           Create PO

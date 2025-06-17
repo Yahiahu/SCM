@@ -59,7 +59,7 @@ export const fetchPurchaseOrders = async (): Promise<
 export const fetchWarehouseInventory = async (): Promise<
   BackendWarehouseInventory[]
 > => {
-  const response = await authAxios.get("/warehouse-inventory");
+  const response = await authAxios.get("/warehouseinventory");
   return response.data;
 };
 

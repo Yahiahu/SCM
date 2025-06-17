@@ -460,7 +460,7 @@ const getStatusBadgeVariant = (status: string) => {
                   {filteredShipments.map((shipment) => (
                     <TableRow
                       key={shipment.id}
-                      onClick={() => router.push(`/shipments/${shipment.id}`)}
+                      onClick={() => router.push(`/Shipments/${shipment.id}`)}
                       className="cursor-pointer hover:bg-sky-100 transition"
                     >
                       <TableCell className="font-medium">

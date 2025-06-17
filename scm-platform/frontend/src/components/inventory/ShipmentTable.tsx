@@ -65,7 +65,7 @@ export const ShipmentsTable = ({
                 {shipments.slice(0, 5).map((shipment) => (
                   <tr
                     key={shipment.id}
-                    onClick={() => router.push(`/shipment/${shipment.id}`)}
+                    onClick={() => router.push(`/Shipments/${shipment.id}`)}
                     className="cursor-pointer hover:bg-sky-50/50 transition-colors duration-150"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-sky-900">

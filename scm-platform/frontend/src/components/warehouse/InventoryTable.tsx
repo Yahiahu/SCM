@@ -147,7 +147,7 @@ export const InventoryTable = ({
                   return (
                     <tr
                       key={item.id}
-                      onClick={() => onRowClick?.(item.id)} // ✅ trigger navigation
+                      onClick={() => router.push(`/inventoryItem/${item.id}`)}
                       className={`cursor-pointer hover:bg-sky-50/50 transition-colors duration-150 
     ${index % 2 === 0 ? "bg-white" : "bg-sky-50/20"}`}
                     >

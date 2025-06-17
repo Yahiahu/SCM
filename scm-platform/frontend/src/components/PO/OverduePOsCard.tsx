@@ -74,7 +74,7 @@ export default function OverduePOsCard({
                 {overduePOs.map((po) => (
                   <tr
                     key={po.id}
-                    onClick={() => router.push(`/purchase-order/${po.id}`)}
+                    onClick={() => router.push(`/PurchaseOrders/${po.id}`)}
                     className="cursor-pointer hover:bg-blue-50/50 transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
