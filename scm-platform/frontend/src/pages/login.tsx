@@ -166,34 +166,26 @@ const showToast = (message: string, type: ToastType) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: { preventDefault: () => void; }) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      const res = await fetch("http://localhost:5001/api/users");
-      if (!res.ok) {
-        throw new Error("Failed to fetch users");
-      }
-      const users = await res.json();
-      const match = users.find(
-        (u: { username: string; password_hash: string; }) => u.username === form.username && u.password_hash === form.password
-      );
-      if (!match) {
-        throw new Error("Invalid username or password");
-      }
-      showToast("Login successful!", "success");
-      setTimeout(() => {
-        router.push("/product");
-      }, 1500);
-     } catch (err) {
-  const message =
-    err instanceof Error ? err.message : "Login failed";
-  showToast(message, "error");
-}
- finally {
-      setIsLoading(false);
-    }
-  };
+ const handleSubmit = async (e: { preventDefault: () => void }) => {
+   e.preventDefault();
+   setIsLoading(true);
+
+   const res = await signIn("credentials", {
+     redirect: false,
+     username: form.username,
+     password: form.password,
+   });
+
+   if (res?.ok) {
+     showToast("Login successful!", "success");
+     setTimeout(() => router.push("/product"), 1000);
+   } else {
+     showToast("Invalid username or password", "error");
+   }
+
+   setIsLoading(false);
+ };
+
 
   const handleGoogleSignIn = () => {
     signIn("google", { callbackUrl: "/product" });

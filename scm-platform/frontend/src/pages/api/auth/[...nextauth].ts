@@ -1,6 +1,6 @@
-// src/pages/api/auth/[...nextauth].ts
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { JWT } from "next-auth/jwt";
 import { Session } from "next-auth";
 
@@ -10,6 +10,33 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const res = await fetch("http://localhost:5001/api/users"); // adapt this to your API
+        const users = await res.json();
+
+        const user = users.find(
+          (u: any) =>
+            u.username === credentials?.username &&
+            u.password_hash === credentials?.password
+        );
+
+        if (user) {
+          return {
+            id: user.id,
+            name: user.username,
+            email: user.email,
+          };
+        }
+
+        return null;
+      },
     }),
   ],
   pages: {
@@ -27,6 +54,4 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-
-// 👇 This is required in `pages/api`
 export default NextAuth(authOptions);

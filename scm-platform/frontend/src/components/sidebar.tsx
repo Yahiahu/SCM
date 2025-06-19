@@ -13,9 +13,11 @@ import {
   FiSettings,
   FiArrowDownRight,
   FiArrowDown,
+  FiAnchor,
 } from "react-icons/fi";
 import { IconType } from "react-icons";
 import Link from "next/link";
+import { GiFishingBoat } from "react-icons/gi";
 
 interface LinkItemProps {
   name: string;
@@ -28,6 +30,7 @@ const LinkItems: Array<LinkItemProps> = [
   { name: "Products", icon: FiBox, path: "/product" },
   { name: "Components", icon: FiPackage, path: "/component" },
   { name: "Suppliers", icon: FiArrowDownRight, path: "/supplier" },
+  { name: "Shipping", icon: FiAnchor, path: "/shipping" },
   { name: "Demo", icon: FiShoppingCart, path: "/demo" },
   { name: "Inventory", icon: FiDatabase, path: "/inventory" },
   { name: "Messages", icon: FiMessageSquare, path: "/message" },

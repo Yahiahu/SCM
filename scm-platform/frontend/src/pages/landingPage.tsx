@@ -583,14 +583,7 @@ const floatingClouds = useMemo(
                 <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
 
-              <Button
-                onClick={() => router.push("/demo")}
-                variant="outline"
-                className="border-blue-300 text-blue-700 hover:bg-blue-400 hover:text-white"
-                size="lg"
-              >
-                Explore Features
-              </Button>
+
             </div>
           </div>
         </div>

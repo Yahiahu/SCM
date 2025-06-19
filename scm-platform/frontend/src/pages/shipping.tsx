@@ -431,87 +431,97 @@ const getStatusBadgeVariant = (status: string) => {
           </Card>
 
           {/* Shipments Table */}
-          <Card className="shadow-sm overflow-auto">
-            {isLoading ? (
-              <div className="p-6">
-                {[...Array(5)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-10 bg-gray-200 rounded mb-2 animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tracking #</TableHead>
-                    <TableHead>Carrier</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Route</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead>Weight (lbs)</TableHead>
-                    <TableHead>Est. Delivery</TableHead>
-                    <TableHead>Last Update</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredShipments.map((shipment) => (
-                    <TableRow
-                      key={shipment.id}
-                      onClick={() => router.push(`/Shipments/${shipment.id}`)}
-                      className="cursor-pointer hover:bg-sky-100 transition"
-                    >
-                      <TableCell className="font-medium">
-                        {shipment.trackingNumber}
-                      </TableCell>
-                      <TableCell>{shipment.carrier}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={getStatusBadgeVariant(shipment.status)}
-                          className="flex items-center gap-1 w-fit"
-                        >
-                          {getStatusIcon(shipment.status)}
-                          {shipment.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col text-sm">
-                          <span>{shipment.origin}</span>
-                          <ArrowRight className="mx-auto my-1 h-4 w-4" />
-                          <span>{shipment.destination}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{shipment.items}</TableCell>
-                      <TableCell>{shipment.weight}</TableCell>
-                      <TableCell>{shipment.estimatedDelivery}</TableCell>
-                      <TableCell>{shipment.lastUpdate}</TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            handleTrackShipment(shipment.trackingNumber)
-                          }
-                          className="flex items-center gap-1"
-                        >
-                          <MapPin className="h-4 w-4" />
-                          Track
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-sky-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left py-4 px-6 font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                      #
+                    </th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                      Tracking #
+                    </th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                      Carrier
+                    </th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                      Status
+                    </th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                      Route
+                    </th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                      Est. Delivery
+                    </th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                      Weight (lbs)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {filteredShipments.map((shipment, index) => {
+                    const badgeVariant = getStatusBadgeVariant(shipment.status);
+                    const statusIcon = getStatusIcon(shipment.status);
+                    return (
+                      <tr
+                        key={shipment.id}
+                        onClick={() => router.push(`/Shipments/${shipment.id}`)}
+                        className="cursor-pointer hover:bg-sky-50/50 dark:hover:bg-gray-800/50 transition-colors"
+                      >
+                        <td className="py-4 px-6 font-medium text-sm text-gray-700 dark:text-gray-300">
+                          {index + 1}
+                        </td>
+                        <td className="py-4 px-6 text-gray-900 dark:text-white">
+                          {shipment.trackingNumber}
+                        </td>
+                        <td className="py-4 px-6 text-gray-700 dark:text-gray-300">
+                          {shipment.carrier}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                              badgeVariant === "default"
+                                ? "bg-green-50 text-green-700"
+                                : badgeVariant === "destructive"
+                                ? "bg-red-50 text-red-700"
+                                : badgeVariant === "outline"
+                                ? "bg-yellow-50 text-yellow-700"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {statusIcon}
+                            <span className="ml-1">{shipment.status}</span>
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">
+                          {shipment.origin} → {shipment.destination}
+                        </td>
+                        <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">
+                          {shipment.estimatedDelivery}
+                        </td>
+                        <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">
+                          {shipment.weight}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-            {filteredShipments.length === 0 && !isLoading && (
-              <div className="p-8 text-center text-gray-500">
-                No shipments found. Try adjusting your filters.
+            {filteredShipments.length === 0 && (
+              <div className="text-center py-12">
+                <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  No shipments found
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Try changing your filters or search term.
+                </p>
               </div>
             )}
-          </Card>
+          </div>
         </div>
       </main>
 
