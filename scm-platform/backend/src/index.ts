@@ -15,7 +15,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000", // local dev
-      "https://scm-bay.vercel.app/", // deployed frontend
+      "https://scm-bay.vercel.app", // deployed frontend
     ],
     credentials: true,
   })
