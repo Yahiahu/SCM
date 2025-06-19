@@ -1,3 +1,4 @@
+
 -- ## Organization (Adding 3 more)
 INSERT INTO organization (id, name) VALUES (5, 'Innovate Solutions ltd');
 INSERT INTO organization (id, name) VALUES (3, 'Global Parts Inc.');
@@ -7,10 +8,15 @@ INSERT INTO organization (id, name) VALUES (2, 'Innovate Solutions');
 
 
 -- ## User (Adding 3 more, using existing 'testuser' as ID 1)
-INSERT INTO "user" (id, username, password_hash, email, phone, role, "organizationId") VALUES (2, 'admin_user', '5678', 'admin@innovate.com', '0987654321', 'admin', 2);
+INSERT INTO "user" (id, username, password_hash, email, phone, role, "organizationId") VALUES (6, '1', '1', '1', '1', 'admin', 1);
 INSERT INTO "user" (id, username, password_hash, email, phone, role, "organizationId") VALUES (3, 'manager_gp', 'abcd', 'manager@globalparts.com', '1122334455', 'manager', 3);
 INSERT INTO "user" (id, username, password_hash, email, phone, role, "organizationId") VALUES (4, 'staff_ft', 'efgh', 'staff@futuretech.com', '5566778899', 'user', 4);
 INSERT INTO "user" (username, password_hash, email, phone, role, "organizationId") VALUES ('testuser', '1234', 'test@example.com', '1234567890', 'user', 1);
+
+INSERT INTO "user" (id, username, password_hash, email, phone, role, "organizationId") VALUES (2, 'admin_user', '5678', 'admin@innovate.com', '0987654321', 'admin', 2);
+INSERT INTO "user" (id, username, password_hash, email, phone, role, "organizationId") VALUES (3, 'manager_gp', 'abcd', 'manager@globalparts.com', '1122334455', 'manager', 3);
+INSERT INTO "user" (id, username, password_hash, email, phone, role, "organizationId") VALUES (4, 'staff_ft', 'efgh', 'staff@futuretech.com', '5566778899', 'user', 4);
+INSERT INTO "user" (id, username, password_hash, email, phone, role, "organizationId") VALUES (1, 'testuser', '1234', 'test@example.com', '1234567890', 'user', 1);
 
 
 -- ## Supplier
@@ -300,11 +306,11 @@ INSERT INTO scenario_model (id, name, description, input_parameters, output_metr
 INSERT INTO invoice ("invoiceNumber", "customerName", "issueDate", "dueDate", "totalAmount", "amountPaid", "balanceDue", status, currency, "createdAt", "updatedAt") VALUES ('INV-2025-001', 'Test Client', '2025-06-01', '2025-06-15', 1000, 500, 500, 'Partially Paid', 'USD', now(), now());
 
 
--- ✅ Fix: camelCase fields quoted for `payment`
+-- Fix: camelCase fields quoted for `payment`
 INSERT INTO payment ("paymentId", "invoiceId", "paymentDate", "amount", "type", "method", "status", "description", "currency", "createdAt", "updatedAt")VALUES ('PAY-001', 1, now(), 500, 'Incoming', 'Bank Transfer', 'Completed', 'First partial payment', 'USD', now(), now());
 
 
--- ✅ Fix: quoted camelCase fields for `invoice`
+-- Fix: quoted camelCase fields for `invoice`
 INSERT INTO invoice ("invoiceNumber", "customerName", "issueDate", "dueDate","totalAmount", "amountPaid", "balanceDue","status", "currency", "createdAt", "updatedAt")
 VALUES 
   ('INV-2025-002', 'Innovate Solutions', '2025-06-02', '2025-06-16', 2000, 2000, 0, 'Paid', 'USD', now(), now()),
@@ -313,5 +319,3 @@ VALUES
   ('INV-2025-005', 'Test Org', '2025-06-05', '2025-06-20', 900, 450, 450, 'Partially Paid', 'USD', now(), now()),
   ('INV-2025-006', 'Mickey Mouse Club', '2025-06-06', '2025-06-21', 800, 0, 800, 'Draft', 'USD', now(), now()),
   ('INV-2025-007', 'Cancelled Co', '2025-06-07', '2025-06-22', 1100, 0, 1100, 'Cancelled', 'USD', now(), now());
-
-
