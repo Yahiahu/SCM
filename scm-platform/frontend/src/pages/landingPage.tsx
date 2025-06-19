@@ -501,7 +501,7 @@ const floatingClouds = useMemo(
         {floatingClouds.map((cloud) => (
           <div
             key={cloud.id}
-            className="absolute opacity-50"
+            className="absolute opacity-50 hidden md:block" // ← ADD "hidden md:block"
             style={{
               top: `${cloud.top}%`,
               left: `${cloud.left}%`,
@@ -576,7 +576,7 @@ const floatingClouds = useMemo(
             >
               <Button
                 onClick={() => router.push("/login")}
-                className="bg-white text-blue-700 hover:bg-blue-100 group border border-blue-300"
+                className="bg-white text-blue-700 hover:bg-blue-400 hover:text-white group border border-blue-300"
                 size="lg"
               >
                 Get Started
@@ -586,7 +586,7 @@ const floatingClouds = useMemo(
               <Button
                 onClick={() => router.push("/demo")}
                 variant="outline"
-                className="border-blue-300 text-blue-700 hover:bg-blue-700/30 hover:text-white"
+                className="border-blue-300 text-blue-700 hover:bg-blue-400 hover:text-white"
                 size="lg"
               >
                 Explore Features
