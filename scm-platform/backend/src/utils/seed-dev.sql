@@ -295,11 +295,17 @@ INSERT INTO scenario_model (id, name, description, input_parameters, output_metr
 INSERT INTO scenario_model (id, name, description, input_parameters, output_metrics, status, "createdById", created_at) VALUES (5, 'New Product Introduction Simulation', 'Simulating inventory and supply chain needs for a new product launch', '{"new_product_details": {}}', '{"component_requirements": {}, "initial_po_plan": {}}', 'pending', 1, '2025-06-05');
 
 
-INSERT INTO invoice (invoice_number, customer_name, issue_date, due_date, total_amount, amount_paid, balance_due, status, currency, created_at, updated_at)VALUES ('INV-2025-001', 'Test Client', '2025-06-01', '2025-06-15', 1000, 500, 500, 'Partially Paid', 'USD', now(), now());
 
-INSERT INTO payment (payment_id, invoice_id, payment_date, amount, type, method, status, description, currency, created_at, updated_at)VALUES ('PAY-001', 1, now(), 500, 'Incoming', 'Bank Transfer', 'Completed', 'First partial payment', 'USD', now(), now());
+-- Correct field names from your Invoice entity
+INSERT INTO invoice ("invoiceNumber", "customerName", "issueDate", "dueDate", "totalAmount", "amountPaid", "balanceDue", status, currency, "createdAt", "updatedAt") VALUES ('INV-2025-001', 'Test Client', '2025-06-01', '2025-06-15', 1000, 500, 500, 'Partially Paid', 'USD', now(), now());
 
-INSERT INTO invoice (invoice_number, customer_name, issue_date, due_date, total_amount, amount_paid, balance_due, status, currency, created_at, updated_at)
+
+-- ✅ Fix: camelCase fields quoted for `payment`
+INSERT INTO payment ("paymentId", "invoiceId", "paymentDate", "amount", "type", "method", "status", "description", "currency", "createdAt", "updatedAt")VALUES ('PAY-001', 1, now(), 500, 'Incoming', 'Bank Transfer', 'Completed', 'First partial payment', 'USD', now(), now());
+
+
+-- ✅ Fix: quoted camelCase fields for `invoice`
+INSERT INTO invoice ("invoiceNumber", "customerName", "issueDate", "dueDate","totalAmount", "amountPaid", "balanceDue","status", "currency", "createdAt", "updatedAt")
 VALUES 
   ('INV-2025-002', 'Innovate Solutions', '2025-06-02', '2025-06-16', 2000, 2000, 0, 'Paid', 'USD', now(), now()),
   ('INV-2025-003', 'Global Parts Inc.', '2025-06-03', '2025-06-17', 1500, 0, 1500, 'Sent', 'USD', now(), now()),
@@ -308,28 +314,4 @@ VALUES
   ('INV-2025-006', 'Mickey Mouse Club', '2025-06-06', '2025-06-21', 800, 0, 800, 'Draft', 'USD', now(), now()),
   ('INV-2025-007', 'Cancelled Co', '2025-06-07', '2025-06-22', 1100, 0, 1100, 'Cancelled', 'USD', now(), now());
 
-INSERT INTO payment (payment_id, invoice_id, payment_date, amount, type, method, status, description, currency, created_at, updated_at)
-VALUES 
-  ('PAY-002', 2, now(), 2000, 'Incoming', 'Credit Card', 'Completed', 'Full payment for Innovate', 'USD', now(), now()),
-  ('PAY-003', 3, now(), 1500, 'Incoming', 'Cheque', 'Pending', 'Awaiting clearance', 'USD', now(), now()),
-  ('PAY-004', NULL, now(), 300, 'Outgoing', 'Bank Transfer', 'Completed', 'Office supplies', 'USD', now(), now()),
-  ('PAY-005', 4, now(), 1200, 'Incoming', 'Cash', 'Failed', 'Payment bounced', 'USD', now(), now()),
-  ('PAY-006', 5, now(), 450, 'Incoming', 'Bank Transfer', 'Refunded', 'Refund processed', 'USD', now(), now());
 
-INSERT INTO cash_flow (month, income, expenses, net)
-VALUES 
-  ('Jan', 12000, 8000, 4000),
-  ('Feb', 10000, 9500, 500),
-  ('Mar', 14000, 7000, 7000),
-  ('Apr', 16000, 9000, 7000),
-  ('May', 18000, 10000, 8000),
-  ('Jun', 20000, 11000, 9000);
-
-INSERT INTO finance_summary (
-  total_outstanding_invoices,
-  total_revenue_ytd,
-  total_expenses_ytd,
-  current_cash_balance,
-  overdue_invoices_count,
-  average_payment_days
-) VALUES (5350, 42000, 23000, 25000, 1, 18);
