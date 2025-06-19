@@ -109,7 +109,7 @@ export default function HomePage() {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.2)_1px,transparent_1px)] bg-[size:50px_50px] z-0"></div>
 
-      <Navbar isLoggedIn={isLoggedIn} />
+      <Navbar isLoggedIn={true} />
       <Sidebar visible={sidebarVisible} setVisible={setSidebarVisible} />
 
       <main
