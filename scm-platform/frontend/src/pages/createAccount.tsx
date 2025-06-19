@@ -162,6 +162,7 @@ export default function CreateAccount() {
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
+    console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
     setIsLoading(true);
 
     if (form.password !== form.confirmPassword) {
