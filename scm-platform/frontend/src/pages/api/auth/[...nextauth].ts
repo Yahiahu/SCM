@@ -18,7 +18,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const res = await fetch("http://localhost:5001/api/users"); // adapt this to your API
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`);
         const users = await res.json();
 
         const user = users.find(

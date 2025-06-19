@@ -23,7 +23,7 @@ import {
   WarehouseLayout,
 } from "../../../backend/src/interfaces/index"; // Import from the same directory for frontend types
 
-const API_BASE_URL = "http://localhost:5001/api"; // This is your backend's root API URL
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 // --- Generic Fetch Function ---
 async function fetchData<T>(url: string, errorMessage: string): Promise<T[]> {

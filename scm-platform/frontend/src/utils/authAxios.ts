@@ -1,10 +1,8 @@
-// src/utils/authAxios.ts or similar
-
 import axios from "axios";
 
 const authAxios = axios.create({
-  baseURL: "http://localhost:5001/api", // ✅ Update to your backend base
-  withCredentials: true, // if needed
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001/api",
+  withCredentials: true, // ✅ if you're using cookies/sessions
   headers: {
     "Content-Type": "application/json",
   },
