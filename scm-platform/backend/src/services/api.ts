@@ -1,7 +1,7 @@
 // src/services/api.ts
 import { PurchaseOrder, Supplier, User, POItem } from "../interfaces";
 
-const API_BASE_URL = "http://localhost:5001/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL + "/api";
 
 export const fetchPurchaseOrders = async (): Promise<PurchaseOrder[]> => {
   const response = await fetch(`${API_BASE_URL}/purchaseorder`);
