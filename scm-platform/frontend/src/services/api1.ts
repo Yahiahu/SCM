@@ -14,7 +14,7 @@ import {
 import { Supplier as BackendSupplier } from "../../../backend/src/interfaces"; // Adjust if needed
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001/api";
+  (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001") + "/api";
 
 // Helper for authenticated requests
 const authAxios = axios.create({

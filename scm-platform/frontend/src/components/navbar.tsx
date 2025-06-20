@@ -61,7 +61,6 @@ const navItems = [
     items: [
       { label: "Fulfillment", href: "/sales/fullfillment" },
       { label: "Orders", href: "/sales/orders" },
-      { label: "Shipping", href: "/shipping" },
     ],
   },
   {
