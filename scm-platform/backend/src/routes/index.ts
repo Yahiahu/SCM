@@ -48,7 +48,11 @@ import taskRoutes from "./new/task.routes";
 import invoiceRoutes from "./new/invoice.routes";
 import paymentRoutes from "./new/payment.routes";
 
+import pingRoutes from "./ping.routes";
+
+
 const router = Router();
+
 
 // Legacy or shared routes
 router.use("/users", userRoutes);
@@ -95,6 +99,6 @@ router.use("/admin", adminRoutes);
 router.use("/invoices", invoiceRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/finance", financeRoutes);
-
+router.use("/", pingRoutes);
 
 export default router;
