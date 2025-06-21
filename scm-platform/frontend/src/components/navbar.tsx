@@ -126,7 +126,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
   const handleSignOut = async () => {
     try {
       await signOut({ redirect: false });
-      router.push("/login");
+      router.push("/landingPage");
     } catch (error) {
       console.error("Error signing out:", error);
     }

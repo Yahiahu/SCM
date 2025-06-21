@@ -17,9 +17,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     router.pathname === "/demo" ||
     router.pathname === "/login" ||
     router.pathname === "/landingPage" ||
-    router.pathname === "/createAccount" ||
-    router.pathname === "/product" ||
-    router.pathname === "/component";
+    router.pathname === "/createAccount";
 
   useEffect(() => {
     if (!isPublic && status === "unauthenticated") {
@@ -33,6 +31,19 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 }
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+  // 🔁 Keep-alive ping every 9 minutes (only in production)
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") {
+      const interval = setInterval(() => {
+        fetch("https://scm-5zih.onrender.com/api/ping")
+          .then((res) => console.log("🔄 Keep-alive ping sent:", res.status))
+          .catch((err) => console.error("❌ Keep-alive failed:", err));
+      }, 1000 * 60 * 5); // 5 minutes
+
+      return () => clearInterval(interval);
+    }
+  }, []);
+
   return (
     <SessionProvider session={session}>
       <ChakraProvider>
