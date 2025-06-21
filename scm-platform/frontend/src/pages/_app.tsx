@@ -17,7 +17,9 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     router.pathname === "/demo" ||
     router.pathname === "/login" ||
     router.pathname === "/landingPage" ||
-    router.pathname === "/createAccount";
+    router.pathname === "/createAccount" ||
+    router.pathname === "/aboutus" ||
+    router.pathname.startsWith("/footer");
 
   useEffect(() => {
     if (!isPublic && status === "unauthenticated") {

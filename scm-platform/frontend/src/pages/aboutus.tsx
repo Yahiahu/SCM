@@ -9,6 +9,7 @@ import ValuesSection from "../components/aboutUs/ValueSection";
 import TestimonialsSection from "../components/aboutUs/Testimonials";
 import CTASection from "../components/aboutUs/CTASection";
 import Footer from "../components/footer";
+import Navbar from "../components/navbar";
 
 const AboutUsPage = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -31,7 +32,7 @@ const AboutUsPage = () => {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.3)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
 
-      <Navigation isScrolled={isScrolled} />
+      <Navbar isLoggedIn={true} />
 
       <HeroSection y={y} opacity={opacity} />
 
