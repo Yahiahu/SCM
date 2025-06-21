@@ -14,7 +14,7 @@ import {
 import { Supplier as BackendSupplier } from "../../../backend/src/interfaces"; // Adjust if needed
 
 const API_BASE_URL =
-  (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001") + "/api";
+  (process.env.NEXT_PUBLIC_API_BASE_URL ) + "/api";
 
 // Helper for authenticated requests
 const authAxios = axios.create({
@@ -96,9 +96,7 @@ export const fetchMonthlyStockByProduct = async (
 export const fetchProductDemandByProduct = async (
   productId: string
 ): Promise<BackendProductDemand[]> => {
-  const response = await authAxios.get(
-    `/productdemand?productId=${productId}`
-  );
+  const response = await authAxios.get(`/productdemand?productId=${productId}`);
   return response.data;
 };
 
@@ -116,7 +114,9 @@ export const fetchWarehouseInventoryByProduct = async (
 export const fetchMonthlyStockByComponent = async (
   componentId: string
 ): Promise<BackendMonthlyStock[]> => {
-  const response = await authAxios.get(`/monthlystock?componentId=${componentId}`);
+  const response = await authAxios.get(
+    `/monthlystock?componentId=${componentId}`
+  );
   return response.data;
 };
 
@@ -124,7 +124,9 @@ export const fetchMonthlyStockByComponent = async (
 export const fetchComponentDemandByComponent = async (
   componentId: string
 ): Promise<BackendProductDemand[]> => {
-  const response = await authAxios.get(`/componentdemand?componentId=${componentId}`);
+  const response = await authAxios.get(
+    `/componentdemand?componentId=${componentId}`
+  );
   return response.data;
 };
 
@@ -132,14 +134,14 @@ export const fetchComponentDemandByComponent = async (
 export const fetchWarehouseInventoryByComponent = async (
   componentId: string
 ): Promise<BackendWarehouseInventory[]> => {
-  const response = await authAxios.get(`/warehouseinventory?componentId=${componentId}`);
+  const response = await authAxios.get(
+    `/warehouseinventory?componentId=${componentId}`
+  );
   return response.data;
 };
 
 // NEW: Fetch a single component by ID
-export const fetchComponent = async (
-  id: string
-): Promise<BackendComponent> => {
+export const fetchComponent = async (id: string): Promise<BackendComponent> => {
   const response = await authAxios.get(`/component/${id}`);
   return response.data;
 };
@@ -182,13 +184,17 @@ export const fetchSupplierPerformance = async (id: string): Promise<any> => {
 };
 
 // NEW: Fetch components for a specific supplier
-export const fetchSupplierComponents = async (id: string): Promise<BackendComponent[]> => {
+export const fetchSupplierComponents = async (
+  id: string
+): Promise<BackendComponent[]> => {
   const response = await authAxios.get(`/supplier/${id}/components`);
   return response.data;
 };
 
 // NEW: Fetch purchase orders for a specific supplier
-export const fetchSupplierPurchaseOrders = async (id: string): Promise<BackendPurchaseOrder[]> => {
+export const fetchSupplierPurchaseOrders = async (
+  id: string
+): Promise<BackendPurchaseOrder[]> => {
   const response = await authAxios.get(`/supplier/${id}/purchaseorders`);
   return response.data;
 };
@@ -208,7 +214,9 @@ export const fetchShipmentHistory = async (
 };
 
 // NEW: Fetch events associated with a specific shipment
-export const fetchShipmentEvents = async (shipmentId: string): Promise<any[]> => {
+export const fetchShipmentEvents = async (
+  shipmentId: string
+): Promise<any[]> => {
   const response = await authAxios.get(`/shippinginfo/${shipmentId}/events`);
   return response.data;
 };
@@ -225,7 +233,8 @@ export const fetchPurchaseOrder = async (
 export const fetchPOActivities = async (
   purchaseOrderId: string
 ): Promise<any[]> => {
-  const response = await authAxios.get(`/purchaseorder/${purchaseOrderId}/activities`);
+  const response = await authAxios.get(
+    `/purchaseorder/${purchaseOrderId}/activities`
+  );
   return response.data;
 };
-
