@@ -14,7 +14,8 @@ import {
 import { Supplier as BackendSupplier } from "../../../backend/src/interfaces"; // Adjust if needed
 
 const API_BASE_URL =
-  (process.env.NEXT_PUBLIC_API_BASE_URL ) + "/api";
+  (process.env.NEXT_PUBLIC_API_BASE_URL || "https://scm-5zih.onrender.com") +
+  "/api";
 
 // Helper for authenticated requests
 const authAxios = axios.create({
