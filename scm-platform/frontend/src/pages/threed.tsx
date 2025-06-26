@@ -1,128 +1,326 @@
 "use client";
 
-import React, { useMemo, Suspense, useState, useEffect } from "react";
+import React, { useMemo, Suspense, useState, useEffect, useRef } from "react";
 import { FaCloud, FaWarehouse, FaBuilding } from "react-icons/fa";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Environment } from "@react-three/drei";
 import { cn } from "@/lib/utils";
 import * as THREE from "three";
+import { useRouter } from "next/navigation";
 
-// Load 3D model
-function FactoryModel() {
+// Model components remain the same as before
+function FactoryModel({ scrollProgress }: { scrollProgress: number }) {
   const { scene } = useGLTF("/Factory_origin.glb");
+  const modelRef = useRef<THREE.Group>(null);
+
+  const factoryMaterial = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#1e293b",
+        roughness: 0.5,
+        metalness: 0.1,
+      }),
+    []
+  );
 
   useMemo(() => {
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
-        (child as THREE.Mesh).material = new THREE.MeshStandardMaterial({
-          color: "#1e293b", // Dark blue-gray
-          roughness: 0.5,
-          metalness: 0.1,
-        });
+        (child as THREE.Mesh).material = factoryMaterial;
       }
     });
-  }, [scene]);
-
-  return (
-    <primitive
-      object={scene}
-      scale={2}
-      position={[-2, -2.5, 0]}
-      rotation={[-0.5, -0.1, 0]}
-    />
-  );
-}
-useGLTF.preload("/Factory_origin.glb");
-
-function SmokeParticle({ position }: { position: [number, number, number] }) {
-  const meshRef = React.useRef<THREE.Mesh>(null);
-  const startY = position[1];
-  const startTime = useMemo(() => Date.now(), []);
+  }, [scene, factoryMaterial]);
 
   useFrame(() => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
-    const elapsed = (Date.now() - startTime) / 1000;
-    mesh.position.y = startY + Math.sin(elapsed) * 0.5 + elapsed * 0.3;
-    if (mesh.material && "opacity" in mesh.material) {
-      (mesh.material as THREE.Material & { opacity: number }).opacity = Math.max(0, 1 - elapsed / 5);
+    if (modelRef.current) {
+      const targetRotation = Math.min(scrollProgress, 1) * (Math.PI / 2);
+      modelRef.current.rotation.y +=
+        (targetRotation - modelRef.current.rotation.y) * 0.1;
     }
-    mesh.scale.setScalar(1 + elapsed * 0.2);
   });
 
   return (
-    <mesh ref={meshRef} position={position}>
-      <sphereGeometry args={[0.15, 12, 3]} />
-      <meshStandardMaterial
-        color={"#1e293b"}
-        transparent
-        opacity={0.8}
-        roughness={1}
-        metalness={0}
-      />
-    </mesh>
+    <primitive
+      ref={modelRef}
+      object={scene}
+      scale={2}
+      position={[-1, -2.5, 0]}
+      rotation={[-0.5, 0, 0]}
+    />
   );
 }
 
-function getRandomDelay(mean = 1000, stdDev = 700) {
-  const u = Math.random();
-  const v = Math.random();
-  const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-  return Math.max(100, mean + z * stdDev); // Cap at min 100ms
-}
+function PalletModel({ scrollProgress }: { scrollProgress: number }) {
+  const { scene } = useGLTF("/Pallet.glb");
+  const modelRef = useRef<THREE.Group>(null);
 
-function SmokeEmitter({ origin }: { origin: [number, number, number] }) {
-  const [particles, setParticles] = useState<
-    { id: number; offset: [number, number, number]; createdAt: number }[]
-  >([]);
+  const factoryMaterial = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#1e293b",
+        roughness: 0,
+        metalness: 0,
+      }),
+    []
+  );
 
-  useEffect(() => {
-    let isMounted = true;
+  useMemo(() => {
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        (child as THREE.Mesh).material = factoryMaterial;
+      }
+    });
+  }, [scene, factoryMaterial]);
 
-    const spawnSmoke = () => {
-      if (!isMounted) return;
+  useFrame(() => {
+    if (!modelRef.current) return;
 
-      const id = Date.now();
-      const offset: [number, number, number] = [
-        origin[0] + (Math.random() - 0.5) * 0.2,
-        origin[1],
-        origin[2] + (Math.random() - 0.5) * 0.2,
-      ];
-      setParticles((prev) => [...prev, { id, offset, createdAt: Date.now() }]);
+    const slideProgress = Math.max(0, Math.min(1, scrollProgress - 1));
+    const fadeOut = Math.max(0, Math.min(1, (scrollProgress - 2.2) / 0.3));
 
-      const nextDelay = getRandomDelay(); // normally distributed delay
-      setTimeout(spawnSmoke, nextDelay);
-    };
+    const x = -1 + slideProgress * 1.5 + 1;
+    modelRef.current.position.x = x;
 
-    spawnSmoke();
+    modelRef.current.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh && "material" in child) {
+        const mat = (child as THREE.Mesh)
+          .material as THREE.MeshStandardMaterial;
+        mat.transparent = true;
+        mat.opacity = 1 - fadeOut;
+      }
+    });
 
-    return () => {
-      isMounted = false;
-    };
-  }, [origin]);
-
-  // Remove old particles after 5s
-  useEffect(() => {
-    const cleanup = setInterval(() => {
-      setParticles((prev) =>
-        prev.filter((p) => Date.now() - p.createdAt < 5000)
-      );
-    }, 1000);
-    return () => clearInterval(cleanup);
-  }, []);
+    modelRef.current.visible = fadeOut < 1;
+  });
 
   return (
-    <>
-      {particles.map((p) => (
-        <SmokeParticle key={p.id} position={p.offset} />
-      ))}
-    </>
+    <primitive
+      ref={modelRef}
+      object={scene}
+      scale={0.4}
+      position={[-1, -2, 0]}
+      rotation={[-0.5, 0, 0]}
+    />
   );
 }
 
+function TruckModel({ scrollProgress }: { scrollProgress: number }) {
+  const { scene } = useGLTF("/Truckk.glb");
+  const modelRef = useRef<THREE.Group>(null);
 
+  const truckMaterial = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#1e293b",
+        roughness: 0.5,
+        metalness: -0,
+      }),
+    []
+  );
+
+  useMemo(() => {
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        (child as THREE.Mesh).material = truckMaterial;
+      }
+    });
+  }, [scene, truckMaterial]);
+
+  useFrame(() => {
+    if (!modelRef.current) return;
+
+    const fadeIn = Math.min(1, Math.max(0, (scrollProgress - 1.5) / 0.5));
+    const driveOut = Math.min(1, Math.max(0, (scrollProgress - 2.5) / 12));
+
+    modelRef.current.visible = fadeIn > 0;
+
+    const startX = 4;
+    const targetX = 3.5;
+    const easedDriveOut = (1 - Math.cos(Math.PI * driveOut)) / 2;
+    const parkedX = 1.5 + easedDriveOut * 220;
+
+    const finalX =
+      scrollProgress < 2.5 ? startX + (targetX - startX) * fadeIn : parkedX;
+
+    const z = 0;
+    const y = -3;
+
+    modelRef.current.position.set(finalX, y, z);
+    modelRef.current.rotation.set(-0.5, -3.2, 0);
+  });
+
+  return (
+    <primitive
+      ref={modelRef}
+      object={scene}
+      scale={0.25}
+      position={[0, -2, 0]}
+      rotation={[-0.5, 1, 0]}
+    />
+  );
+}
+
+// Preload models
+useGLTF.preload("/Factory_origin.glb");
+useGLTF.preload("/Pallet.glb");
+useGLTF.preload("/Truckk.glb");
+
+function SectionOne({
+  scrollProgress,
+  floatingClouds,
+}: {
+  scrollProgress: number;
+  floatingClouds: Array<{
+    id: number;
+    top: number;
+    left: number;
+    delay: number;
+    size: number;
+  }>;
+}) {
+  return (
+    <section
+      className="pt-0 pb-0 min-h-screen flex items-center justify-center text-center relative overflow-hidden"
+      style={{
+        background: `linear-gradient(to bottom, 
+          rgb(175, 232, 255) 0%,     
+          rgb(61, 81, 135) 70%,     
+          #0f172a 90%,              
+          #000000 100%              
+        )`,
+      }}
+    >
+      {/* Skyline at the top */}
+      <div className="absolute top-0 left-0 w-full h-32 z-10 overflow-hidden"></div>
+
+      {/* Perspective grid */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          background: `
+            linear-gradient(
+              rgba(135, 206, 235, 0.15) 1px,
+              transparent 1px
+            ),
+            linear-gradient(
+              90deg,
+              rgba(135, 206, 235, 0.15) 1px,
+              transparent 1px
+            )
+          `,
+          backgroundSize: "80px 80px",
+          transform: "perspective(800px) rotateX(60deg)",
+          transformOrigin: "center top",
+          maskImage:
+            "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.8) 70%, transparent 100%)",
+        }}
+      />
+
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          background: `
+            linear-gradient(
+              rgba(70, 130, 180, 0.1) 1px,
+              transparent 1px
+            ),
+            linear-gradient(
+              90deg,
+              rgba(70, 130, 180, 0.1) 1px,
+              transparent 1px
+            )
+          `,
+          backgroundSize: "40px 40px",
+          transform: "perspective(600px) rotateX(70deg)",
+          transformOrigin: "center 40%",
+          maskImage:
+            "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.6) 80%, transparent 100%)",
+        }}
+      />
+
+      {/* Floating clouds */}
+      {floatingClouds.map((cloud) => (
+        <div
+          key={cloud.id}
+          className="absolute opacity-40 hidden md:block"
+          style={{
+            top: `${cloud.top}%`,
+            left: `${cloud.left}%`,
+            animation: `float-bounce 8s ease-in-out ${cloud.delay}s infinite`,
+          }}
+        >
+          <FaCloud
+            style={{ width: `${cloud.size}px`, height: `${cloud.size}px` }}
+            className="text-white drop-shadow-lg"
+          />
+        </div>
+      ))}
+
+      {/* 3D Factory */}
+      <div className="absolute bottom-0 left-0 w-[200vw] h-[40vh] -translate-x-[90vw] z-20 pointer-events-none overflow-visible">
+        <Canvas
+          camera={{ zoom: 50, position: [0, 5, 5], near: 0.1, far: 1000 }}
+          orthographic
+        >
+          <ambientLight intensity={0.6} />
+          <directionalLight position={[3, 5, 3]} intensity={0.8} />
+          <Suspense fallback={null}>
+            <FactoryModel scrollProgress={scrollProgress} />
+            <PalletModel scrollProgress={scrollProgress} />
+            <TruckModel scrollProgress={scrollProgress} />
+            <Environment preset="sunset" />
+            <OrbitControls
+              enableZoom={false}
+              enablePan={false}
+              enableRotate={false}
+            />
+          </Suspense>
+        </Canvas>
+      </div>
+
+      {/* Content area */}
+      <div className="relative z-15 text-white pt-40">
+        <h1 className="text-6xl font-bold mb-4 drop-shadow-lg">
+          Urban Skyline
+        </h1>
+        <p className="text-xl opacity-90 drop-shadow-md">
+          Where the city meets the horizon
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function SectionTwo() {
+  return (
+    <section
+      className="pt-0 pb-0 min-h-screen flex items-center justify-center text-center relative overflow-hidden"
+      style={{
+        background: `linear-gradient(to bottom, 
+          rgb(175, 232, 255) 0%,     
+          rgb(61, 81, 135) 70%,     
+          #0f172a 90%,              
+          #000000 100%              
+        )`,
+      }}
+    >
+      {/* Add your second canvas/scene here */}
+      <div className="relative z-15 text-white pt-40">
+        <h1 className="text-6xl font-bold mb-4 drop-shadow-lg">
+          Next Destination
+        </h1>
+        <p className="text-xl opacity-90 drop-shadow-md">
+          The journey continues...
+        </p>
+      </div>
+    </section>
+  );
+}
 
 export default function MinimalHero() {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
   const floatingClouds = useMemo(
     () =>
       Array.from({ length: 8 }, (_, i) => ({
@@ -135,121 +333,51 @@ export default function MinimalHero() {
     []
   );
 
+ useEffect(() => {
+   const container = scrollContainerRef.current;
+   if (!container) return;
+
+   const handleWheel = (e: WheelEvent) => {
+     e.preventDefault();
+
+     setScrollProgress((prev) => {
+       const newProgress = Math.max(
+         0,
+         Math.min(10, prev + Math.sign(e.deltaY) * 0.05)
+       );
+
+       const newScrollLeft = (newProgress / 7) * window.innerWidth;
+       container.scrollTo({ left: newScrollLeft, behavior: "smooth" });
+
+       return newProgress;
+     });
+   };
+
+   window.addEventListener("wheel", handleWheel, { passive: false });
+
+   return () => {
+     window.removeEventListener("wheel", handleWheel);
+   };
+ }, []);
 
 
   return (
     <div className="min-h-screen text-gray-800 overflow-x-hidden">
-      <section
-        className={cn(
-          "pt-0 pb-0 min-h-screen flex items-center justify-center text-center relative overflow-hidden"
-        )}
-        style={{
-          background: `linear-gradient(to bottom, 
-rgb(175, 232, 255) 0%,      /* Sky blue */
-rgb(61, 81, 135) 70%,     /* Dark blue */
-    #0f172a 90%,     /* Even darker navy blue */
-    #000000 100%     /* Black at bottom */
-  )`,
-        }}
+      <div
+        ref={scrollContainerRef}
+        className="w-full h-screen flex overflow-x-scroll scroll-smooth snap-x snap-mandatory"
+        style={{ scrollBehavior: "smooth" }}
       >
-        {/* Skyline at the top */}
-        <div className="absolute top-0 left-0 w-full h-32 z-10 overflow-hidden"></div>
-
-        {/* Perspective grid that goes down toward ground */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            background: `
-              linear-gradient(
-                rgba(135, 206, 235, 0.15) 1px,
-                transparent 1px
-              ),
-              linear-gradient(
-                90deg,
-                rgba(135, 206, 235, 0.15) 1px,
-                transparent 1px
-              )
-            `,
-            backgroundSize: "80px 80px",
-            transform: "perspective(800px) rotateX(60deg)",
-            transformOrigin: "center top",
-            maskImage:
-              "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.8) 70%, transparent 100%)",
-          }}
-        />
-
-        {/* Additional perspective grid for depth */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            background: `
-              linear-gradient(
-                rgba(70, 130, 180, 0.1) 1px,
-                transparent 1px
-              ),
-              linear-gradient(
-                90deg,
-                rgba(70, 130, 180, 0.1) 1px,
-                transparent 1px
-              )
-            `,
-            backgroundSize: "40px 40px",
-            transform: "perspective(600px) rotateX(70deg)",
-            transformOrigin: "center 40%",
-            maskImage:
-              "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.6) 80%, transparent 100%)",
-          }}
-        />
-
-        {/* Floating clouds */}
-        {floatingClouds.map((cloud) => (
-          <div
-            key={cloud.id}
-            className="absolute opacity-40 hidden md:block"
-            style={{
-              top: `${cloud.top}%`,
-              left: `${cloud.left}%`,
-              animation: `float-bounce 8s ease-in-out ${cloud.delay}s infinite`,
-            }}
-          >
-            <FaCloud
-              style={{ width: `${cloud.size}px`, height: `${cloud.size}px` }}
-              className="text-white drop-shadow-lg"
-            />
-          </div>
-        ))}
-
-        {/* 3D Factory in bottom-left */}
-        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] z-20 pointer-events-none">
-          <Canvas camera={{ position: [0, 2, 5], fov: 50 }}>
-            <ambientLight intensity={0.6} />
-            <directionalLight position={[3, 5, 3]} intensity={0.8} />
-            <Suspense fallback={null}>
-              <FactoryModel />
-              <SmokeEmitter origin={[-1.6, 0.8, 0.5]} />
-              <SmokeEmitter origin={[-1.4, 0.8, 0.5]} />
-              <Environment preset="sunset" />
-
-              <OrbitControls
-                enableZoom={false}
-                enablePan={false}
-                enableRotate={false}
-              />
-            </Suspense>
-          </Canvas>
+        <div className="w-screen h-screen snap-start flex-shrink-0">
+          <SectionOne
+            scrollProgress={scrollProgress}
+            floatingClouds={floatingClouds}
+          />
         </div>
-
-
-        {/* Content area */}
-        <div className="relative z-15 text-white pt-40">
-          <h1 className="text-6xl font-bold mb-4 drop-shadow-lg">
-            Urban Skyline
-          </h1>
-          <p className="text-xl opacity-90 drop-shadow-md">
-            Where the city meets the horizon
-          </p>
+        <div className="w-screen h-screen snap-start flex-shrink-0">
+          <SectionTwo />
         </div>
-      </section>
+      </div>
 
       <style jsx global>{`
         @keyframes float-bounce {
@@ -267,7 +395,6 @@ rgb(61, 81, 135) 70%,     /* Dark blue */
             transform: translateY(-12px) translateX(2px);
           }
         }
-
         @keyframes fadeInUp {
           from {
             opacity: 0;

@@ -21,7 +21,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     router.pathname === "/landingPage" ||
     router.pathname === "/createAccount" ||
     router.pathname === "/aboutus" ||
-    router.pathname === "/threed" ||
+    router.pathname === "/news" ||
+    router.pathname === "/data" ||
+    router.pathname === "/kpi" ||
+    router.pathname === "/live" ||
+    router.pathname === "/analytics" ||
     router.pathname.startsWith("/footer");
     
 

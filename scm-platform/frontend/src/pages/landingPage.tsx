@@ -416,15 +416,16 @@ export default function LandingPage() {
   // Top of your component
 const floatingClouds = useMemo(
   () =>
-    Array.from({ length: 6 }, (_, i) => ({
+    Array.from({ length: 8 }, (_, i) => ({
       id: i,
-      top: 5 + (i % 2) * 5, // alternate between 5% and 10% vertically
-      left: -1 + i * 17, // space them horizontally: 10%, 25%, 40%, etc.
-      delay: i * 0.5, // staggered animation delay
-      size: 264, // consistent large size (you can change this)
+      top: 6 + (i % 1) * 7,
+      left: -5 + i * 16,
+      delay: i * 0.7,
+      size: 180 + (i % 3) * 40,
     })),
   []
 );
+
 
 
 
@@ -501,18 +502,15 @@ const floatingClouds = useMemo(
         {floatingClouds.map((cloud) => (
           <div
             key={cloud.id}
-            className="absolute opacity-50 hidden md:block" // ← ADD "hidden md:block"
+            className="absolute opacity-40 hidden md:block"
             style={{
               top: `${cloud.top}%`,
               left: `${cloud.left}%`,
-              animation: `float-bounce 6s ease-in-out ${cloud.delay}s infinite`,
+              animation: `float-bounce 8s ease-in-out ${cloud.delay}s infinite`,
             }}
           >
             <FaCloud
-              style={{
-                width: `${cloud.size}px`,
-                height: `${cloud.size}px`,
-              }}
+              style={{ width: `${cloud.size}px`, height: `${cloud.size}px` }}
               className="text-white drop-shadow-lg"
             />
           </div>
@@ -582,8 +580,6 @@ const floatingClouds = useMemo(
                 Get Started
                 <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
-
-
             </div>
           </div>
         </div>
@@ -975,6 +971,23 @@ const floatingClouds = useMemo(
         .animate-pulse-glow {
           animation: pulse-glow 1.5s infinite;
         }
+        @keyframes float-bounce {
+          0%,
+          100% {
+            transform: translateY(0) translateX(0);
+          }
+          25% {
+            transform: translateY(-10px) translateX(5px);
+          }
+          50% {
+            transform: translateY(-5px) translateX(-3px);
+          }
+          75% {
+            transform: translateY(-12px) translateX(2px);
+          }
+        }
+
+
         /* Default for large screens */
         @keyframes truck-drive {
           0% {

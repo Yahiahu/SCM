@@ -25,6 +25,8 @@ const navItems = [
       { label: "Dashboard", href: "/admin/dashboard" },
       { label: "Finance", href: "/admin/finance" },
       { label: "Integrations", href: "/admin/integrations" },
+      { label: "KPIs", href: "/kpi" },
+      { label: "Data", href: "/data" },
     ],
   },
   {
@@ -32,6 +34,8 @@ const navItems = [
     items: [
       { label: "Forecasts", href: "/insights/forecasts" },
       { label: "Inventory Insights", href: "/inventory/insights" },
+      { label: "Analytics", href: "/analytics" },
+      { label: "News", href: "/news" },
     ],
   },
   {
@@ -43,7 +47,10 @@ const navItems = [
   },
   {
     label: "Logistics",
-    items: [{ label: "Logistics", href: "/logistics/logistics" }],
+    items: [
+      { label: "Logistics", href: "/logistics/logistics" },
+      { label: "Live Feed", href: "/live" },
+    ],
   },
   {
     label: "Procurement",
