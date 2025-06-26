@@ -8,6 +8,8 @@ import type { AppProps } from "next/app";
 import "../styles/globals.css";
 import { Theme } from "@radix-ui/themes";
 import { useEffect } from "react";
+import '@react-three/fiber'; // (already used internally)
+import '@react-three/drei'; // includes useGLTF preloader
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
@@ -19,7 +21,9 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     router.pathname === "/landingPage" ||
     router.pathname === "/createAccount" ||
     router.pathname === "/aboutus" ||
+    router.pathname === "/threed" ||
     router.pathname.startsWith("/footer");
+    
 
   useEffect(() => {
     if (!isPublic && status === "unauthenticated") {
