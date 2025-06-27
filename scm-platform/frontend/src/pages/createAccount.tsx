@@ -16,7 +16,6 @@ import {
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 
-
 const BlurredBackground = () => (
   <div className="absolute inset-0 overflow-hidden">
     <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-br from-sky-300/30 to-blue-300/30 blur-3xl"></div>
@@ -143,6 +142,7 @@ export default function CreateAccount() {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [accountCreated, setAccountCreated] = useState(false);
   type ToastState = {
     message: string;
     type: "success" | "error";
@@ -162,14 +162,26 @@ export default function CreateAccount() {
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
-    setIsLoading(true);
+
+    // ✅ Check for empty required fields
+    if (
+      !form.username.trim() ||
+      !form.email.trim() ||
+      !form.phone.trim() ||
+      !form.password.trim() ||
+      !form.confirmPassword.trim()
+    ) {
+      showToast("All fields are required", "error");
+      return;
+    }
 
     if (form.password !== form.confirmPassword) {
       showToast("Passwords do not match", "error");
-      setIsLoading(false);
       return;
     }
+
+    setIsLoading(true);
+    setAccountCreated(false); // Reset each time
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
@@ -185,42 +197,37 @@ export default function CreateAccount() {
         }),
       });
 
-      const contentType = res.headers.get("content-type");
-      if (!res.ok) {
-        const errorText = contentType?.includes("application/json")
-          ? (await res.json()).message
-          : await res.text();
-        throw new Error(errorText || "Unknown error");
-      }
+      if (!res.ok) throw new Error();
 
+      setAccountCreated(true);
       showToast("Account created successfully!", "success");
 
+      // ✅ Let the shimmer animate to 100%
       setTimeout(() => {
+        setIsLoading(false);
         router.push("/login");
-      }, 1500);
-    } catch (err) {
-      const error = err as Error;
-      showToast(error.message || "Failed to create account", "error");
-    } finally {
-      setIsLoading(false);
+      }, 800); // give shimmer time to fill in visually
+    } catch {
+      setIsLoading(false); // immediate stop only on error
+      showToast("Error creating account", "error");
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-50 text-gray-800 relative overflow-hidden">
-      <BlurredBackground />
+      {/* <BlurredBackground /> */}
 
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.3)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
 
-      <div className="relative z-10 container mx-auto px-6 py-5">
+      <div className="relative z-10 container mx-auto px-4 pt-0 pb-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
           {/* Left Side - Brand & Testimonial */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="space-y-12"
+            className="hidden lg:block"
           >
             <div className="space-y-8">
               <motion.div
@@ -272,11 +279,11 @@ export default function CreateAccount() {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="max-w-lg mx-auto lg:mx-0"
+            className="max-w-lg pt-1 mx-auto mt-0"
           >
             <div className="p-4 rounded-3xl bg-white/80 backdrop-blur-xl border border-sky-200/50 shadow-2xl">
               <div className="text-center mb-8">
-                <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-gray-800">
+                <h2 className="text-3xl lg:text-4xl font-bold mb-4 pt-[1px] text-gray-800">
                   Create Account{" "}
                   <span className="bg-gradient-to-r from-sky-500 to-blue-500 bg-clip-text text-transparent">
                     !
@@ -346,22 +353,39 @@ export default function CreateAccount() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={isLoading}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`w-full py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center gap-3 transition-all text-white ${
+                  whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                  whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                  className={`relative overflow-hidden w-full py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center gap-3 transition-all text-white ${
                     isLoading
-                      ? "bg-gray-400 cursor-not-allowed"
+                      ? "bg-sky-500 cursor-wait"
                       : "bg-gradient-to-r from-sky-500 to-blue-500 hover:shadow-lg hover:shadow-sky-400/25"
                   }`}
                 >
-                  {isLoading ? (
-                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      Create Account
-                      <FaArrowRight className="w-4 h-4" />
-                    </>
+                  {isLoading && (
+                    <motion.div
+                      initial={{ width: "0%" }}
+                      animate={{ width: accountCreated ? "100%" : "70%" }}
+                      transition={{
+                        duration: accountCreated ? 0.2 : 1.2,
+                        ease: "easeInOut",
+                        ...(accountCreated
+                          ? {}
+                          : { repeat: Infinity, repeatType: "mirror" }),
+                      }}
+                      className="absolute left-0 top-0 h-full bg-blue-700/70"
+                    />
                   )}
+
+                  <span className="relative z-10 flex items-center gap-2">
+                    {isLoading ? (
+                      <>Creating...</>
+                    ) : (
+                      <>
+                        Create Account
+                        <FaArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </span>
                 </motion.button>
               </div>
 
