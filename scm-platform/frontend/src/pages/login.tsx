@@ -257,7 +257,7 @@ export default function Login() {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="max-w-lg mx-auto lg:mx-0 w-full"
+            className="max-w-lg -mt-10 mx-auto lg:mx-0 w-full"
           >
             <div className="px-6 py-6 sm:py-8 rounded-3xl bg-white/80 backdrop-blur-xl border border-sky-200/50 shadow-2xl">
               <div className="text-center mb-8">
