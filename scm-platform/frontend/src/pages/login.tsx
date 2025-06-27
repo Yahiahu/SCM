@@ -146,11 +146,12 @@ export default function Login() {
   const [toast, setToast] = useState<ToastState | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
 
-const showToast = (message: string, type: ToastType) => {
-  setToast({ message, type });
-  setTimeout(() => setToast(null), 4000);
-};
+  const showToast = (message: string, type: ToastType) => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
@@ -161,31 +162,31 @@ const showToast = (message: string, type: ToastType) => {
     }
   }, [error]);
 
-  const handleChange = (e: { target: { name: any; value: any; }; }) => {
+  const handleChange = (e: { target: { name: any; value: any } }) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
- const handleSubmit = async (e: { preventDefault: () => void }) => {
-   e.preventDefault();
-   setIsLoading(true);
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setLoginSuccess(false);
 
-   const res = await signIn("credentials", {
-     redirect: false,
-     username: form.username,
-     password: form.password,
-   });
+    const res = await signIn("credentials", {
+      redirect: false,
+      username: form.username,
+      password: form.password,
+    });
 
-   if (res?.ok) {
-     showToast("Login successful!", "success");
-     setTimeout(() => router.push("/product"), 1000);
-   } else {
-     showToast("Invalid username or password", "error");
-   }
-
-   setIsLoading(false);
- };
-
+    if (res?.ok) {
+      showToast("Login successful!", "success");
+      setLoginSuccess(true);
+      setTimeout(() => router.push("/product"), 1000);
+    } else {
+      showToast("Invalid username or password", "error");
+      setIsLoading(false);
+    }
+  };
 
   const handleGoogleSignIn = () => {
     signIn("google", { callbackUrl: "/product" });
@@ -339,22 +340,41 @@ const showToast = (message: string, type: ToastType) => {
                   type="button"
                   onClick={handleSubmit}
                   disabled={isLoading}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`w-full py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center gap-3 transition-all text-white ${
+                  whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                  whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                  className={`relative overflow-hidden w-full py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center gap-3 transition-all text-white ${
                     isLoading
-                      ? "bg-gray-400 cursor-not-allowed"
+                      ? "bg-sky-500 cursor-wait"
                       : "bg-gradient-to-r from-sky-500 to-blue-500 hover:shadow-lg hover:shadow-sky-400/25"
                   }`}
                 >
-                  {isLoading ? (
-                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      Sign In
-                      <FaArrowRight className="w-4 h-4" />
-                    </>
+                  {/* Animated shimmer/progress bar */}
+                  {isLoading && (
+                    <motion.div
+                      initial={{ width: "0%" }}
+                      animate={{ width: loginSuccess ? "100%" : "70%" }}
+                      transition={{
+                        duration: loginSuccess ? 0.4 : 1.2,
+                        ease: "easeInOut",
+                        ...(loginSuccess
+                          ? {}
+                          : { repeat: Infinity, repeatType: "mirror" }),
+                      }}
+                      className="absolute left-0 top-0 h-full bg-blue-700/70"
+                    />
                   )}
+
+                  {/* Content */}
+                  <span className="relative z-10 flex items-center gap-2">
+                    {isLoading ? (
+                      <>Signing in...</>
+                    ) : (
+                      <>
+                        Sign In
+                        <FaArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </span>
                 </motion.button>
               </div>
 
